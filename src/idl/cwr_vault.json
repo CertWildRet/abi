@@ -1,0 +1,1486 @@
+{
+  "address": "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
+  "metadata": {
+    "name": "cwr_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "CWR multi-tranche vault on Solana — backend-managed ORE farming pools"
+  },
+  "instructions": [
+    {
+      "name": "claim_withdraw",
+      "discriminator": [
+        232,
+        89,
+        154,
+        117,
+        16,
+        204,
+        182,
+        224
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "escrow_ata",
+          "writable": true
+        },
+        {
+          "name": "withdraw_request",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "withdraw_request"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit",
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "user_share_ata",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "init_bucket",
+      "discriminator": [
+        237,
+        69,
+        61,
+        218,
+        18,
+        60,
+        21,
+        236
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "docs": [
+            "SOL-only PDA. System-owned, derived; lamports tracked off this account."
+          ],
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "escrow_ata",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "bucket_id",
+          "type": "u8"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "BucketParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "backend",
+          "type": "pubkey"
+        },
+        {
+          "name": "fee_recipient",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "pull",
+      "discriminator": [
+        78,
+        119,
+        161,
+        115,
+        9,
+        167,
+        75,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "backend",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "operator_wallet",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "push",
+      "discriminator": [
+        143,
+        34,
+        101,
+        78,
+        188,
+        184,
+        199,
+        63
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "operator_wallet",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "report_nav",
+      "discriminator": [
+        130,
+        91,
+        101,
+        209,
+        75,
+        233,
+        10,
+        41
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "backend",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "external_value",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "request_withdraw",
+      "discriminator": [
+        137,
+        95,
+        187,
+        96,
+        250,
+        138,
+        31,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "user_share_ata",
+          "writable": true
+        },
+        {
+          "name": "escrow_ata",
+          "writable": true
+        },
+        {
+          "name": "withdraw_request",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "set_admin",
+      "discriminator": [
+        251,
+        163,
+        0,
+        52,
+        91,
+        194,
+        187,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_admin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "set_backend",
+      "discriminator": [
+        150,
+        129,
+        11,
+        115,
+        232,
+        141,
+        179,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_backend",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "set_bucket_params",
+      "discriminator": [
+        169,
+        3,
+        166,
+        166,
+        3,
+        150,
+        62,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "BucketParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "set_fee_recipient",
+      "discriminator": [
+        227,
+        18,
+        215,
+        42,
+        237,
+        246,
+        151,
+        66
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_fee_recipient",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "set_pause",
+      "discriminator": [
+        63,
+        32,
+        154,
+        2,
+        56,
+        103,
+        79,
+        45
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Bucket",
+      "discriminator": [
+        27,
+        203,
+        100,
+        76,
+        218,
+        12,
+        58,
+        168
+      ]
+    },
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "WithdrawRequest",
+      "discriminator": [
+        186,
+        239,
+        174,
+        191,
+        189,
+        13,
+        47,
+        196
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BucketInitializedEvent",
+      "discriminator": [
+        209,
+        56,
+        85,
+        92,
+        55,
+        70,
+        61,
+        162
+      ]
+    },
+    {
+      "name": "ClaimWithdrawEvent",
+      "discriminator": [
+        194,
+        116,
+        164,
+        10,
+        49,
+        123,
+        24,
+        113
+      ]
+    },
+    {
+      "name": "DepositEvent",
+      "discriminator": [
+        120,
+        248,
+        61,
+        83,
+        31,
+        142,
+        107,
+        144
+      ]
+    },
+    {
+      "name": "InitializedEvent",
+      "discriminator": [
+        136,
+        202,
+        63,
+        120,
+        152,
+        146,
+        41,
+        79
+      ]
+    },
+    {
+      "name": "PullEvent",
+      "discriminator": [
+        124,
+        242,
+        49,
+        173,
+        61,
+        32,
+        20,
+        192
+      ]
+    },
+    {
+      "name": "PushEvent",
+      "discriminator": [
+        249,
+        202,
+        18,
+        193,
+        129,
+        127,
+        43,
+        94
+      ]
+    },
+    {
+      "name": "ReportNavEvent",
+      "discriminator": [
+        69,
+        91,
+        173,
+        142,
+        181,
+        81,
+        131,
+        190
+      ]
+    },
+    {
+      "name": "RequestWithdrawEvent",
+      "discriminator": [
+        8,
+        19,
+        138,
+        15,
+        73,
+        48,
+        140,
+        155
+      ]
+    },
+    {
+      "name": "SetAdminEvent",
+      "discriminator": [
+        240,
+        117,
+        204,
+        254,
+        89,
+        150,
+        132,
+        94
+      ]
+    },
+    {
+      "name": "SetBackendEvent",
+      "discriminator": [
+        151,
+        52,
+        109,
+        250,
+        0,
+        182,
+        196,
+        76
+      ]
+    },
+    {
+      "name": "SetBucketParamsEvent",
+      "discriminator": [
+        44,
+        177,
+        38,
+        225,
+        22,
+        70,
+        122,
+        111
+      ]
+    },
+    {
+      "name": "SetPauseEvent",
+      "discriminator": [
+        219,
+        209,
+        120,
+        213,
+        175,
+        135,
+        178,
+        183
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotAdmin",
+      "msg": "Caller is not the admin"
+    },
+    {
+      "code": 6001,
+      "name": "NotBackend",
+      "msg": "Caller is not the backend operator"
+    },
+    {
+      "code": 6002,
+      "name": "BucketPaused",
+      "msg": "Bucket is paused"
+    },
+    {
+      "code": 6003,
+      "name": "BucketAlreadyInitialized",
+      "msg": "Bucket already initialized"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidBucketId",
+      "msg": "Invalid bucket id"
+    },
+    {
+      "code": 6005,
+      "name": "DepositBelowMinimum",
+      "msg": "Deposit amount below bucket minimum"
+    },
+    {
+      "code": 6006,
+      "name": "DepositExceedsCap",
+      "msg": "Deposit would exceed bucket cap"
+    },
+    {
+      "code": 6007,
+      "name": "ZeroShares",
+      "msg": "Withdraw shares must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "LockupActive",
+      "msg": "Lockup has not elapsed"
+    },
+    {
+      "code": 6009,
+      "name": "OutstandingWithdraw",
+      "msg": "Outstanding withdraw request already exists"
+    },
+    {
+      "code": 6010,
+      "name": "NoOutstandingWithdraw",
+      "msg": "No outstanding withdraw request"
+    },
+    {
+      "code": 6011,
+      "name": "InsufficientVaultSol",
+      "msg": "Insufficient SOL in vault to fulfill withdraw — backend must top up"
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientPullable",
+      "msg": "Insufficient SOL in vault to pull"
+    },
+    {
+      "code": 6013,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    },
+    {
+      "code": 6014,
+      "name": "MathUnderflow",
+      "msg": "Math underflow"
+    },
+    {
+      "code": 6015,
+      "name": "BadPerformanceFee",
+      "msg": "Performance fee out of range"
+    },
+    {
+      "code": 6016,
+      "name": "NavJumpExceeded",
+      "msg": "NAV update would move share price beyond allowed jump bounds"
+    },
+    {
+      "code": 6017,
+      "name": "NavRateLimited",
+      "msg": "NAV update too soon after last update"
+    },
+    {
+      "code": 6018,
+      "name": "BadLockup",
+      "msg": "Lockup duration out of allowed range"
+    },
+    {
+      "code": 6019,
+      "name": "EmptyVault",
+      "msg": "Cannot operate on empty vault"
+    },
+    {
+      "code": 6020,
+      "name": "BucketNotEmpty",
+      "msg": "Bucket has outstanding shares — cannot reinitialize"
+    }
+  ],
+  "types": [
+    {
+      "name": "Bucket",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "initialized",
+            "type": "bool"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "treasury_bump",
+            "type": "u8"
+          },
+          {
+            "name": "mint_bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_bump",
+            "type": "u8"
+          },
+          {
+            "name": "share_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow_ata",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_shares",
+            "type": "u64"
+          },
+          {
+            "name": "sol_in_vault",
+            "type": "u64"
+          },
+          {
+            "name": "external_value",
+            "type": "u64"
+          },
+          {
+            "name": "pending_withdraw_shares",
+            "type": "u64"
+          },
+          {
+            "name": "high_water_nav_per_share",
+            "type": "u128"
+          },
+          {
+            "name": "last_nav_update",
+            "type": "i64"
+          },
+          {
+            "name": "last_nav_per_share",
+            "type": "u128"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "BucketParams"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BucketInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "share_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "BucketParams"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BucketParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lockup_seconds",
+            "type": "i64"
+          },
+          {
+            "name": "performance_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_nav_jump_up_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_nav_drop_down_bps",
+            "type": "u16"
+          },
+          {
+            "name": "min_nav_update_interval",
+            "type": "i64"
+          },
+          {
+            "name": "min_deposit",
+            "type": "u64"
+          },
+          {
+            "name": "deposit_cap",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ClaimWithdrawEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares_burned",
+            "type": "u64"
+          },
+          {
+            "name": "payout_lamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "backend",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_count",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "amount_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "shares_minted",
+            "type": "u64"
+          },
+          {
+            "name": "nav_per_share",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "backend",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_recipient",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PullEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "sol_in_vault",
+            "type": "u64"
+          },
+          {
+            "name": "external_value",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PushEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "sol_in_vault",
+            "type": "u64"
+          },
+          {
+            "name": "external_value",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReportNavEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "external_value",
+            "type": "u64"
+          },
+          {
+            "name": "sol_in_vault",
+            "type": "u64"
+          },
+          {
+            "name": "total_shares",
+            "type": "u64"
+          },
+          {
+            "name": "nav_per_share",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestWithdrawEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "unlock_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetAdminEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetBackendEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetBucketParamsEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "BucketParams"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetPauseEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawRequest",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "requested_at",
+            "type": "i64"
+          },
+          {
+            "name": "unlock_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "BUCKET_SEED",
+      "type": "bytes",
+      "value": "[98, 117, 99, 107, 101, 116]"
+    },
+    {
+      "name": "CONFIG_SEED",
+      "type": "bytes",
+      "value": "[99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "ESCROW_SEED",
+      "type": "bytes",
+      "value": "[101, 115, 99, 114, 111, 119]"
+    },
+    {
+      "name": "SHARE_MINT_SEED",
+      "type": "bytes",
+      "value": "[115, 104, 97, 114, 101, 95, 109, 105, 110, 116]"
+    },
+    {
+      "name": "TREASURY_SEED",
+      "type": "bytes",
+      "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
+      "name": "WITHDRAW_SEED",
+      "type": "bytes",
+      "value": "[119, 105, 116, 104, 100, 114, 97, 119]"
+    }
+  ]
+}
