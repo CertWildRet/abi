@@ -617,6 +617,57 @@ export type CwrVault = {
           ]
         },
         {
+          "name": "feeBucket",
+          "docs": [
+            "V5 — global fee bucket PDA. Pull-fee skim flows here for later",
+            "permissionless distribution via `distribute_fees`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -1463,6 +1514,67 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setPullFee",
+      "docs": [
+        "V5 — narrow admin setter for the per-pull VOLUME fee. This is",
+        "the ONLY active monetisation in the V5 baseline product (entry /",
+        "exit / perf all default to 0 bps). Bps capped at",
+        "`MAX_PULL_FEE_BPS` (500). Bumps blocked while `claims_open == true`",
+        "(raising is gated; lowering OK) — H1 parity."
+      ],
+      "discriminator": [
+        99,
+        148,
+        254,
+        226,
+        20,
+        41,
+        61,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "pullFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "pullFeeEnabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "withdraw",
       "docs": [
         "User withdraws SOL by burning shares. Gated by:",
@@ -1939,6 +2051,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setPullFeeEvent",
+      "discriminator": [
+        117,
+        211,
+        244,
+        53,
+        128,
+        67,
+        189,
+        211
+      ]
+    },
+    {
       "name": "withdrawEvent",
       "discriminator": [
         22,
@@ -2142,6 +2267,16 @@ export type CwrVault = {
       "code": 6037,
       "name": "perfFeeBumpDuringClaims",
       "msg": "Performance fee parameter cannot be raised while claims_open=true"
+    },
+    {
+      "code": 6038,
+      "name": "badPullFee",
+      "msg": "Pull fee bps out of range (must be <= MAX_PULL_FEE_BPS)"
+    },
+    {
+      "code": 6039,
+      "name": "pullFeeBumpDuringClaims",
+      "msg": "Pull fee parameter cannot be raised while claims_open=true"
     }
   ],
   "types": [
@@ -2384,6 +2519,26 @@ export type CwrVault = {
             "name": "exitFeeEnabled",
             "docs": [
               "When false, exit fee is skipped regardless of `exit_fee_bps`."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "pullFeeBps",
+            "docs": [
+              "V5 — per-`pull` volume fee in bps. Skimmed from the pull amount",
+              "INSIDE the `pull` ix and routed to the global `fee_bucket` PDA.",
+              "The remaining amount (NET) is what reaches the operator wallet",
+              "for actual deployment. `external_value` is incremented by the NET,",
+              "so the vault's total NAV drops by the fee on every pull — that is",
+              "where the user pays this fee, transparently, via NPS reduction.",
+              "Capped at `MAX_PULL_FEE_BPS`."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "pullFeeEnabled",
+            "docs": [
+              "When false, pull fee is skipped regardless of `pull_fee_bps`."
             ],
             "type": "bool"
           }
@@ -2708,6 +2863,24 @@ export type CwrVault = {
           },
           {
             "name": "amount",
+            "docs": [
+              "Gross amount debited from treasury (sol_in_vault -= amount)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeLamports",
+            "docs": [
+              "V5 volume fee skimmed and routed to the global fee_bucket."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "netAmount",
+            "docs": [
+              "What actually reached the operator wallet for deployment.",
+              "`external_value` increments by exactly this value."
+            ],
             "type": "u64"
           },
           {
@@ -2965,6 +3138,26 @@ export type CwrVault = {
           {
             "name": "performanceFeeBps",
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "setPullFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "pullFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "pullFeeEnabled",
+            "type": "bool"
           }
         ]
       }
