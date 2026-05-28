@@ -8,59 +8,13 @@
   },
   "instructions": [
     {
-      "name": "claim_withdraw",
-      "discriminator": [
-        232,
-        89,
-        154,
-        117,
-        16,
-        204,
-        182,
-        224
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "treasury",
-          "writable": true
-        },
-        {
-          "name": "share_mint",
-          "writable": true
-        },
-        {
-          "name": "escrow_ata",
-          "writable": true
-        },
-        {
-          "name": "withdraw_request",
-          "writable": true
-        },
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "withdraw_request"
-          ]
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "deposit",
+      "docs": [
+        "User deposits SOL into a bucket. Gated by:",
+        "- !paused",
+        "- deposits_open (operator must explicitly open deposits)",
+        "- !claims_open (no deposits while a claim window is active)"
+      ],
       "discriminator": [
         242,
         35,
@@ -94,6 +48,57 @@
           "signer": true
         },
         {
+          "name": "fee_bucket",
+          "docs": [
+            "V5 — global fee bucket PDA. Entry fees flow here for later",
+            "permissionless distribution via `distribute_fees`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_schedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -108,6 +113,95 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "distribute_fees",
+      "docs": [
+        "V5 — permissionless. Drains the fee bucket to the active split's",
+        "recipients pro-rata. Caller must pass each non-empty recipient as",
+        "a writable account via `remaining_accounts` (any order — matched",
+        "by pubkey to a schedule slot).",
+        "",
+        "Snapshot semantics: the active split is determined by `Clock::now()`",
+        "at distribute time, not at fee-collection time. Recipients are",
+        "expected to call this often to avoid accidental splits across the",
+        "year-one boundary.",
+        "",
+        "Distribution math floors per-recipient (favoring the bucket); any",
+        "residual dust stays in the bucket for the next call."
+      ],
+      "discriminator": [
+        120,
+        56,
+        27,
+        7,
+        53,
+        176,
+        113,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "fee_schedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_bucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless. Any signer can pay the tx fee. Recipient accounts",
+            "are passed via `remaining_accounts`."
+          ],
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "init_bucket",
@@ -155,9 +249,6 @@
         },
         {
           "name": "treasury",
-          "docs": [
-            "SOL-only PDA. System-owned, derived; lamports tracked off this account."
-          ],
           "writable": true
         },
         {
@@ -165,8 +256,21 @@
           "writable": true
         },
         {
-          "name": "escrow_ata",
+          "name": "store_treasury",
+          "docs": [
+            "V5 — per-bucket stORE token account. Mint = `cfg.store_mint`,",
+            "authority = bucket PDA. Created at init even when store_mint is",
+            "Pubkey::default() so the contract layout is stable across envs",
+            "(in that case the account just holds 0 stORE forever)."
+          ],
           "writable": true
+        },
+        {
+          "name": "store_mint",
+          "docs": [
+            "Mint passed in by the caller. Must match `cfg.store_mint` for the",
+            "init to succeed (token::mint constraint above)."
+          ]
         },
         {
           "name": "token_program",
@@ -192,6 +296,132 @@
             "defined": {
               "name": "BucketParams"
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_fee_schedule",
+      "docs": [
+        "V5 — initialise the global fee schedule. Admin-only, one-time.",
+        "Both splits are validated to sum to 10000 bps over non-empty slots.",
+        "Empty slots must have Pubkey::default() recipient AND bps_share=0."
+      ],
+      "discriminator": [
+        18,
+        11,
+        191,
+        190,
+        168,
+        1,
+        190,
+        199
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "fee_schedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_bucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "genesis",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "FeeRecipient"
+                }
+              },
+              4
+            ]
+          }
+        },
+        {
+          "name": "year_one",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "FeeRecipient"
+                }
+              },
+              4
+            ]
           }
         }
       ]
@@ -244,7 +474,15 @@
           "type": "pubkey"
         },
         {
+          "name": "operator_wallet",
+          "type": "pubkey"
+        },
+        {
           "name": "fee_recipient",
+          "type": "pubkey"
+        },
+        {
+          "name": "store_mint",
           "type": "pubkey"
         }
       ]
@@ -297,7 +535,15 @@
         },
         {
           "name": "operator_wallet",
-          "writable": true
+          "docs": [
+            "PINNED to `cfg.operator_wallet`. Audit-fix #2: previously any pubkey was",
+            "allowed as the pull destination, letting a compromised backend drain to",
+            "any wallet they chose."
+          ],
+          "writable": true,
+          "relations": [
+            "config"
+          ]
         },
         {
           "name": "system_program",
@@ -333,13 +579,131 @@
           "writable": true
         },
         {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "backend",
+          "docs": [
+            "Audit-fix #1: previously no `Config` was loaded, allowing ANY signer to",
+            "call `push` and corrupt `sol_in_vault` accounting + bypass the NAV-jump",
+            "check. Now requires backend signature AND pinned operator_wallet."
+          ],
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
           "name": "operator_wallet",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "config"
+          ]
         },
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "push_store",
+      "docs": [
+        "V5 — operator (signing as backend's pinned operator_wallet) pushes",
+        "wrapped stORE FROM the operator's stORE ATA INTO the per-bucket",
+        "`store_treasury` token account. Mirrors `push` but in the stORE leg.",
+        "Increments `bucket.store_in_vault`; does NOT touch SOL NAV."
+      ],
+      "discriminator": [
+        35,
+        108,
+        163,
+        36,
+        12,
+        198,
+        15,
+        101
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "store_treasury",
+          "docs": [
+            "Per-bucket stORE-holding token account. Authority = bucket PDA."
+          ],
+          "writable": true
+        },
+        {
+          "name": "operator_store_ata",
+          "docs": [
+            "Operator's stORE source ATA. Mint pinned to `cfg.store_mint`,",
+            "authority must be the pinned `operator_wallet`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "store_mint"
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "backend",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "operator_wallet",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": [
@@ -395,56 +759,6 @@
       "args": [
         {
           "name": "external_value",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "request_withdraw",
-      "discriminator": [
-        137,
-        95,
-        187,
-        96,
-        250,
-        138,
-        31,
-        182
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "user_share_ata",
-          "writable": true
-        },
-        {
-          "name": "escrow_ata",
-          "writable": true
-        },
-        {
-          "name": "withdraw_request",
-          "writable": true
-        },
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "shares",
           "type": "u64"
         }
       ]
@@ -598,6 +912,106 @@
       ]
     },
     {
+      "name": "set_claims_open",
+      "discriminator": [
+        72,
+        97,
+        72,
+        71,
+        123,
+        131,
+        45,
+        81
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "open",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_deposits_open",
+      "discriminator": [
+        91,
+        221,
+        147,
+        146,
+        85,
+        176,
+        56,
+        189
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "open",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "set_fee_recipient",
       "discriminator": [
         227,
@@ -640,6 +1054,120 @@
       "args": [
         {
           "name": "new_fee_recipient",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "set_fees",
+      "docs": [
+        "V5 — narrow admin setter for the flat entry/exit fees. Doesn't",
+        "touch the rest of the bucket params, so it's safe to use without",
+        "risking accidental NAV-bound or refining-rate changes."
+      ],
+      "discriminator": [
+        137,
+        178,
+        49,
+        58,
+        0,
+        245,
+        242,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "entry_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "entry_fee_enabled",
+          "type": "bool"
+        },
+        {
+          "name": "exit_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "exit_fee_enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "set_operator_wallet",
+      "discriminator": [
+        208,
+        102,
+        230,
+        208,
+        118,
+        66,
+        212,
+        24
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_operator",
           "type": "pubkey"
         }
       ]
@@ -693,6 +1221,166 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "User withdraws SOL by burning shares. Gated by:",
+        "- !paused",
+        "- claims_open (operator must explicitly open claims)",
+        "",
+        "Performance fee is computed against the bucket's high-water NPS and",
+        "transferred to `cfg.fee_recipient`. User receives payout − fee.",
+        "",
+        "NAV is FROZEN while claims_open=true (pull/push/report_nav all blocked),",
+        "so the NPS used here cannot be manipulated mid-withdraw. This is the",
+        "central security invariant of the v2 design."
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "user_share_ata",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fee_recipient",
+          "docs": [
+            "Pinned: must match `cfg.fee_recipient`. Receives the perf fee."
+          ],
+          "writable": true
+        },
+        {
+          "name": "fee_bucket",
+          "docs": [
+            "V5 — global fee bucket PDA. Exit fees flow here for later",
+            "permissionless distribution via `distribute_fees`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_schedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "store_treasury",
+          "docs": [
+            "V5 — per-bucket stORE-holding token account. Source of pro-rata",
+            "stORE paid out alongside the SOL payout. Authority = bucket PDA."
+          ],
+          "writable": true
+        },
+        {
+          "name": "user_store_ata",
+          "docs": [
+            "User's stORE ATA. Must exist (caller should idempotently create it",
+            "in a preInstruction). Mint must match `cfg.store_mint`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "store_mint",
+          "docs": [
+            "The configured stORE mint. Address-pinned to `cfg.store_mint`."
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -723,16 +1411,16 @@
       ]
     },
     {
-      "name": "WithdrawRequest",
+      "name": "FeeSchedule",
       "discriminator": [
-        186,
-        239,
-        174,
-        191,
-        189,
-        13,
-        47,
-        196
+        250,
+        80,
+        88,
+        27,
+        206,
+        216,
+        50,
+        199
       ]
     }
   ],
@@ -751,19 +1439,6 @@
       ]
     },
     {
-      "name": "ClaimWithdrawEvent",
-      "discriminator": [
-        194,
-        116,
-        164,
-        10,
-        49,
-        123,
-        24,
-        113
-      ]
-    },
-    {
       "name": "DepositEvent",
       "discriminator": [
         120,
@@ -774,6 +1449,32 @@
         142,
         107,
         144
+      ]
+    },
+    {
+      "name": "FeeScheduleInitializedEvent",
+      "discriminator": [
+        166,
+        232,
+        137,
+        76,
+        87,
+        10,
+        108,
+        248
+      ]
+    },
+    {
+      "name": "FeesDistributedEvent",
+      "discriminator": [
+        95,
+        72,
+        218,
+        211,
+        175,
+        186,
+        41,
+        255
       ]
     },
     {
@@ -816,6 +1517,19 @@
       ]
     },
     {
+      "name": "PushStoreEvent",
+      "discriminator": [
+        206,
+        133,
+        162,
+        100,
+        199,
+        32,
+        113,
+        131
+      ]
+    },
+    {
       "name": "ReportNavEvent",
       "discriminator": [
         69,
@@ -826,19 +1540,6 @@
         81,
         131,
         190
-      ]
-    },
-    {
-      "name": "RequestWithdrawEvent",
-      "discriminator": [
-        8,
-        19,
-        138,
-        15,
-        73,
-        48,
-        140,
-        155
       ]
     },
     {
@@ -881,6 +1582,71 @@
       ]
     },
     {
+      "name": "SetClaimsOpenEvent",
+      "discriminator": [
+        244,
+        38,
+        99,
+        224,
+        176,
+        184,
+        7,
+        109
+      ]
+    },
+    {
+      "name": "SetDepositsOpenEvent",
+      "discriminator": [
+        68,
+        215,
+        98,
+        145,
+        146,
+        159,
+        199,
+        102
+      ]
+    },
+    {
+      "name": "SetFeeRecipientEvent",
+      "discriminator": [
+        184,
+        5,
+        192,
+        73,
+        240,
+        241,
+        169,
+        215
+      ]
+    },
+    {
+      "name": "SetFeesEvent",
+      "discriminator": [
+        15,
+        239,
+        255,
+        95,
+        248,
+        35,
+        111,
+        115
+      ]
+    },
+    {
+      "name": "SetOperatorWalletEvent",
+      "discriminator": [
+        187,
+        255,
+        168,
+        124,
+        96,
+        129,
+        247,
+        255
+      ]
+    },
+    {
       "name": "SetPauseEvent",
       "discriminator": [
         219,
@@ -891,6 +1657,19 @@
         135,
         178,
         183
+      ]
+    },
+    {
+      "name": "WithdrawEvent",
+      "discriminator": [
+        22,
+        9,
+        133,
+        26,
+        160,
+        44,
+        71,
+        192
       ]
     }
   ],
@@ -907,98 +1686,158 @@
     },
     {
       "code": 6002,
+      "name": "NotOperator",
+      "msg": "Wallet is not the registered operator"
+    },
+    {
+      "code": 6003,
       "name": "BucketPaused",
       "msg": "Bucket is paused"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "BucketAlreadyInitialized",
       "msg": "Bucket already initialized"
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "InvalidBucketId",
       "msg": "Invalid bucket id"
     },
     {
-      "code": 6005,
+      "code": 6006,
+      "name": "DepositsClosed",
+      "msg": "Deposits are currently closed for this bucket"
+    },
+    {
+      "code": 6007,
+      "name": "ClaimsClosed",
+      "msg": "Claims are currently closed for this bucket"
+    },
+    {
+      "code": 6008,
+      "name": "NavFrozen",
+      "msg": "Operation blocked while claims are open — NAV is frozen for fair withdrawals"
+    },
+    {
+      "code": 6009,
       "name": "DepositBelowMinimum",
       "msg": "Deposit amount below bucket minimum"
     },
     {
-      "code": 6006,
+      "code": 6010,
       "name": "DepositExceedsCap",
       "msg": "Deposit would exceed bucket cap"
     },
     {
-      "code": 6007,
+      "code": 6011,
       "name": "ZeroShares",
       "msg": "Withdraw shares must be greater than zero"
     },
     {
-      "code": 6008,
-      "name": "LockupActive",
-      "msg": "Lockup has not elapsed"
+      "code": 6012,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
     },
     {
-      "code": 6009,
-      "name": "OutstandingWithdraw",
-      "msg": "Outstanding withdraw request already exists"
-    },
-    {
-      "code": 6010,
-      "name": "NoOutstandingWithdraw",
-      "msg": "No outstanding withdraw request"
-    },
-    {
-      "code": 6011,
+      "code": 6013,
       "name": "InsufficientVaultSol",
       "msg": "Insufficient SOL in vault to fulfill withdraw — backend must top up"
     },
     {
-      "code": 6012,
+      "code": 6014,
       "name": "InsufficientPullable",
       "msg": "Insufficient SOL in vault to pull"
     },
     {
-      "code": 6013,
+      "code": 6015,
       "name": "MathOverflow",
       "msg": "Math overflow"
     },
     {
-      "code": 6014,
+      "code": 6016,
       "name": "MathUnderflow",
       "msg": "Math underflow"
     },
     {
-      "code": 6015,
+      "code": 6017,
       "name": "BadPerformanceFee",
       "msg": "Performance fee out of range"
     },
     {
-      "code": 6016,
+      "code": 6018,
       "name": "NavJumpExceeded",
       "msg": "NAV update would move share price beyond allowed jump bounds"
     },
     {
-      "code": 6017,
+      "code": 6019,
       "name": "NavRateLimited",
       "msg": "NAV update too soon after last update"
     },
     {
-      "code": 6018,
-      "name": "BadLockup",
-      "msg": "Lockup duration out of allowed range"
+      "code": 6020,
+      "name": "NavIntervalTooShort",
+      "msg": "min_nav_update_interval below contract safety floor"
     },
     {
-      "code": 6019,
+      "code": 6021,
       "name": "EmptyVault",
       "msg": "Cannot operate on empty vault"
     },
     {
-      "code": 6020,
+      "code": 6022,
       "name": "BucketNotEmpty",
       "msg": "Bucket has outstanding shares — cannot reinitialize"
+    },
+    {
+      "code": 6023,
+      "name": "BadDepositBounds",
+      "msg": "Misconfigured params (min_deposit > deposit_cap)"
+    },
+    {
+      "code": 6024,
+      "name": "BadEntryFee",
+      "msg": "Entry fee bps out of range (must be ≤ MAX_ENTRY_FEE_BPS)"
+    },
+    {
+      "code": 6025,
+      "name": "BadExitFee",
+      "msg": "Exit fee bps out of range (must be ≤ MAX_EXIT_FEE_BPS)"
+    },
+    {
+      "code": 6026,
+      "name": "FeeScheduleSplitInvalid",
+      "msg": "Fee schedule recipient bps shares must sum to exactly 10000"
+    },
+    {
+      "code": 6027,
+      "name": "FeeScheduleAlreadyInit",
+      "msg": "Fee schedule already initialized"
+    },
+    {
+      "code": 6028,
+      "name": "FeeBucketEmpty",
+      "msg": "Fee bucket holds no SOL to distribute"
+    },
+    {
+      "code": 6029,
+      "name": "FeeRecipientMismatch",
+      "msg": "distribute_fees recipient account does not match schedule"
+    },
+    {
+      "code": 6030,
+      "name": "FeeRecipientCountMismatch",
+      "msg": "distribute_fees received wrong number of recipient accounts"
+    },
+    {
+      "code": 6031,
+      "name": "InsufficientStoreInVault",
+      "msg": "Insufficient stORE in vault to fulfill the requested transfer"
+    },
+    {
+      "code": 6032,
+      "name": "StoreMintNotConfigured",
+      "msg": "Operation requires Config.store_mint to be set (non-zero)"
     }
   ],
   "types": [
@@ -1017,6 +1856,29 @@
           },
           {
             "name": "paused",
+            "docs": [
+              "Master kill switch. When true, EVERY user + backend instruction is",
+              "blocked. Only `set_paused(false)` from admin can re-enable."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "deposits_open",
+            "docs": [
+              "Operator-controlled phase flag. When true, `deposit` is allowed",
+              "(subject to !paused && !claims_open)."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "claims_open",
+            "docs": [
+              "Operator-controlled claim-window flag. When true:",
+              "- users may call `withdraw` to redeem shares at the FROZEN NPS",
+              "- `deposit`, `pull`, `push`, `report_nav` are ALL disabled (NAV frozen)",
+              "This is the central security invariant added in V2: no NAV manipulation",
+              "is possible during a withdraw window."
+            ],
             "type": "bool"
           },
           {
@@ -1032,19 +1894,11 @@
             "type": "u8"
           },
           {
-            "name": "escrow_bump",
-            "type": "u8"
-          },
-          {
             "name": "share_mint",
             "type": "pubkey"
           },
           {
             "name": "treasury",
-            "type": "pubkey"
-          },
-          {
-            "name": "escrow_ata",
             "type": "pubkey"
           },
           {
@@ -1060,11 +1914,24 @@
             "type": "u64"
           },
           {
-            "name": "pending_withdraw_shares",
+            "name": "store_in_vault",
+            "docs": [
+              "V5 — stORE atomic units currently held by the bucket's `store_treasury`",
+              "token account (authority = bucket PDA). Grows on push_store, shrinks",
+              "pro-rata on withdraw. Decoupled from SOL NAV: this is a parallel",
+              "payout leg, not factored into nav_per_share."
+            ],
             "type": "u64"
           },
           {
+            "name": "store_treasury_bump",
+            "type": "u8"
+          },
+          {
             "name": "high_water_nav_per_share",
+            "docs": [
+              "Maximum NPS ever reported. Used to compute performance fee on `withdraw`."
+            ],
             "type": "u128"
           },
           {
@@ -1120,56 +1987,77 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "lockup_seconds",
-            "type": "i64"
-          },
-          {
             "name": "performance_fee_bps",
+            "docs": [
+              "Performance fee charged on profit above the bucket's high-water NPS."
+            ],
             "type": "u16"
           },
           {
             "name": "max_nav_jump_up_bps",
+            "docs": [
+              "Maximum per-`report_nav` upward NPS jump (BPS of prev NPS)."
+            ],
             "type": "u16"
           },
           {
             "name": "max_nav_drop_down_bps",
+            "docs": [
+              "Maximum per-`report_nav` downward NPS drop (BPS of prev NPS)."
+            ],
             "type": "u16"
           },
           {
             "name": "min_nav_update_interval",
+            "docs": [
+              "Minimum seconds between consecutive `report_nav` calls. Floored by",
+              "`MIN_NAV_UPDATE_INTERVAL_SECS` (1 hour) at validation time."
+            ],
             "type": "i64"
           },
           {
             "name": "min_deposit",
+            "docs": [
+              "Minimum SOL per deposit (lamports). 0 = no minimum."
+            ],
             "type": "u64"
           },
           {
             "name": "deposit_cap",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "ClaimWithdrawEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "bucket_id",
-            "type": "u8"
-          },
-          {
-            "name": "shares_burned",
+            "docs": [
+              "Maximum total SOL the bucket will accept across all depositors. 0 = uncapped."
+            ],
             "type": "u64"
           },
           {
-            "name": "payout_lamports",
-            "type": "u64"
+            "name": "entry_fee_bps",
+            "docs": [
+              "Entry fee in basis points, skimmed from each deposit into the fee",
+              "bucket PDA before shares are minted. Capped at `MAX_ENTRY_FEE_BPS`."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "exit_fee_bps",
+            "docs": [
+              "Exit fee in basis points, skimmed from each withdrawal's gross",
+              "payout into the fee bucket PDA. Capped at `MAX_EXIT_FEE_BPS`."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "entry_fee_enabled",
+            "docs": [
+              "When false, entry fee is skipped regardless of `entry_fee_bps`."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "exit_fee_enabled",
+            "docs": [
+              "When false, exit fee is skipped regardless of `exit_fee_bps`."
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -1181,14 +2069,43 @@
         "fields": [
           {
             "name": "admin",
+            "docs": [
+              "Highest privilege key. Can rotate any role + change bucket params."
+            ],
             "type": "pubkey"
           },
           {
             "name": "backend",
+            "docs": [
+              "Backend hot key. Can call pull/push/report_nav."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "operator_wallet",
+            "docs": [
+              "PINNED destination for pull / source for push. The only wallet the",
+              "backend is allowed to route SOL through. Audit-fix: previously",
+              "unconstrained, allowing a compromised backend key to drain to any",
+              "address."
+            ],
             "type": "pubkey"
           },
           {
             "name": "fee_recipient",
+            "docs": [
+              "Where performance fees flow."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "store_mint",
+            "docs": [
+              "V5 — stORE mint. Pinned at initialize; cannot be changed after init",
+              "(would break per-bucket store_treasury ATAs). Set to Pubkey::default()",
+              "in environments that don't use the stORE flow (e.g. localnet without",
+              "ore-lst deployed); push_store + withdraw stORE will then no-op."
+            ],
             "type": "pubkey"
           },
           {
@@ -1220,12 +2137,160 @@
             "type": "u64"
           },
           {
+            "name": "entry_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "net_deposited_lamports",
+            "type": "u64"
+          },
+          {
             "name": "shares_minted",
             "type": "u64"
           },
           {
             "name": "nav_per_share",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeRecipient",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "bps_share",
+            "docs": [
+              "Share of distributed fees in bps. 0 = slot unused (recipient field",
+              "will also be Pubkey::default() in that case)."
+            ],
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeSchedule",
+      "docs": [
+        "Hardcoded fee distribution schedule, set once at `init_fee_schedule`.",
+        "",
+        "The split auto-rolls from `genesis` → `year_one` exactly",
+        "`YEAR_ONE_SWITCHOVER_SECS` after `genesis_ts`. The check is lazy: every",
+        "`distribute_fees` call reads the on-chain clock and picks the active",
+        "split, so no upkeep is required at the boundary.",
+        "",
+        "Distribution semantics: snapshot-at-distribute. Whatever the active",
+        "split is at `distribute_fees` time applies to the *entire* current",
+        "fee-bucket balance, regardless of when those fees accrued. Recipients",
+        "motivated by a specific schedule are expected to call distribute often."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "genesis_ts",
+            "type": "i64"
+          },
+          {
+            "name": "genesis",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "FeeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "year_one",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "FeeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "fee_bucket_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeScheduleInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "genesis_ts",
+            "type": "i64"
+          },
+          {
+            "name": "genesis",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "FeeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "year_one",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "FeeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeesDistributedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "total_paid_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "split_in_use",
+            "docs": [
+              "0 = genesis split, 1 = year_one split"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "distributed_at",
+            "type": "i64"
           }
         ]
       }
@@ -1244,7 +2309,15 @@
             "type": "pubkey"
           },
           {
+            "name": "operator_wallet",
+            "type": "pubkey"
+          },
+          {
             "name": "fee_recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "store_mint",
             "type": "pubkey"
           }
         ]
@@ -1299,6 +2372,26 @@
       }
     },
     {
+      "name": "PushStoreEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "store_in_vault",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "ReportNavEvent",
       "type": {
         "kind": "struct",
@@ -1322,30 +2415,6 @@
           {
             "name": "nav_per_share",
             "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "RequestWithdrawEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "bucket_id",
-            "type": "u8"
-          },
-          {
-            "name": "shares",
-            "type": "u64"
-          },
-          {
-            "name": "unlock_at",
-            "type": "i64"
           }
         ]
       }
@@ -1403,6 +2472,98 @@
       }
     },
     {
+      "name": "SetClaimsOpenEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "open",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetDepositsOpenEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "open",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetFeeRecipientEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetFeesEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "entry_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "entry_fee_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "exit_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "exit_fee_enabled",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetOperatorWalletEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "SetPauseEvent",
       "type": {
         "kind": "struct",
@@ -1419,7 +2580,7 @@
       }
     },
     {
-      "name": "WithdrawRequest",
+      "name": "WithdrawEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1432,20 +2593,41 @@
             "type": "u8"
           },
           {
-            "name": "shares",
+            "name": "shares_burned",
             "type": "u64"
           },
           {
-            "name": "requested_at",
-            "type": "i64"
+            "name": "gross_payout_lamports",
+            "type": "u64"
           },
           {
-            "name": "unlock_at",
-            "type": "i64"
+            "name": "fee_lamports",
+            "docs": [
+              "Performance fee (legacy) routed to `cfg.fee_recipient`."
+            ],
+            "type": "u64"
           },
           {
-            "name": "bump",
-            "type": "u8"
+            "name": "exit_fee_lamports",
+            "docs": [
+              "V5 flat exit fee routed to the global fee bucket."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "user_payout_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "store_payout_atomic",
+            "docs": [
+              "V5 — atomic stORE units paid pro-rata alongside SOL."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "new_high_water_nps",
+            "type": "u128"
           }
         ]
       }
@@ -1463,9 +2645,14 @@
       "value": "[99, 111, 110, 102, 105, 103]"
     },
     {
-      "name": "ESCROW_SEED",
+      "name": "FEE_BUCKET_SEED",
       "type": "bytes",
-      "value": "[101, 115, 99, 114, 111, 119]"
+      "value": "[102, 101, 101, 95, 98, 117, 99, 107, 101, 116]"
+    },
+    {
+      "name": "FEE_SCHEDULE_SEED",
+      "type": "bytes",
+      "value": "[102, 101, 101, 95, 115, 99, 104, 101, 100, 117, 108, 101]"
     },
     {
       "name": "SHARE_MINT_SEED",
@@ -1473,14 +2660,18 @@
       "value": "[115, 104, 97, 114, 101, 95, 109, 105, 110, 116]"
     },
     {
+      "name": "STORE_TREASURY_SEED",
+      "docs": [
+        "Seed for the per-bucket stORE-holding token account. PDA's mint is",
+        "`Config.store_mint`; its authority is the bucket PDA. V5."
+      ],
+      "type": "bytes",
+      "value": "[115, 116, 111, 114, 101, 95, 116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
       "name": "TREASURY_SEED",
       "type": "bytes",
       "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
-    },
-    {
-      "name": "WITHDRAW_SEED",
-      "type": "bytes",
-      "value": "[119, 105, 116, 104, 100, 114, 97, 119]"
     }
   ]
 }
