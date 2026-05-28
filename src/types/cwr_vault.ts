@@ -14,6 +14,71 @@ export type CwrVault = {
   },
   "instructions": [
     {
+      "name": "adminWriteOff",
+      "docs": [
+        "V5 (audit C3) — bounded admin write-off of `bucket.external_value`.",
+        "",
+        "Recognises a realised loss in the off-chain strategy (Engine D",
+        "liquidation, partner-protocol exploit, etc.) by reducing",
+        "`external_value` directly. Bounded per-call by `MAX_WRITE_OFF_BPS`",
+        "(5%) of CURRENT external_value AND rate-limited by the bucket's",
+        "`min_nav_update_interval` so a compromised admin cannot wipe NAV in",
+        "one shot. The same drop bound that report_nav applies to NPS jumps",
+        "applies here, in lamport terms.",
+        "",
+        "Blocked while `claims_open == true` (NAV is frozen during claims).",
+        "Updates `last_nav_update` so subsequent `report_nav` calls respect",
+        "the rate-limit window from this call."
+      ],
+      "discriminator": [
+        190,
+        141,
+        187,
+        206,
+        97,
+        248,
+        80,
+        35
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "docs": [
         "User deposits SOL into a bucket. Gated by:",
@@ -1065,6 +1130,114 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setFeeSchedule",
+      "docs": [
+        "V5 (audit C2) — admin update of an already-initialised fee schedule.",
+        "",
+        "Allows rotating compromised recipient pubkeys or rebalancing the split",
+        "without redeploying the program. Each replacement array is validated",
+        "independently with `validate_fee_split` (must sum to exactly 10000 bps",
+        "over non-empty slots). The genesis timestamp is preserved — the",
+        "year-one switchover is computed against the ORIGINAL genesis_ts, so",
+        "updating the schedule does not reset the year-one clock.",
+        "",
+        "Side-effect free w.r.t. the fee_bucket balance: pre-existing fees",
+        "will be distributed under whichever split is active at the next",
+        "`distribute_fees` call (snapshot-at-distribute), which is the same",
+        "semantic as initial fee accrual."
+      ],
+      "discriminator": [
+        239,
+        37,
+        205,
+        178,
+        164,
+        47,
+        23,
+        13
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "feeSchedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "genesis",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "feeRecipient"
+                }
+              },
+              4
+            ]
+          }
+        },
+        {
+          "name": "yearOne",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "feeRecipient"
+                }
+              },
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "setFees",
       "docs": [
         "V5 — narrow admin setter for the flat entry/exit fees. Doesn't",
@@ -1225,6 +1398,67 @@ export type CwrVault = {
         {
           "name": "paused",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setPerfFee",
+      "docs": [
+        "V5 — narrow admin setter for the performance fee bps. Mirrors",
+        "`set_fees` ergonomics: touches only `performance_fee_bps` so the",
+        "admin can't accidentally change NAV-bound, deposit-cap, or other",
+        "params while turning the perf fee on/off.",
+        "",
+        "Today's V5 product defaults `performance_fee_bps = 0` (flat",
+        "entry+exit only). This ix exists so the perf-fee dormant capability",
+        "can be activated per-bucket without a program redeploy if a future",
+        "product variant calls for it."
+      ],
+      "discriminator": [
+        149,
+        94,
+        54,
+        56,
+        33,
+        20,
+        212,
+        136
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "performanceFeeBps",
+          "type": "u16"
         }
       ]
     },
@@ -1432,6 +1666,19 @@ export type CwrVault = {
   ],
   "events": [
     {
+      "name": "adminWriteOffEvent",
+      "discriminator": [
+        51,
+        124,
+        2,
+        126,
+        57,
+        69,
+        136,
+        217
+      ]
+    },
+    {
       "name": "bucketInitializedEvent",
       "discriminator": [
         209,
@@ -1468,6 +1715,19 @@ export type CwrVault = {
         10,
         108,
         248
+      ]
+    },
+    {
+      "name": "feeScheduleUpdatedEvent",
+      "discriminator": [
+        78,
+        178,
+        72,
+        73,
+        251,
+        14,
+        72,
+        110
       ]
     },
     {
@@ -1666,6 +1926,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setPerfFeeEvent",
+      "discriminator": [
+        134,
+        203,
+        93,
+        75,
+        163,
+        250,
+        153,
+        172
+      ]
+    },
+    {
       "name": "withdrawEvent",
       "discriminator": [
         22,
@@ -1844,9 +2117,58 @@ export type CwrVault = {
       "code": 6032,
       "name": "storeMintNotConfigured",
       "msg": "Operation requires Config.store_mint to be set (non-zero)"
+    },
+    {
+      "code": 6033,
+      "name": "storeMintMustBeSet",
+      "msg": "Config.store_mint must be a real mint at initialize (Pubkey::default() not allowed)"
+    },
+    {
+      "code": 6034,
+      "name": "writeOffExceedsLossBound",
+      "msg": "admin_write_off would exceed the per-call loss bound (MAX_WRITE_OFF_BPS)"
+    },
+    {
+      "code": 6035,
+      "name": "writeOffExceedsExternalValue",
+      "msg": "write-off amount exceeds bucket.external_value"
+    },
+    {
+      "code": 6036,
+      "name": "feeBumpDuringClaims",
+      "msg": "Fee parameter changes are blocked while claims_open=true (cannot bump fees mid-claim)"
+    },
+    {
+      "code": 6037,
+      "name": "perfFeeBumpDuringClaims",
+      "msg": "Performance fee parameter cannot be raised while claims_open=true"
     }
   ],
   "types": [
+    {
+      "name": "adminWriteOffEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "newExternalValue",
+            "type": "u64"
+          },
+          {
+            "name": "newNavPerShare",
+            "type": "u128"
+          }
+        ]
+      }
+    },
     {
       "name": "bucket",
       "type": {
@@ -2107,10 +2429,14 @@ export type CwrVault = {
           {
             "name": "storeMint",
             "docs": [
-              "V5 — stORE mint. Pinned at initialize; cannot be changed after init",
-              "(would break per-bucket store_treasury ATAs). Set to Pubkey::default()",
-              "in environments that don't use the stORE flow (e.g. localnet without",
-              "ore-lst deployed); push_store + withdraw stORE will then no-op."
+              "V5 — stORE mint. Pinned at `initialize`; cannot be changed after init",
+              "(would break per-bucket `store_treasury` ATAs and the `address =",
+              "config.store_mint` constraints on `Withdraw` / `BackendPushStore`).",
+              "**Must be a real mint** — `Pubkey::default()` is rejected at init",
+              "(`CwrError::StoreMintMustBeSet`). Localnet/devnet environments that",
+              "don't have a deployed `ore-lst` should still mint a placeholder SPL",
+              "mint and pass it here; `push_store` is permissionless to omit so the",
+              "stORE leg simply stays at 0 for those envs."
             ],
             "type": "pubkey"
           },
@@ -2247,6 +2573,48 @@ export type CwrVault = {
         "fields": [
           {
             "name": "genesisTs",
+            "type": "i64"
+          },
+          {
+            "name": "genesis",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "feeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "yearOne",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "feeRecipient"
+                  }
+                },
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "feeScheduleUpdatedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "genesisTs",
+            "docs": [
+              "Preserved from the original init; the year-one switchover clock",
+              "is NOT reset by an update."
+            ],
             "type": "i64"
           },
           {
@@ -2581,6 +2949,22 @@ export type CwrVault = {
           {
             "name": "paused",
             "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "setPerfFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "performanceFeeBps",
+            "type": "u16"
           }
         ]
       }
