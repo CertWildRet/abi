@@ -368,6 +368,10 @@ export type CwrVault = {
               "name": "bucketParams"
             }
           }
+        },
+        {
+          "name": "operatorWallet",
+          "type": "pubkey"
         }
       ]
     },
@@ -545,10 +549,6 @@ export type CwrVault = {
           "type": "pubkey"
         },
         {
-          "name": "operatorWallet",
-          "type": "pubkey"
-        },
-        {
           "name": "feeRecipient",
           "type": "pubkey"
         },
@@ -607,13 +607,13 @@ export type CwrVault = {
         {
           "name": "operatorWallet",
           "docs": [
-            "PINNED to `cfg.operator_wallet`. Audit-fix #2: previously any pubkey was",
-            "allowed as the pull destination, letting a compromised backend drain to",
-            "any wallet they chose."
+            "PINNED to this bucket's `operator_wallet`. Audit-fix #2: previously",
+            "any pubkey was allowed as the pull destination. Now per-bucket so",
+            "Simple's operator cannot pull from Refined's treasury."
           ],
           "writable": true,
           "relations": [
-            "config"
+            "bucket"
           ]
         },
         {
@@ -723,7 +723,8 @@ export type CwrVault = {
           "docs": [
             "Audit-fix #1: previously no `Config` was loaded, allowing ANY signer to",
             "call `push` and corrupt `sol_in_vault` accounting + bypass the NAV-jump",
-            "check. Now requires backend signature AND pinned operator_wallet."
+            "check. Now requires backend signature AND this bucket's pinned",
+            "operator_wallet (V5: per-bucket)."
           ],
           "signer": true,
           "relations": [
@@ -735,7 +736,7 @@ export type CwrVault = {
           "writable": true,
           "signer": true,
           "relations": [
-            "config"
+            "bucket"
           ]
         },
         {
@@ -784,7 +785,7 @@ export type CwrVault = {
           "name": "operatorStoreAta",
           "docs": [
             "Operator's stORE source ATA. Mint pinned to `cfg.store_mint`,",
-            "authority must be the pinned `operator_wallet`."
+            "authority must be this bucket's pinned `operator_wallet`."
           ],
           "writable": true
         },
@@ -820,7 +821,7 @@ export type CwrVault = {
           "name": "operatorWallet",
           "signer": true,
           "relations": [
-            "config"
+            "bucket"
           ]
         },
         {
@@ -975,6 +976,64 @@ export type CwrVault = {
       "args": [
         {
           "name": "newBackend",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "setBucketOperator",
+      "docs": [
+        "V5 — narrow admin setter for a single bucket's operator wallet.",
+        "Per-bucket operators keep each bucket's ORE Miner PDA independent;",
+        "`claim_ore` on one bucket no longer resets the others' refining",
+        "accumulator. Blocked while `claims_open == true` (NAV is frozen",
+        "during claim windows — rotating the operator mid-window would",
+        "orphan in-flight pushes)."
+      ],
+      "discriminator": [
+        190,
+        182,
+        224,
+        68,
+        242,
+        193,
+        118,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newOperator",
           "type": "pubkey"
         }
       ]
@@ -1352,53 +1411,6 @@ export type CwrVault = {
         {
           "name": "exitFeeEnabled",
           "type": "bool"
-        }
-      ]
-    },
-    {
-      "name": "setOperatorWallet",
-      "discriminator": [
-        208,
-        102,
-        230,
-        208,
-        118,
-        66,
-        212,
-        24
-      ],
-      "accounts": [
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "newOperator",
-          "type": "pubkey"
         }
       ]
     },
@@ -1947,6 +1959,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setBucketOperatorEvent",
+      "discriminator": [
+        14,
+        190,
+        181,
+        246,
+        212,
+        172,
+        21,
+        46
+      ]
+    },
+    {
       "name": "setBucketParamsEvent",
       "discriminator": [
         44,
@@ -2009,19 +2034,6 @@ export type CwrVault = {
         35,
         111,
         115
-      ]
-    },
-    {
-      "name": "setOperatorWalletEvent",
-      "discriminator": [
-        187,
-        255,
-        168,
-        124,
-        96,
-        129,
-        247,
-        255
       ]
     },
     {
@@ -2365,6 +2377,19 @@ export type CwrVault = {
             "type": "pubkey"
           },
           {
+            "name": "operatorWallet",
+            "docs": [
+              "V5 — per-bucket operator wallet. PINNED destination for `pull`,",
+              "source for `push`, and authority on the operator stORE ATA used",
+              "by `push_store`. Set at `init_bucket` time, mutable only via",
+              "`set_bucket_operator` (admin, claims-open lock for changes).",
+              "Each bucket having its own operator gives it its own ORE Miner PDA,",
+              "so claim_ore cadence + refining-yield accumulation are isolated",
+              "per bucket (Simple's hourly claim does NOT reset Refined/Ultra)."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "totalShares",
             "type": "u64"
           },
@@ -2431,6 +2456,10 @@ export type CwrVault = {
           },
           {
             "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "operatorWallet",
             "type": "pubkey"
           },
           {
@@ -2561,16 +2590,6 @@ export type CwrVault = {
             "name": "backend",
             "docs": [
               "Backend hot key. Can call pull/push/report_nav."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "operatorWallet",
-            "docs": [
-              "PINNED destination for pull / source for push. The only wallet the",
-              "backend is allowed to route SOL through. Audit-fix: previously",
-              "unconstrained, allowing a compromised backend key to drain to any",
-              "address."
             ],
             "type": "pubkey"
           },
@@ -2838,10 +2857,6 @@ export type CwrVault = {
             "type": "pubkey"
           },
           {
-            "name": "operatorWallet",
-            "type": "pubkey"
-          },
-          {
             "name": "feeRecipient",
             "type": "pubkey"
           },
@@ -2999,6 +3014,26 @@ export type CwrVault = {
       }
     },
     {
+      "name": "setBucketOperatorEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "setBucketParamsEvent",
       "type": {
         "kind": "struct",
@@ -3090,22 +3125,6 @@ export type CwrVault = {
           {
             "name": "exitFeeEnabled",
             "type": "bool"
-          }
-        ]
-      }
-    },
-    {
-      "name": "setOperatorWalletEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "old",
-            "type": "pubkey"
-          },
-          {
-            "name": "new",
-            "type": "pubkey"
           }
         ]
       }
