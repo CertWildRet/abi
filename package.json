@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "sync": "bash scripts/sync.sh",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepare": "tsc -p tsconfig.json"
   },
   "devDependencies": {
     "typescript": "^5.7.3"
