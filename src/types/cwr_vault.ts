@@ -14,6 +14,56 @@ export type CwrVault = {
   },
   "instructions": [
     {
+      "name": "acceptAdmin",
+      "docs": [
+        "V5 external-audit hardening — STEP 3 of admin handover.",
+        "",
+        "Signed by the pending admin. Commits the rotation. Requires:",
+        "- a proposal is pending",
+        "- the confirmer has confirmed",
+        "- signer matches `pending_admin`",
+        "- within ADMIN_TRANSFER_TIMEOUT_SECS of original proposal",
+        "",
+        "On success: clears pending state, sets `config.admin = pending_admin`."
+      ],
+      "discriminator": [
+        112,
+        42,
+        45,
+        90,
+        116,
+        181,
+        13,
+        170
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "newAdmin",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "adminWriteOff",
       "docs": [
         "V5 (audit C3) — bounded admin write-off of `bucket.external_value`.",
@@ -79,6 +129,171 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "cancelAdminTransfer",
+      "docs": [
+        "V5 external-audit hardening — escape hatch.",
+        "",
+        "Current admin can cancel a pending transfer at any time (e.g., they",
+        "typoed the new_admin, or the proposal is no longer wanted). Clears",
+        "pending_admin / pending_admin_proposed_at / pending_admin_confirmed.",
+        "Safe to call when no proposal is pending — it's idempotent."
+      ],
+      "discriminator": [
+        38,
+        131,
+        157,
+        31,
+        240,
+        137,
+        44,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "confirmAdminTransfer",
+      "docs": [
+        "V5 external-audit hardening — STEP 2 of admin handover.",
+        "",
+        "Signed by the hardcoded `ADMIN_TRANSFER_CONFIRMER` (off-the-books",
+        "pubkey baked into the contract). Confirms a pending admin transfer",
+        "by signing this tx AND transferring ADMIN_TRANSFER_CONFIRMATION_LAMPORTS",
+        "(0.1 SOL) into the global fee_bucket PDA.",
+        "",
+        "The deposit acts as out-of-band \"skin in the game\" — the confirmer",
+        "must hold a funded wallet, must be aware of the proposal, and must",
+        "be willing to lose 0.1 SOL into the fee pool. The deposit ends up",
+        "distributed via the next `distribute_fees`.",
+        "",
+        "Must be called within ADMIN_TRANSFER_TIMEOUT_SECS of `propose_admin`."
+      ],
+      "discriminator": [
+        165,
+        69,
+        148,
+        206,
+        154,
+        219,
+        29,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "confirmer",
+          "docs": [
+            "The hardcoded confirmer. Pinned by `address = ADMIN_TRANSFER_CONFIRMER`",
+            "so the ix can only be invoked by that key (additional belt-and-",
+            "suspenders to the handler-side `require!` check)."
+          ],
+          "writable": true,
+          "signer": true,
+          "address": "9T6bE4qzmnSzLgH9LFuV5S5wLab5QTtMBcvREg5gWBUb"
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "The global fee bucket PDA. Receives the confirmation deposit."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "deposit",
       "docs": [
         "User deposits SOL into a bucket. Gated by:",
@@ -97,6 +312,28 @@ export type CwrVault = {
         182
       ],
       "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "External-audit hardening: read-only access to Config so the ix handler",
+            "can refuse deposits from privileged keys (admin / backend / fee_recipient)."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
         {
           "name": "bucket",
           "writable": true
@@ -188,15 +425,15 @@ export type CwrVault = {
     {
       "name": "distributeFees",
       "docs": [
-        "V5 — permissionless. Drains the fee bucket to the active split's",
-        "recipients pro-rata. Caller must pass each non-empty recipient as",
-        "a writable account via `remaining_accounts` (any order — matched",
-        "by pubkey to a schedule slot).",
+        "V5 — permissionless. Drains the fee bucket to the current",
+        "schedule's recipients pro-rata. Caller must pass each non-empty",
+        "recipient as a writable account via `remaining_accounts` (any",
+        "order — matched by pubkey to a schedule slot).",
         "",
-        "Snapshot semantics: the active split is determined by `Clock::now()`",
-        "at distribute time, not at fee-collection time. Recipients are",
-        "expected to call this often to avoid accidental splits across the",
-        "year-one boundary.",
+        "Snapshot semantics: whichever `recipients` array is in the",
+        "FeeSchedule at call time governs THIS distribution. Admin updates",
+        "to the schedule between accrual and distribution apply to the next",
+        "distribute, not retroactively.",
         "",
         "Distribution math floors per-recipient (favoring the bucket); any",
         "residual dust stays in the bucket for the next call."
@@ -379,8 +616,13 @@ export type CwrVault = {
       "name": "initFeeSchedule",
       "docs": [
         "V5 — initialise the global fee schedule. Admin-only, one-time.",
-        "Both splits are validated to sum to 10000 bps over non-empty slots.",
-        "Empty slots must have Pubkey::default() recipient AND bps_share=0."
+        "`recipients` is validated to sum to exactly 10000 bps over non-empty",
+        "slots. Empty slots must have `recipient = Pubkey::default()` AND",
+        "`bps_share = 0`.",
+        "",
+        "`genesis_ts` is recorded for telemetry only; it does NOT gate any",
+        "time-based switchover (the prior genesis→year_one design has been",
+        "removed). To change the split later, admin calls `set_fee_schedule`."
       ],
       "discriminator": [
         18,
@@ -526,6 +768,20 @@ export type CwrVault = {
           "signer": true
         },
         {
+          "name": "programData",
+          "docs": [
+            "CRITICAL audit fix: bind initialize to the program's upgrade",
+            "authority so it cannot be frontrun by a watcher after the program",
+            "is deployed but before the legitimate team's initialize tx lands.",
+            "The program data account is owned by BPFLoaderUpgradeable and stores",
+            "the upgrade authority; we deserialize that and compare it to `admin`.",
+            "SECURITY: the `program` account must equal the on-chain cwr_vault",
+            "program data PDA — Anchor's `ProgramData<'info>` does this via the",
+            "`executable_program_metas` constraint. The address constraint",
+            "pins it to the well-known address derived from this program's id."
+          ]
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -541,6 +797,69 @@ export type CwrVault = {
         },
         {
           "name": "storeMint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "proposeAdmin",
+      "docs": [
+        "V5 external-audit hardening — STEP 1 of admin handover.",
+        "",
+        "Current admin proposes a new admin pubkey. Starts the 24h timer.",
+        "The new admin does NOT become active here; it only enters the",
+        "`pending_admin` slot. Two more steps are required:",
+        "- `confirm_admin_transfer` — ADMIN_TRANSFER_CONFIRMER signs and",
+        "deposits 0.1 SOL into the fee_bucket",
+        "- `accept_admin` — the new admin signs to commit the rotation",
+        "",
+        "Rejects:",
+        "- new_admin == Pubkey::default() (bricking)",
+        "- new_admin == current admin (no-op)",
+        "- new_admin == backend or fee_recipient (role collapse)",
+        "- a proposal is already pending (must `cancel_admin_transfer` first)"
+      ],
+      "discriminator": [
+        121,
+        214,
+        199,
+        212,
+        87,
+        39,
+        117,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
           "type": "pubkey"
         }
       ]
@@ -874,53 +1193,6 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "setAdmin",
-      "discriminator": [
-        251,
-        163,
-        0,
-        52,
-        91,
-        194,
-        187,
-        92
-      ],
-      "accounts": [
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "newAdmin",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
       "name": "setBackend",
       "discriminator": [
         150,
@@ -1229,19 +1501,21 @@ export type CwrVault = {
     {
       "name": "setFeeSchedule",
       "docs": [
-        "V5 (audit C2) — admin update of an already-initialised fee schedule.",
+        "V5 — admin update of an already-initialised fee schedule.",
         "",
-        "Allows rotating compromised recipient pubkeys or rebalancing the split",
-        "without redeploying the program. Each replacement array is validated",
-        "independently with `validate_fee_split` (must sum to exactly 10000 bps",
-        "over non-empty slots). The genesis timestamp is preserved — the",
-        "year-one switchover is computed against the ORIGINAL genesis_ts, so",
-        "updating the schedule does not reset the year-one clock.",
+        "Replaces the recipient array. Admin can call this at any time to",
+        "rotate compromised recipient pubkeys, onboard new partners, or",
+        "rebalance the split as project circumstances change. Validated to",
+        "sum to exactly 10000 bps over non-empty slots.",
         "",
         "Side-effect free w.r.t. the fee_bucket balance: pre-existing fees",
-        "will be distributed under whichever split is active at the next",
-        "`distribute_fees` call (snapshot-at-distribute), which is the same",
-        "semantic as initial fee accrual."
+        "will be distributed under the NEW split at the next",
+        "`distribute_fees` call (snapshot-at-distribute semantics). If the",
+        "off-chain governance wants the old split to apply to already-accrued",
+        "fees, call `distribute_fees` BEFORE `set_fee_schedule`.",
+        "",
+        "`genesis_ts` is preserved unchanged — it remains a record of when",
+        "the schedule was first initialized, not when it was last edited."
       ],
       "discriminator": [
         239,
@@ -1764,6 +2038,58 @@ export type CwrVault = {
   ],
   "events": [
     {
+      "name": "adminProposedEvent",
+      "discriminator": [
+        212,
+        163,
+        91,
+        28,
+        223,
+        95,
+        2,
+        102
+      ]
+    },
+    {
+      "name": "adminTransferAcceptedEvent",
+      "discriminator": [
+        126,
+        246,
+        18,
+        138,
+        98,
+        63,
+        176,
+        92
+      ]
+    },
+    {
+      "name": "adminTransferCancelledEvent",
+      "discriminator": [
+        175,
+        140,
+        104,
+        221,
+        194,
+        183,
+        79,
+        71
+      ]
+    },
+    {
+      "name": "adminTransferConfirmedEvent",
+      "discriminator": [
+        218,
+        245,
+        99,
+        218,
+        37,
+        174,
+        221,
+        93
+      ]
+    },
+    {
       "name": "adminWriteOffEvent",
       "discriminator": [
         51,
@@ -1904,19 +2230,6 @@ export type CwrVault = {
         81,
         131,
         190
-      ]
-    },
-    {
-      "name": "setAdminEvent",
-      "discriminator": [
-        240,
-        117,
-        204,
-        254,
-        89,
-        150,
-        132,
-        94
       ]
     },
     {
@@ -2263,9 +2576,178 @@ export type CwrVault = {
       "code": 6039,
       "name": "pullFeeBumpDuringClaims",
       "msg": "Pull fee parameter cannot be raised while claims_open=true"
+    },
+    {
+      "code": 6040,
+      "name": "notUpgradeAuthority",
+      "msg": "Caller is not the program upgrade authority"
+    },
+    {
+      "code": 6041,
+      "name": "defaultPubkeyNotAllowed",
+      "msg": "Pubkey::default() is not allowed for this role"
+    },
+    {
+      "code": 6042,
+      "name": "operatorRoleOverlap",
+      "msg": "Operator wallet must not equal admin / backend / fee_recipient (role separation)"
+    },
+    {
+      "code": 6043,
+      "name": "feeRecipientRoleOverlap",
+      "msg": "Fee recipient must not equal admin / backend / a bucket operator (role separation)"
+    },
+    {
+      "code": 6044,
+      "name": "operatorCannotBeUser",
+      "msg": "Operator wallet is forbidden from acting as a vault depositor / withdrawer"
+    },
+    {
+      "code": 6045,
+      "name": "privilegedRoleCannotBeUser",
+      "msg": "admin / backend / fee_recipient are forbidden from acting as a vault depositor / withdrawer"
+    },
+    {
+      "code": 6046,
+      "name": "navReportFromZero",
+      "msg": "Report_nav rejected: prev NPS is zero; admin must explicitly re-seed via a future ix"
+    },
+    {
+      "code": 6047,
+      "name": "claimsWindowNpsDrift",
+      "msg": "New NAV per share would violate jump bounds vs the snapshot NPS at claims_open"
+    },
+    {
+      "code": 6048,
+      "name": "pullNpsDropExceeded",
+      "msg": "Pull would push NAV per share below the per-call drop bound"
+    },
+    {
+      "code": 6049,
+      "name": "writeOffNpsDropExceeded",
+      "msg": "admin_write_off would push NAV per share below the per-call drop bound"
+    },
+    {
+      "code": 6050,
+      "name": "noAdminProposalPending",
+      "msg": "No admin transfer is currently pending"
+    },
+    {
+      "code": 6051,
+      "name": "adminProposalExpired",
+      "msg": "Admin transfer proposal has expired (>24h since proposal)"
+    },
+    {
+      "code": 6052,
+      "name": "adminProposalNotConfirmed",
+      "msg": "Admin transfer cannot be accepted until the off-chain confirmer signs and deposits"
+    },
+    {
+      "code": 6053,
+      "name": "adminProposalAlreadyConfirmed",
+      "msg": "Admin transfer was already confirmed by the off-chain confirmer"
+    },
+    {
+      "code": 6054,
+      "name": "notAdminTransferConfirmer",
+      "msg": "Caller is not the hardcoded admin_transfer_confirmer"
+    },
+    {
+      "code": 6055,
+      "name": "notPendingAdmin",
+      "msg": "Caller is not the pending admin"
+    },
+    {
+      "code": 6056,
+      "name": "adminProposalAlreadyPending",
+      "msg": "An admin transfer is already pending — call cancel_admin_transfer first"
     }
   ],
   "types": [
+    {
+      "name": "adminProposedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "currentAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "pendingAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposedAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "adminTransferAcceptedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "old",
+            "type": "pubkey"
+          },
+          {
+            "name": "new",
+            "type": "pubkey"
+          },
+          {
+            "name": "acceptedAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "adminTransferCancelledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "currentAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "cancelledPendingAdmin",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "adminTransferConfirmedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "currentAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "pendingAdmin",
+            "type": "pubkey"
+          },
+          {
+            "name": "confirmer",
+            "type": "pubkey"
+          },
+          {
+            "name": "confirmationLamports",
+            "type": "u64"
+          },
+          {
+            "name": "confirmedAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "adminWriteOffEvent",
       "type": {
@@ -2402,6 +2884,16 @@ export type CwrVault = {
           },
           {
             "name": "lastNavPerShare",
+            "type": "u128"
+          },
+          {
+            "name": "claimsWindowNps",
+            "docs": [
+              "External-audit hardening (2026-06): NPS snapshot taken when",
+              "`set_claims_open(true)` is called. Withdraw uses this frozen value",
+              "so backend cannot pre-pump NPS via report_nav immediately before a",
+              "claim window opens. Set back to 0 when claims_open=false."
+            ],
             "type": "u128"
           },
           {
@@ -2595,6 +3087,30 @@ export type CwrVault = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "pendingAdmin",
+            "docs": [
+              "Pending admin during a handover. `Pubkey::default()` = no proposal",
+              "pending. Set by `propose_admin`, cleared by `accept_admin` /",
+              "`cancel_admin_transfer` / expiry override."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "pendingAdminProposedAt",
+            "docs": [
+              "Unix ts at which `propose_admin` was called. 0 when no pending."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "pendingAdminConfirmed",
+            "docs": [
+              "True after `confirm_admin_transfer` has run for this proposal.",
+              "Required to be true before `accept_admin` will commit the rotation."
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -2658,28 +3174,45 @@ export type CwrVault = {
     {
       "name": "feeSchedule",
       "docs": [
-        "Fee distribution schedule. A single mutable `recipients` array, set",
-        "at `init_fee_schedule` and updatable any time via `set_fee_schedule`",
-        "(admin-only). Non-empty slots must sum to exactly 10_000 bps.",
+        "Fee distribution schedule. A single mutable `recipients` array, set at",
+        "`init_fee_schedule` and updatable any time via `set_fee_schedule`",
+        "(admin-only). Each non-empty slot must have `bps_share` > 0 and the",
+        "non-empty slots must sum to exactly 10_000 bps.",
         "",
-        "Distribution semantics: snapshot-at-distribute. Whatever the",
-        "`recipients` array contains at `distribute_fees` call-time applies",
-        "to the entire fee-bucket balance, regardless of when those fees",
+        "**Why this is just one array, not two with a hard-coded rollover:** the",
+        "prior design baked a genesis → year_one switchover into the contract,",
+        "which froze tokenomics decisions at deploy time. Admin authority can",
+        "now update the split whenever circumstances change (new team members,",
+        "partner equity rounds, KPI hits, etc.). The single array keeps the",
+        "contract neutral about schedule and lets governance/multisig encode",
+        "the policy off-chain.",
+        "",
+        "Distribution semantics: **snapshot-at-distribute**. Whatever the",
+        "`recipients` array contains at `distribute_fees` call-time applies to",
+        "the entire current fee-bucket balance, regardless of when those fees",
         "accrued. If admin updates the schedule between fee accrual and the",
-        "next distribute call, the NEW split governs that distribution.",
+        "next distribute call, the NEW split is what governs that distribution.",
         "",
-        "`genesis_ts` is preserved for telemetry only — when the schedule",
-        "was first initialized. It is NOT used to gate anything."
+        "`genesis_ts` is preserved for telemetry only — when the schedule was",
+        "first initialized. It is NOT used to gate anything."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "genesisTs",
+            "docs": [
+              "Informational only: when `init_fee_schedule` was first called.",
+              "Not used for any time-based logic."
+            ],
             "type": "i64"
           },
           {
             "name": "recipients",
+            "docs": [
+              "Current recipient split. Empty slots have `recipient = Pubkey::default()`",
+              "and `bps_share = 0`. Non-empty slots must sum to exactly 10_000 bps."
+            ],
             "type": {
               "array": [
                 {
@@ -2906,22 +3439,6 @@ export type CwrVault = {
           {
             "name": "navPerShare",
             "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "setAdminEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "old",
-            "type": "pubkey"
-          },
-          {
-            "name": "new",
-            "type": "pubkey"
           }
         ]
       }
