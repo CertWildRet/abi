@@ -474,20 +474,7 @@ export type CwrVault = {
       ],
       "args": [
         {
-          "name": "genesis",
-          "type": {
-            "array": [
-              {
-                "defined": {
-                  "name": "feeRecipient"
-                }
-              },
-              4
-            ]
-          }
-        },
-        {
-          "name": "yearOne",
+          "name": "recipients",
           "type": {
             "array": [
               {
@@ -1320,20 +1307,7 @@ export type CwrVault = {
       ],
       "args": [
         {
-          "name": "genesis",
-          "type": {
-            "array": [
-              {
-                "defined": {
-                  "name": "feeRecipient"
-                }
-              },
-              4
-            ]
-          }
-        },
-        {
-          "name": "yearOne",
+          "name": "recipients",
           "type": {
             "array": [
               {
@@ -2684,17 +2658,18 @@ export type CwrVault = {
     {
       "name": "feeSchedule",
       "docs": [
-        "Hardcoded fee distribution schedule, set once at `init_fee_schedule`.",
+        "Fee distribution schedule. A single mutable `recipients` array, set",
+        "at `init_fee_schedule` and updatable any time via `set_fee_schedule`",
+        "(admin-only). Non-empty slots must sum to exactly 10_000 bps.",
         "",
-        "The split auto-rolls from `genesis` → `year_one` exactly",
-        "`YEAR_ONE_SWITCHOVER_SECS` after `genesis_ts`. The check is lazy: every",
-        "`distribute_fees` call reads the on-chain clock and picks the active",
-        "split, so no upkeep is required at the boundary.",
+        "Distribution semantics: snapshot-at-distribute. Whatever the",
+        "`recipients` array contains at `distribute_fees` call-time applies",
+        "to the entire fee-bucket balance, regardless of when those fees",
+        "accrued. If admin updates the schedule between fee accrual and the",
+        "next distribute call, the NEW split governs that distribution.",
         "",
-        "Distribution semantics: snapshot-at-distribute. Whatever the active",
-        "split is at `distribute_fees` time applies to the *entire* current",
-        "fee-bucket balance, regardless of when those fees accrued. Recipients",
-        "motivated by a specific schedule are expected to call distribute often."
+        "`genesis_ts` is preserved for telemetry only — when the schedule",
+        "was first initialized. It is NOT used to gate anything."
       ],
       "type": {
         "kind": "struct",
@@ -2704,20 +2679,7 @@ export type CwrVault = {
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "feeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "yearOne",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2750,20 +2712,7 @@ export type CwrVault = {
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "feeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "yearOne",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2786,26 +2735,13 @@ export type CwrVault = {
           {
             "name": "genesisTs",
             "docs": [
-              "Preserved from the original init; the year-one switchover clock",
-              "is NOT reset by an update."
+              "Preserved from the original `init_fee_schedule`. Editing the",
+              "recipient list does NOT reset this timestamp."
             ],
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "feeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "yearOne",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2828,13 +2764,6 @@ export type CwrVault = {
           {
             "name": "totalPaidLamports",
             "type": "u64"
-          },
-          {
-            "name": "splitInUse",
-            "docs": [
-              "0 = genesis split, 1 = year_one split"
-            ],
-            "type": "u8"
           },
           {
             "name": "distributedAt",

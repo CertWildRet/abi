@@ -4,13 +4,13 @@
     "name": "cwr_vault",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "CWR multi-tranche vault on Solana — backend-managed ORE farming pools"
+    "description": "CWR multi-tranche vault on Solana \u2014 backend-managed ORE farming pools"
   },
   "instructions": [
     {
       "name": "admin_write_off",
       "docs": [
-        "V5 (audit C3) — bounded admin write-off of `bucket.external_value`.",
+        "V5 (audit C3) \u2014 bounded admin write-off of `bucket.external_value`.",
         "",
         "Recognises a realised loss in the off-chain strategy (Engine D",
         "liquidation, partner-protocol exploit, etc.) by reducing",
@@ -115,7 +115,7 @@
         {
           "name": "fee_bucket",
           "docs": [
-            "V5 — global fee bucket PDA. Entry fees flow here for later",
+            "V5 \u2014 global fee bucket PDA. Entry fees flow here for later",
             "permissionless distribution via `distribute_fees`."
           ],
           "writable": true,
@@ -182,9 +182,9 @@
     {
       "name": "distribute_fees",
       "docs": [
-        "V5 — permissionless. Drains the fee bucket to the active split's",
+        "V5 \u2014 permissionless. Drains the fee bucket to the active split's",
         "recipients pro-rata. Caller must pass each non-empty recipient as",
-        "a writable account via `remaining_accounts` (any order — matched",
+        "a writable account via `remaining_accounts` (any order \u2014 matched",
         "by pubkey to a schedule slot).",
         "",
         "Snapshot semantics: the active split is determined by `Clock::now()`",
@@ -323,7 +323,7 @@
         {
           "name": "store_treasury",
           "docs": [
-            "V5 — per-bucket stORE token account. Mint = `cfg.store_mint`,",
+            "V5 \u2014 per-bucket stORE token account. Mint = `cfg.store_mint`,",
             "authority = bucket PDA. Created at init even when store_mint is",
             "Pubkey::default() so the contract layout is stable across envs",
             "(in that case the account just holds 0 stORE forever)."
@@ -372,7 +372,7 @@
     {
       "name": "init_fee_schedule",
       "docs": [
-        "V5 — initialise the global fee schedule. Admin-only, one-time.",
+        "V5 \u2014 initialise the global fee schedule. Admin-only, one-time.",
         "Both splits are validated to sum to 10000 bps over non-empty slots.",
         "Empty slots must have Pubkey::default() recipient AND bps_share=0."
       ],
@@ -468,20 +468,7 @@
       ],
       "args": [
         {
-          "name": "genesis",
-          "type": {
-            "array": [
-              {
-                "defined": {
-                  "name": "FeeRecipient"
-                }
-              },
-              4
-            ]
-          }
-        },
-        {
-          "name": "year_one",
+          "name": "recipients",
           "type": {
             "array": [
               {
@@ -613,7 +600,7 @@
         {
           "name": "fee_bucket",
           "docs": [
-            "V5 — global fee bucket PDA. Pull-fee skim flows here for later",
+            "V5 \u2014 global fee bucket PDA. Pull-fee skim flows here for later",
             "permissionless distribution via `distribute_fees`."
           ],
           "writable": true,
@@ -748,7 +735,7 @@
     {
       "name": "push_store",
       "docs": [
-        "V5 — operator (signing as backend's pinned operator_wallet) pushes",
+        "V5 \u2014 operator (signing as backend's pinned operator_wallet) pushes",
         "wrapped stORE FROM the operator's stORE ATA INTO the per-bucket",
         "`store_treasury` token account. Mirrors `push` but in the stORE leg.",
         "Increments `bucket.store_in_vault`; does NOT touch SOL NAV."
@@ -977,11 +964,11 @@
     {
       "name": "set_bucket_operator",
       "docs": [
-        "V5 — narrow admin setter for a single bucket's operator wallet.",
+        "V5 \u2014 narrow admin setter for a single bucket's operator wallet.",
         "Per-bucket operators keep each bucket's ORE Miner PDA independent;",
         "`claim_ore` on one bucket no longer resets the others' refining",
         "accumulator. Blocked while `claims_open == true` (NAV is frozen",
-        "during claim windows — rotating the operator mid-window would",
+        "during claim windows \u2014 rotating the operator mid-window would",
         "orphan in-flight pushes)."
       ],
       "discriminator": [
@@ -1236,12 +1223,12 @@
     {
       "name": "set_fee_schedule",
       "docs": [
-        "V5 (audit C2) — admin update of an already-initialised fee schedule.",
+        "V5 (audit C2) \u2014 admin update of an already-initialised fee schedule.",
         "",
         "Allows rotating compromised recipient pubkeys or rebalancing the split",
         "without redeploying the program. Each replacement array is validated",
         "independently with `validate_fee_split` (must sum to exactly 10000 bps",
-        "over non-empty slots). The genesis timestamp is preserved — the",
+        "over non-empty slots). The genesis timestamp is preserved \u2014 the",
         "year-one switchover is computed against the ORIGINAL genesis_ts, so",
         "updating the schedule does not reset the year-one clock.",
         "",
@@ -1314,20 +1301,7 @@
       ],
       "args": [
         {
-          "name": "genesis",
-          "type": {
-            "array": [
-              {
-                "defined": {
-                  "name": "FeeRecipient"
-                }
-              },
-              4
-            ]
-          }
-        },
-        {
-          "name": "year_one",
+          "name": "recipients",
           "type": {
             "array": [
               {
@@ -1344,7 +1318,7 @@
     {
       "name": "set_fees",
       "docs": [
-        "V5 — narrow admin setter for the flat entry/exit fees. Doesn't",
+        "V5 \u2014 narrow admin setter for the flat entry/exit fees. Doesn't",
         "touch the rest of the bucket params, so it's safe to use without",
         "risking accidental NAV-bound or refining-rate changes."
       ],
@@ -1461,7 +1435,7 @@
     {
       "name": "set_perf_fee",
       "docs": [
-        "V5 — narrow admin setter for the performance fee bps. Mirrors",
+        "V5 \u2014 narrow admin setter for the performance fee bps. Mirrors",
         "`set_fees` ergonomics: touches only `performance_fee_bps` so the",
         "admin can't accidentally change NAV-bound, deposit-cap, or other",
         "params while turning the perf fee on/off.",
@@ -1522,11 +1496,11 @@
     {
       "name": "set_pull_fee",
       "docs": [
-        "V5 — narrow admin setter for the per-pull VOLUME fee. This is",
+        "V5 \u2014 narrow admin setter for the per-pull VOLUME fee. This is",
         "the ONLY active monetisation in the V5 baseline product (entry /",
         "exit / perf all default to 0 bps). Bps capped at",
         "`MAX_PULL_FEE_BPS` (500). Bumps blocked while `claims_open == true`",
-        "(raising is gated; lowering OK) — H1 parity."
+        "(raising is gated; lowering OK) \u2014 H1 parity."
       ],
       "discriminator": [
         99,
@@ -1588,7 +1562,7 @@
         "- claims_open (operator must explicitly open claims)",
         "",
         "Performance fee is computed against the bucket's high-water NPS and",
-        "transferred to `cfg.fee_recipient`. User receives payout − fee.",
+        "transferred to `cfg.fee_recipient`. User receives payout \u2212 fee.",
         "",
         "NAV is FROZEN while claims_open=true (pull/push/report_nav all blocked),",
         "so the NPS used here cannot be manipulated mid-withdraw. This is the",
@@ -1636,7 +1610,7 @@
         {
           "name": "fee_bucket",
           "docs": [
-            "V5 — global fee bucket PDA. Exit fees flow here for later",
+            "V5 \u2014 global fee bucket PDA. Exit fees flow here for later",
             "permissionless distribution via `distribute_fees`."
           ],
           "writable": true,
@@ -1705,7 +1679,7 @@
         {
           "name": "store_treasury",
           "docs": [
-            "V5 — per-bucket stORE-holding token account. Source of pro-rata",
+            "V5 \u2014 per-bucket stORE-holding token account. Source of pro-rata",
             "stORE paid out alongside the SOL payout. Authority = bucket PDA."
           ],
           "writable": true
@@ -2127,7 +2101,7 @@
     {
       "code": 6008,
       "name": "NavFrozen",
-      "msg": "Operation blocked while claims are open — NAV is frozen for fair withdrawals"
+      "msg": "Operation blocked while claims are open \u2014 NAV is frozen for fair withdrawals"
     },
     {
       "code": 6009,
@@ -2152,7 +2126,7 @@
     {
       "code": 6013,
       "name": "InsufficientVaultSol",
-      "msg": "Insufficient SOL in vault to fulfill withdraw — backend must top up"
+      "msg": "Insufficient SOL in vault to fulfill withdraw \u2014 backend must top up"
     },
     {
       "code": 6014,
@@ -2197,7 +2171,7 @@
     {
       "code": 6022,
       "name": "BucketNotEmpty",
-      "msg": "Bucket has outstanding shares — cannot reinitialize"
+      "msg": "Bucket has outstanding shares \u2014 cannot reinitialize"
     },
     {
       "code": 6023,
@@ -2207,12 +2181,12 @@
     {
       "code": 6024,
       "name": "BadEntryFee",
-      "msg": "Entry fee bps out of range (must be ≤ MAX_ENTRY_FEE_BPS)"
+      "msg": "Entry fee bps out of range (must be \u2264 MAX_ENTRY_FEE_BPS)"
     },
     {
       "code": 6025,
       "name": "BadExitFee",
-      "msg": "Exit fee bps out of range (must be ≤ MAX_EXIT_FEE_BPS)"
+      "msg": "Exit fee bps out of range (must be \u2264 MAX_EXIT_FEE_BPS)"
     },
     {
       "code": 6026,
@@ -2373,7 +2347,7 @@
           {
             "name": "operator_wallet",
             "docs": [
-              "V5 — per-bucket operator wallet. PINNED destination for `pull`,",
+              "V5 \u2014 per-bucket operator wallet. PINNED destination for `pull`,",
               "source for `push`, and authority on the operator stORE ATA used",
               "by `push_store`. Set at `init_bucket` time, mutable only via",
               "`set_bucket_operator` (admin, claims-open lock for changes).",
@@ -2398,7 +2372,7 @@
           {
             "name": "store_in_vault",
             "docs": [
-              "V5 — stORE atomic units currently held by the bucket's `store_treasury`",
+              "V5 \u2014 stORE atomic units currently held by the bucket's `store_treasury`",
               "token account (authority = bucket PDA). Grows on push_store, shrinks",
               "pro-rata on withdraw. Decoupled from SOL NAV: this is a parallel",
               "payout leg, not factored into nav_per_share."
@@ -2548,11 +2522,11 @@
           {
             "name": "pull_fee_bps",
             "docs": [
-              "V5 — per-`pull` volume fee in bps. Skimmed from the pull amount",
+              "V5 \u2014 per-`pull` volume fee in bps. Skimmed from the pull amount",
               "INSIDE the `pull` ix and routed to the global `fee_bucket` PDA.",
               "The remaining amount (NET) is what reaches the operator wallet",
               "for actual deployment. `external_value` is incremented by the NET,",
-              "so the vault's total NAV drops by the fee on every pull — that is",
+              "so the vault's total NAV drops by the fee on every pull \u2014 that is",
               "where the user pays this fee, transparently, via NPS reduction.",
               "Capped at `MAX_PULL_FEE_BPS`."
             ],
@@ -2597,10 +2571,10 @@
           {
             "name": "store_mint",
             "docs": [
-              "V5 — stORE mint. Pinned at `initialize`; cannot be changed after init",
+              "V5 \u2014 stORE mint. Pinned at `initialize`; cannot be changed after init",
               "(would break per-bucket `store_treasury` ATAs and the `address =",
               "config.store_mint` constraints on `Withdraw` / `BackendPushStore`).",
-              "**Must be a real mint** — `Pubkey::default()` is rejected at init",
+              "**Must be a real mint** \u2014 `Pubkey::default()` is rejected at init",
               "(`CwrError::StoreMintMustBeSet`). Localnet/devnet environments that",
               "don't have a deployed `ore-lst` should still mint a placeholder SPL",
               "mint and pass it here; `push_store` is permissionless to omit so the",
@@ -2680,7 +2654,7 @@
       "docs": [
         "Hardcoded fee distribution schedule, set once at `init_fee_schedule`.",
         "",
-        "The split auto-rolls from `genesis` → `year_one` exactly",
+        "The split auto-rolls from `genesis` \u2192 `year_one` exactly",
         "`YEAR_ONE_SWITCHOVER_SECS` after `genesis_ts`. The check is lazy: every",
         "`distribute_fees` call reads the on-chain clock and picks the active",
         "split, so no upkeep is required at the boundary.",
@@ -2698,20 +2672,7 @@
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "FeeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "year_one",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2744,20 +2705,7 @@
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "FeeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "year_one",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2786,20 +2734,7 @@
             "type": "i64"
           },
           {
-            "name": "genesis",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "FeeRecipient"
-                  }
-                },
-                4
-              ]
-            }
-          },
-          {
-            "name": "year_one",
+            "name": "recipients",
             "type": {
               "array": [
                 {
@@ -2822,13 +2757,6 @@
           {
             "name": "total_paid_lamports",
             "type": "u64"
-          },
-          {
-            "name": "split_in_use",
-            "docs": [
-              "0 = genesis split, 1 = year_one split"
-            ],
-            "type": "u8"
           },
           {
             "name": "distributed_at",
@@ -3217,7 +3145,7 @@
           {
             "name": "store_payout_atomic",
             "docs": [
-              "V5 — atomic stORE units paid pro-rata alongside SOL."
+              "V5 \u2014 atomic stORE units paid pro-rata alongside SOL."
             ],
             "type": "u64"
           },
