@@ -64,71 +64,6 @@ export type CwrVault = {
       "args": []
     },
     {
-      "name": "adminWriteOff",
-      "docs": [
-        "V5 (audit C3) — bounded admin write-off of `bucket.external_value`.",
-        "",
-        "Recognises a realised loss in the off-chain strategy (Engine D",
-        "liquidation, partner-protocol exploit, etc.) by reducing",
-        "`external_value` directly. Bounded per-call by `MAX_WRITE_OFF_BPS`",
-        "(5%) of CURRENT external_value AND rate-limited by the bucket's",
-        "`min_nav_update_interval` so a compromised admin cannot wipe NAV in",
-        "one shot. The same drop bound that report_nav applies to NPS jumps",
-        "applies here, in lamport terms.",
-        "",
-        "Blocked while `claims_open == true` (NAV is frozen during claims).",
-        "Updates `last_nav_update` so subsequent `report_nav` calls respect",
-        "the rate-limit window from this call."
-      ],
-      "discriminator": [
-        190,
-        141,
-        187,
-        206,
-        97,
-        248,
-        80,
-        35
-      ],
-      "accounts": [
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "bucket",
-          "writable": true
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "cancelAdminTransfer",
       "docs": [
         "V5 external-audit hardening — escape hatch.",
@@ -174,6 +109,271 @@ export type CwrVault = {
           "relations": [
             "config"
           ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "checkpoint",
+      "docs": [
+        "Permissionless. CPI ORE Checkpoint signed by mining_authority, then",
+        "advance the stORE accrual accumulator from the miner's realized",
+        "rewards. Gate: !paused && phase==BETTING (FIX #5: a mid-OPEN",
+        "checkpoint can't re-open the accumulator sandwich).",
+        "",
+        "CREDITING-SITE CHOICE (claim-fee reconciliation): we do NOT advance the",
+        "stORE accumulator here. Instead the accumulator is advanced in",
+        "`settle_harvest` from the ACTUAL wrapped grams (post 10% claim fee), so",
+        "accrual == realized stORE and last-out redeemers are never shorted.",
+        "This handler only settles the ORE round on-chain and refreshes the",
+        "`last_seen_rewards_ore` watermark for telemetry."
+      ],
+      "discriminator": [
+        213,
+        200,
+        19,
+        204,
+        240,
+        143,
+        184,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "oreMiner",
+          "writable": true
+        },
+        {
+          "name": "oreBoard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreRound",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "roundId"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreProgram",
+          "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller (pays tx fee)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "roundId",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "closeWindow",
+      "docs": [
+        "Permissionless Clock-driven phase transition OPEN -> BETTING.",
+        "Allowed once (now - phase_started_ts) >= OPEN_SECS. Clears the frozen",
+        "NAV snapshot (mining resumes; NAV becomes live-derived again)."
+      ],
+      "discriminator": [
+        254,
+        46,
+        169,
+        88,
+        40,
+        214,
+        216,
+        17
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller."
+          ],
+          "signer": true
         }
       ],
       "args": []
@@ -294,12 +494,353 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "crankMine",
+      "docs": [
+        "REPLACES `pull`. Operator-signed crank that deploys `amount` SOL into",
+        "the ORE board, uniformly across the 25 squares (amount/25 each).",
+        "Gate: !paused && phase==BETTING && NOT in the final GUARD_BAND_SLOTS of",
+        "the betting window && sol_in_vault >= amount. Skims the 1% pull volume",
+        "fee treasury->fee_bucket; moves NET treasury->mining_authority; then",
+        "CPIs ORE Deploy signed by mining_authority (which holds the SOL and is",
+        "the Deploy signer, matching ORE's round.collect(signer))."
+      ],
+      "discriminator": [
+        188,
+        124,
+        245,
+        28,
+        224,
+        194,
+        119,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "operator",
+          "docs": [
+            "Operator signs the OUTER crank (controls WHEN). Pinned to the bucket's",
+            "operator_wallet via `has_one`."
+          ],
+          "signer": true
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "operatorWallet",
+          "docs": [
+            "signer identity (operator == operator_wallet)."
+          ],
+          "relations": [
+            "bucket"
+          ]
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "docs": [
+            "The mining authority PDA (SOL source + Deploy signer)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "Global fee bucket PDA — 1% volume fee skim destination."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "oreMiner",
+          "docs": [
+            "The ORE Miner PDA. CHECK: pinned to bucket.ore_miner; written by ORE."
+          ],
+          "writable": true
+        },
+        {
+          "name": "oreAutomation",
+          "writable": true
+        },
+        {
+          "name": "oreBoard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreRound",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "roundId"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreProgram",
+          "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
+        },
+        {
+          "name": "entropyVar",
+          "writable": true
+        },
+        {
+          "name": "entropyProgram"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "roundId",
+          "type": "u64"
+        },
+        {
+          "name": "squares",
+          "type": {
+            "array": [
+              "bool",
+              25
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "docs": [
-        "User deposits SOL into a bucket. Gated by:",
+        "User deposits SOL into a bucket. V6 non-custodial:",
         "- !paused",
-        "- deposits_open (operator must explicitly open deposits)",
-        "- !claims_open (no deposits while a claim window is active)"
+        "- phase == OPEN  (FIX #6: replaces deposits_open/!claims_open)",
+        "- amount >= min_deposit",
+        "Shares are priced at the DERIVED on-chain NAV (FIX #1) read from the",
+        "ORE Miner. A per-user Position PDA tracks shares + the stORE",
+        "reward-debt watermark (set to CURRENT acc, no backdating — FIX A)."
       ],
       "discriminator": [
         242,
@@ -354,6 +895,23 @@ export type CwrVault = {
           "name": "user",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "V6 — per-user Position PDA. Created lazily on first deposit. Tracks",
+            "shares + the stORE reward-debt watermark."
+          ],
+          "writable": true
+        },
+        {
+          "name": "oreMiner",
+          "docs": [
+            "V6 — the ORE Miner account, for the derived NAV read. UncheckedAccount",
+            "because it's a non-Anchor steel Pod and may not exist before",
+            "`init_mining_pda`. Validated in-handler via `read_miner` (owner / disc",
+            "/ len) when mining is initialized; ignored otherwise."
+          ]
         },
         {
           "name": "feeBucket",
@@ -731,6 +1289,72 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "initMiningPda",
+      "docs": [
+        "Admin-signed, one-shot. Derives + stores the mining authority PDA",
+        "(= PDA([MINING_SEED, bucket_id], cwr)) and the ORE Miner PDA",
+        "(= PDA([b\"miner\", mining_authority], ORE)). Reverts if already set.",
+        "Seeds the mining_authority PDA with rent so it can sign CPIs and hold",
+        "SOL between crank and deploy."
+      ],
+      "discriminator": [
+        24,
+        36,
+        132,
+        144,
+        157,
+        28,
+        239,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "docs": [
+            "The per-bucket mining authority PDA. Pinned by seeds; the program",
+            "stores its key + bump on the bucket. SystemAccount so it can hold and",
+            "transfer SOL (it is the ORE Deploy SOL source/signer)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -802,6 +1426,43 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "openWindow",
+      "docs": [
+        "Permissionless Clock-driven phase transition BETTING -> OPEN.",
+        "Allowed once (now - phase_started_ts) >= BETTING_SECS. FIX #4: requires",
+        "the miner round to be settled (checkpoint_id == round_id) AND winnings",
+        "claimed (rewards_sol == 0) before snapshotting the frozen NAV. Snapshot",
+        "claims_window_nps = derived NAV-per-share."
+      ],
+      "discriminator": [
+        51,
+        40,
+        53,
+        181,
+        170,
+        43,
+        128,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "oreMiner"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller."
+          ],
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "proposeAdmin",
       "docs": [
         "V5 external-audit hardening — STEP 1 of admin handover.",
@@ -861,334 +1522,6 @@ export type CwrVault = {
         {
           "name": "newAdmin",
           "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "pull",
-      "discriminator": [
-        78,
-        119,
-        161,
-        115,
-        9,
-        167,
-        75,
-        125
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "treasury",
-          "writable": true
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "backend",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "operatorWallet",
-          "docs": [
-            "PINNED to this bucket's `operator_wallet`. Audit-fix #2: previously",
-            "any pubkey was allowed as the pull destination. Now per-bucket so",
-            "Simple's operator cannot pull from Refined's treasury."
-          ],
-          "writable": true,
-          "relations": [
-            "bucket"
-          ]
-        },
-        {
-          "name": "feeBucket",
-          "docs": [
-            "V5 — global fee bucket PDA. Pull-fee skim flows here for later",
-            "permissionless distribution via `distribute_fees`."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  95,
-                  98,
-                  117,
-                  99,
-                  107,
-                  101,
-                  116
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "feeSchedule",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  95,
-                  115,
-                  99,
-                  104,
-                  101,
-                  100,
-                  117,
-                  108,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "push",
-      "discriminator": [
-        143,
-        34,
-        101,
-        78,
-        188,
-        184,
-        199,
-        63
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "treasury",
-          "writable": true
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "backend",
-          "docs": [
-            "Audit-fix #1: previously no `Config` was loaded, allowing ANY signer to",
-            "call `push` and corrupt `sol_in_vault` accounting + bypass the NAV-jump",
-            "check. Now requires backend signature AND this bucket's pinned",
-            "operator_wallet (V5: per-bucket)."
-          ],
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "operatorWallet",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "bucket"
-          ]
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "pushStore",
-      "docs": [
-        "V5 — operator (signing as backend's pinned operator_wallet) pushes",
-        "wrapped stORE FROM the operator's stORE ATA INTO the per-bucket",
-        "`store_treasury` token account. Mirrors `push` but in the stORE leg.",
-        "Increments `bucket.store_in_vault`; does NOT touch SOL NAV."
-      ],
-      "discriminator": [
-        35,
-        108,
-        163,
-        36,
-        12,
-        198,
-        15,
-        101
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "storeTreasury",
-          "docs": [
-            "Per-bucket stORE-holding token account. Authority = bucket PDA."
-          ],
-          "writable": true
-        },
-        {
-          "name": "operatorStoreAta",
-          "docs": [
-            "Operator's stORE source ATA. Mint pinned to `cfg.store_mint`,",
-            "authority must be this bucket's pinned `operator_wallet`."
-          ],
-          "writable": true
-        },
-        {
-          "name": "storeMint"
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "backend",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "operatorWallet",
-          "signer": true,
-          "relations": [
-            "bucket"
-          ]
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "reportNav",
-      "discriminator": [
-        130,
-        91,
-        101,
-        209,
-        75,
-        233,
-        10,
-        41
-      ],
-      "accounts": [
-        {
-          "name": "bucket",
-          "writable": true
-        },
-        {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "backend",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "externalValue",
-          "type": "u64"
         }
       ]
     },
@@ -1723,7 +2056,13 @@ export type CwrVault = {
         "Today's V5 product defaults `performance_fee_bps = 0` (flat",
         "entry+exit only). This ix exists so the perf-fee dormant capability",
         "can be activated per-bucket without a program redeploy if a future",
-        "product variant calls for it."
+        "product variant calls for it.",
+        "FIX #3 (admin money lever) — NEUTERED. The performance fee routed",
+        "treasury SOL to an admin-controlled `fee_recipient`; in the",
+        "non-custodial vault that lever is removed. The only value this ix can",
+        "now set is 0 (MAX_PERFORMANCE_FEE_BPS == 0). Any non-zero value is",
+        "rejected. Retained so existing callers/IDLs don't break and so the",
+        "fee can be explicitly re-zeroed."
       ],
       "discriminator": [
         149,
@@ -1835,6 +2174,588 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "settleHarvest",
+      "docs": [
+        "Permissionless harvest. Vault-PDA-signed inner CPIs:",
+        "1. ClaimSOL (miner -> mining_authority), then PDA-internal transfer",
+        "mining_authority -> treasury, fold into sol_in_vault.",
+        "2. ClaimORE (ORE -> ATA(mining_authority)).",
+        "3. ore-lst Wrap (ORE -> stORE into ATA(mining_authority)).",
+        "4. transfer stORE ATA(mining_authority) -> store_treasury PDA.",
+        "FIX #2: credit store_in_vault from the store_treasury balance DELTA",
+        "(authoritative custody). Also advance the accumulator from the ACTUAL",
+        "wrapped grams (the single crediting site — see `checkpoint`)."
+      ],
+      "discriminator": [
+        73,
+        14,
+        208,
+        42,
+        20,
+        29,
+        55,
+        100
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "storeTreasury",
+          "docs": [
+            "Per-bucket stORE-holding token account (authority = bucket PDA)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "miningAuthorityOreAta",
+          "docs": [
+            "mining_authority's ORE ATA (ClaimORE destination, Wrap source)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "miningAuthorityStoreAta",
+          "docs": [
+            "mining_authority's stORE ATA (Wrap destination)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreMint",
+          "writable": true,
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "storeMint",
+          "docs": [
+            "stORE mint, pinned to config.store_mint AND the on-chain STORE_MINT."
+          ],
+          "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
+        },
+        {
+          "name": "oreMiner",
+          "writable": true
+        },
+        {
+          "name": "oreBoard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreProgram",
+          "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
+        },
+        {
+          "name": "oreLstVault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                4,
+                251,
+                80,
+                194,
+                234,
+                15,
+                72,
+                106,
+                104,
+                80,
+                91,
+                93,
+                174,
+                212,
+                106,
+                243,
+                71,
+                70,
+                149,
+                89,
+                215,
+                70,
+                161,
+                100,
+                153,
+                213,
+                221,
+                81,
+                78,
+                163,
+                190,
+                130
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreLstVaultOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstStake",
+          "writable": true
+        },
+        {
+          "name": "oreLstStakeOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                6,
+                133,
+                194,
+                223,
+                210,
+                129,
+                79,
+                202,
+                69,
+                159,
+                227,
+                210,
+                86,
+                178,
+                85,
+                73,
+                103,
+                66,
+                7,
+                177,
+                177,
+                163,
+                250,
+                233,
+                206,
+                220,
+                177,
+                218,
+                50,
+                19,
+                243,
+                181
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreLstTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstVesting",
+          "docs": [
+            "re-added in the Jun-17-2026 ore-lst update; verified vs a live mainnet",
+            "Wrap tx (2026-06-18). Omitting it reverts the wrap and bricks the bucket."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                6,
+                133,
+                194,
+                223,
+                210,
+                129,
+                79,
+                202,
+                69,
+                159,
+                227,
+                210,
+                86,
+                178,
+                85,
+                73,
+                103,
+                66,
+                7,
+                177,
+                177,
+                163,
+                250,
+                233,
+                206,
+                220,
+                177,
+                218,
+                50,
+                19,
+                243,
+                181
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreStakeProgram",
+          "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller (pays tx fee)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "withdraw",
       "docs": [
         "User withdraws SOL by burning shares. Gated by:",
@@ -1846,7 +2767,14 @@ export type CwrVault = {
         "",
         "NAV is FROZEN while claims_open=true (pull/push/report_nav all blocked),",
         "so the NPS used here cannot be manipulated mid-withdraw. This is the",
-        "central security invariant of the v2 design."
+        "central security invariant of the v2 design.",
+        "User withdraws by burning shares. V6 non-custodial:",
+        "- !paused",
+        "- phase == OPEN  (FIX #7)",
+        "SOL is paid pro-rata at the FROZEN `claims_window_nps` (snapshotted at",
+        "open_window). stORE is paid via the per-user reward-debt accumulator",
+        "from the Position PDA, capped by the store_treasury balance",
+        "(fail-closed). Decrements both Position and the share mint."
       ],
       "discriminator": [
         183,
@@ -1881,9 +2809,10 @@ export type CwrVault = {
           "signer": true
         },
         {
-          "name": "feeRecipient",
+          "name": "position",
           "docs": [
-            "Pinned: must match `cfg.fee_recipient`. Receives the perf fee."
+            "V6 — per-user Position PDA. Pinned to (bucket_id, user). The handler",
+            "also asserts `position.owner == user`."
           ],
           "writable": true
         },
@@ -2034,6 +2963,19 @@ export type CwrVault = {
         50,
         199
       ]
+    },
+    {
+      "name": "position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
     }
   ],
   "events": [
@@ -2090,19 +3032,6 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "adminWriteOffEvent",
-      "discriminator": [
-        51,
-        124,
-        2,
-        126,
-        57,
-        69,
-        136,
-        217
-      ]
-    },
-    {
       "name": "bucketInitializedEvent",
       "discriminator": [
         209,
@@ -2113,6 +3042,32 @@ export type CwrVault = {
         70,
         61,
         162
+      ]
+    },
+    {
+      "name": "checkpointEvent",
+      "discriminator": [
+        54,
+        237,
+        169,
+        161,
+        81,
+        0,
+        202,
+        205
+      ]
+    },
+    {
+      "name": "crankMineEvent",
+      "discriminator": [
+        45,
+        149,
+        70,
+        157,
+        143,
+        12,
+        43,
+        229
       ]
     },
     {
@@ -2181,55 +3136,29 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "pullEvent",
+      "name": "miningPdaInitializedEvent",
       "discriminator": [
-        124,
-        242,
-        49,
-        173,
-        61,
-        32,
-        20,
-        192
+        229,
+        237,
+        86,
+        208,
+        21,
+        47,
+        75,
+        2
       ]
     },
     {
-      "name": "pushEvent",
+      "name": "phaseChangedEvent",
       "discriminator": [
-        249,
-        202,
-        18,
-        193,
-        129,
-        127,
-        43,
-        94
-      ]
-    },
-    {
-      "name": "pushStoreEvent",
-      "discriminator": [
-        206,
-        133,
-        162,
-        100,
-        199,
-        32,
-        113,
-        131
-      ]
-    },
-    {
-      "name": "reportNavEvent",
-      "discriminator": [
-        69,
-        91,
-        173,
-        142,
-        181,
-        81,
-        131,
-        190
+        138,
+        7,
+        103,
+        90,
+        112,
+        56,
+        41,
+        4
       ]
     },
     {
@@ -2360,6 +3289,19 @@ export type CwrVault = {
         67,
         189,
         211
+      ]
+    },
+    {
+      "name": "settleHarvestEvent",
+      "discriminator": [
+        50,
+        16,
+        139,
+        46,
+        104,
+        162,
+        4,
+        41
       ]
     },
     {
@@ -2661,6 +3603,86 @@ export type CwrVault = {
       "code": 6056,
       "name": "adminProposalAlreadyPending",
       "msg": "An admin transfer is already pending — call cancel_admin_transfer first"
+    },
+    {
+      "code": 6057,
+      "name": "wrongPhase",
+      "msg": "Instruction not allowed in the current phase"
+    },
+    {
+      "code": 6058,
+      "name": "miningPdaNotInit",
+      "msg": "Mining authority PDA not initialized for this bucket"
+    },
+    {
+      "code": 6059,
+      "name": "miningPdaAlreadyInit",
+      "msg": "Mining authority PDA already initialized for this bucket"
+    },
+    {
+      "code": 6060,
+      "name": "inGuardBand",
+      "msg": "Crank refused: inside the betting-window guard band"
+    },
+    {
+      "code": 6061,
+      "name": "insufficientVaultSolToDeploy",
+      "msg": "Insufficient SOL in vault to deploy"
+    },
+    {
+      "code": 6062,
+      "name": "roundNotSettled",
+      "msg": "ORE round has not been settled (checkpoint_id != round_id)"
+    },
+    {
+      "code": 6063,
+      "name": "rewardsNotClaimed",
+      "msg": "ORE SOL rewards have not been claimed into the treasury"
+    },
+    {
+      "code": 6064,
+      "name": "invalidMinerAccount",
+      "msg": "Provided ORE miner account is not a valid Miner (owner/disc/len mismatch)"
+    },
+    {
+      "code": 6065,
+      "name": "accountAddressMismatch",
+      "msg": "Provided account does not match the expected pinned address"
+    },
+    {
+      "code": 6066,
+      "name": "wrapDestinationMismatch",
+      "msg": "stORE did not land in the expected mining-authority ATA after wrap"
+    },
+    {
+      "code": 6067,
+      "name": "positionAccountingError",
+      "msg": "Position reward debt accounting underflow/overflow"
+    },
+    {
+      "code": 6068,
+      "name": "storeTreasuryShortfall",
+      "msg": "stORE owed exceeds store_treasury balance (fail-closed)"
+    },
+    {
+      "code": 6069,
+      "name": "badDeployAmount",
+      "msg": "Deploy amount must be a positive multiple distributable across 25 squares"
+    },
+    {
+      "code": 6070,
+      "name": "noSquaresSelected",
+      "msg": "Squares mask must select at least one square"
+    },
+    {
+      "code": 6071,
+      "name": "mustDeployAllSquares",
+      "msg": "Simple pool must deploy across all 25 squares (selected != 25)"
+    },
+    {
+      "code": 6072,
+      "name": "perfFeeDisabled",
+      "msg": "Performance fee is permanently disabled in the non-custodial vault"
     }
   ],
   "types": [
@@ -2744,30 +3766,6 @@ export type CwrVault = {
           {
             "name": "confirmedAt",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "adminWriteOffEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bucketId",
-            "type": "u8"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "newExternalValue",
-            "type": "u64"
-          },
-          {
-            "name": "newNavPerShare",
-            "type": "u128"
           }
         ]
       }
@@ -2892,9 +3890,82 @@ export type CwrVault = {
               "External-audit hardening (2026-06): NPS snapshot taken when",
               "`set_claims_open(true)` is called. Withdraw uses this frozen value",
               "so backend cannot pre-pump NPS via report_nav immediately before a",
-              "claim window opens. Set back to 0 when claims_open=false."
+              "claim window opens. Set back to 0 when claims_open=false.",
+              "",
+              "V6 non-custodial: now the FROZEN DERIVED NAV-per-share snapshotted at",
+              "`open_window` (BETTING -> OPEN). Withdraw pays SOL at this NPS."
             ],
             "type": "u128"
+          },
+          {
+            "name": "miningAuthority",
+            "docs": [
+              "Per-bucket mining authority PDA = PDA([MINING_SEED, bucket_id], cwr).",
+              "ORE Miner authority + signer of all ORE/ore-lst CPIs + SOL source for",
+              "Deploy. Pubkey::default() until `init_mining_pda`."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "miningAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "oreMiner",
+            "docs": [
+              "The ORE Miner PDA = PDA([b\"miner\", mining_authority], ORE). Cached at",
+              "init so callers/handlers can pin it."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "phase",
+            "docs": [
+              "Phase: PHASE_BETTING (0) = mining live; PHASE_OPEN (1) = deposits +",
+              "withdrawals. Driven by Clock vs `phase_started_slot` via",
+              "open_window / close_window."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "phaseStartedSlot",
+            "docs": [
+              "Slot at which the current phase began (used as the time anchor; we",
+              "also store unix ts implicitly via clock checks in the handlers)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "phaseStartedTs",
+            "docs": [
+              "Unix timestamp at which the current phase began. Phase transitions are",
+              "gated on (now - phase_started_ts) vs OPEN_SECS / BETTING_SECS."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bettingRoundId",
+            "docs": [
+              "The ORE round id of the most recent `crank_mine` Deploy."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "accStorePerShare",
+            "docs": [
+              "stORE-per-share accumulator (scaled by ACC_SCALE). Advanced when",
+              "realized stORE is folded into `store_treasury`. Drives the per-user",
+              "reward-debt payout in withdraw."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "lastSeenRewardsOre",
+            "docs": [
+              "Last observed (rewards_ore + refined_ore) on the ORE Miner, used to",
+              "compute the per-checkpoint delta. (Bookkeeping for the accrual site.)"
+            ],
+            "type": "u64"
           },
           {
             "name": "params",
@@ -3041,6 +4112,30 @@ export type CwrVault = {
       }
     },
     {
+      "name": "checkpointEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "roundId",
+            "type": "u64"
+          },
+          {
+            "name": "rewardsOre",
+            "type": "u64"
+          },
+          {
+            "name": "refinedOre",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "config",
       "type": {
         "kind": "struct",
@@ -3111,6 +4206,54 @@ export type CwrVault = {
               "Required to be true before `accept_admin` will commit the rotation."
             ],
             "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "crankMineEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "roundId",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Gross SOL debited from sol_in_vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeLamports",
+            "docs": [
+              "1% volume fee skimmed to the global fee_bucket."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "netAmount",
+            "docs": [
+              "NET deployed into ORE (amount - fee)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "perSquare",
+            "docs": [
+              "Per-square deploy amount (per_square = amount / 25)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "squaresSelected",
+            "type": "u64"
           }
         ]
       }
@@ -3330,7 +4473,7 @@ export type CwrVault = {
       }
     },
     {
-      "name": "pullEvent",
+      "name": "miningPdaInitializedEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -3339,40 +4482,18 @@ export type CwrVault = {
             "type": "u8"
           },
           {
-            "name": "amount",
-            "docs": [
-              "Gross amount debited from treasury (sol_in_vault -= amount)."
-            ],
-            "type": "u64"
+            "name": "miningAuthority",
+            "type": "pubkey"
           },
           {
-            "name": "feeLamports",
-            "docs": [
-              "V5 volume fee skimmed and routed to the global fee_bucket."
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "netAmount",
-            "docs": [
-              "What actually reached the operator wallet for deployment.",
-              "`external_value` increments by exactly this value."
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "solInVault",
-            "type": "u64"
-          },
-          {
-            "name": "externalValue",
-            "type": "u64"
+            "name": "oreMiner",
+            "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "pushEvent",
+      "name": "phaseChangedEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -3381,64 +4502,68 @@ export type CwrVault = {
             "type": "u8"
           },
           {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "solInVault",
-            "type": "u64"
-          },
-          {
-            "name": "externalValue",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "pushStoreEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bucketId",
+            "name": "phase",
             "type": "u8"
           },
           {
-            "name": "amount",
+            "name": "phaseStartedSlot",
             "type": "u64"
           },
           {
-            "name": "storeInVault",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "reportNavEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bucketId",
-            "type": "u8"
+            "name": "phaseStartedTs",
+            "type": "i64"
           },
           {
-            "name": "externalValue",
-            "type": "u64"
-          },
-          {
-            "name": "solInVault",
-            "type": "u64"
-          },
-          {
-            "name": "totalShares",
-            "type": "u64"
-          },
-          {
-            "name": "navPerShare",
+            "name": "claimsWindowNps",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "position",
+      "docs": [
+        "Per-user position in a bucket. Created (init_if_needed) in `deposit`.",
+        "Tracks shares plus the stORE reward-debt accumulator checkpoint so each",
+        "user is paid exactly their pro-rata stORE accrued WHILE they held shares",
+        "(no backdating: `acc_store_per_share_paid` is set to the CURRENT acc on",
+        "first deposit, FIX A)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "accStorePerSharePaid",
+            "docs": [
+              "Reward-debt watermark: the bucket's `acc_store_per_share` value as of",
+              "the user's last settle (deposit/withdraw). Owed stORE since then =",
+              "shares * (acc - paid) / ACC_SCALE."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "storeCreditGrams",
+            "docs": [
+              "Carried (rounded-down) stORE grams owed but not yet paid out — lets a",
+              "later withdraw collect dust that an earlier partial withdraw floored."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -3628,6 +4753,34 @@ export type CwrVault = {
       }
     },
     {
+      "name": "settleHarvestEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "claimedSol",
+            "type": "u64"
+          },
+          {
+            "name": "wrappedGrams",
+            "type": "u64"
+          },
+          {
+            "name": "storeCredited",
+            "type": "u64"
+          },
+          {
+            "name": "accStorePerShare",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
       "name": "withdrawEvent",
       "type": {
         "kind": "struct",
@@ -3701,6 +4854,24 @@ export type CwrVault = {
       "name": "feeScheduleSeed",
       "type": "bytes",
       "value": "[102, 101, 101, 95, 115, 99, 104, 101, 100, 117, 108, 101]"
+    },
+    {
+      "name": "miningSeed",
+      "docs": [
+        "Seed for the per-bucket mining authority PDA. This PDA is the ORE Miner's",
+        "`authority` (and signer of all Deploy/Checkpoint/Claim CPIs), and the SOL",
+        "source for Deploy. Derived as PDA([MINING_SEED, bucket_id], cwr_vault)."
+      ],
+      "type": "bytes",
+      "value": "[109, 105, 110, 105, 110, 103]"
+    },
+    {
+      "name": "positionSeed",
+      "docs": [
+        "Seed for the per-user Position PDA: PDA([POSITION_SEED, bucket_id, user])."
+      ],
+      "type": "bytes",
+      "value": "[112, 111, 115, 105, 116, 105, 111, 110]"
     },
     {
       "name": "shareMintSeed",
