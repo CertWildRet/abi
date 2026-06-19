@@ -1685,6 +1685,81 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setBucketWindowTiming",
+      "docs": [
+        "Admin-tunable per-bucket window timing — change OPEN_SECS / BETTING_SECS /",
+        "GUARD_BAND_SLOTS for a bucket WITHOUT a program upgrade.",
+        "",
+        "Validated so a misconfigured (or compromised) admin cannot brick the",
+        "cycle:",
+        "- each window duration is clamped to [MIN_WINDOW_SECS, MAX_WINDOW_SECS]",
+        "(no 0-length or absurd windows);",
+        "- the guard band must leave at least MIN_CRANKABLE_SLOTS of live",
+        "crank window (so `crank_mine` can never be permanently refused).",
+        "",
+        "No phase gate: the admin already holds strictly-stronger levers",
+        "(`set_pause` blocks every user op), so restricting WHEN timing can be",
+        "tuned would add friction without adding security. The change takes",
+        "effect immediately — subsequent open/close/crank gates read the new",
+        "per-bucket values."
+      ],
+      "discriminator": [
+        97,
+        124,
+        30,
+        83,
+        64,
+        112,
+        236,
+        156
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "openSecs",
+          "type": "i64"
+        },
+        {
+          "name": "bettingSecs",
+          "type": "i64"
+        },
+        {
+          "name": "guardBandSlots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "setClaimsOpen",
       "discriminator": [
         72,
@@ -3201,6 +3276,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setBucketWindowTimingEvent",
+      "discriminator": [
+        62,
+        176,
+        198,
+        94,
+        68,
+        60,
+        173,
+        152
+      ]
+    },
+    {
       "name": "setClaimsOpenEvent",
       "discriminator": [
         244,
@@ -3688,6 +3776,11 @@ export type CwrVault = {
       "code": 6073,
       "name": "windowNotSettled",
       "msg": "Claim window not settled — the first user action must run settle_harvest first"
+    },
+    {
+      "code": 6074,
+      "name": "badWindowTiming",
+      "msg": "Window timing out of range, or guard band leaves no crankable window"
     }
   ],
   "types": [
@@ -3983,6 +4076,33 @@ export type CwrVault = {
             "docs": [
               "Last observed (rewards_ore + refined_ore) on the ORE Miner, used to",
               "compute the per-checkpoint delta. (Bookkeeping for the accrual site.)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "openSecs",
+            "docs": [
+              "OPEN-window duration (s) for THIS bucket. close_window is gated on",
+              "(now - phase_started_ts) >= open_secs. Seeded from OPEN_SECS at",
+              "init_bucket; changeable by admin via `set_bucket_window_timing`."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bettingSecs",
+            "docs": [
+              "BETTING-window duration (s). open_window is gated on",
+              "(now - phase_started_ts) >= betting_secs; also drives the crank",
+              "guard-band slot budget. Seeded from BETTING_SECS; admin-tunable."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "guardBandSlots",
+            "docs": [
+              "Crank guard-band (slots) at the END of the betting window — crank_mine",
+              "is refused inside it. Seeded from GUARD_BAND_SLOTS; admin-tunable.",
+              "Validation guarantees it always leaves a positive crankable window."
             ],
             "type": "u64"
           },
@@ -4639,6 +4759,30 @@ export type CwrVault = {
                 "name": "bucketParams"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "setBucketWindowTimingEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "openSecs",
+            "type": "i64"
+          },
+          {
+            "name": "bettingSecs",
+            "type": "i64"
+          },
+          {
+            "name": "guardBandSlots",
+            "type": "u64"
           }
         ]
       }
