@@ -3683,6 +3683,11 @@ export type CwrVault = {
       "code": 6072,
       "name": "perfFeeDisabled",
       "msg": "Performance fee is permanently disabled in the non-custodial vault"
+    },
+    {
+      "code": 6073,
+      "name": "windowNotSettled",
+      "msg": "Claim window not settled — the first user action must run settle_harvest first"
     }
   ],
   "types": [
@@ -3949,6 +3954,20 @@ export type CwrVault = {
               "The ORE round id of the most recent `crank_mine` Deploy."
             ],
             "type": "u64"
+          },
+          {
+            "name": "windowSettled",
+            "docs": [
+              "Lazy-settle flag for the CLAIM (OPEN) window. The crank NEVER claims",
+              "ORE — it accumulates unclaimed across betting (refining yield + dodges",
+              "the 10% claim fee). `open_window` sets this FALSE; the first user action",
+              "in OPEN must run `settle_harvest` (claim ALL accumulated SOL + ORE ->",
+              "stORE, advance the accumulator over the PRIOR cycle's share base) which",
+              "sets it TRUE — and `deposit`/`withdraw` are blocked until then. So the",
+              "accumulator is always advanced BEFORE any share mutation in the window:",
+              "no newcomer can backdate onto the prior cycle's ORE."
+            ],
+            "type": "bool"
           },
           {
             "name": "accStorePerShare",
