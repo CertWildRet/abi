@@ -1,5 +1,5 @@
 {
-  "address": "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
+  "address": "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
   "metadata": {
     "name": "cwr_vault",
     "version": "0.1.0",
@@ -103,6 +103,16 @@
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": []
@@ -1143,6 +1153,13 @@
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1189,6 +1206,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1304,6 +1322,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1331,6 +1350,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
           "name": "mining_authority",
@@ -1510,6 +1536,16 @@
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1557,6 +1593,16 @@
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1589,6 +1635,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1615,6 +1662,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1639,6 +1693,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1665,6 +1720,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1710,6 +1772,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1736,6 +1799,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1768,6 +1838,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1794,6 +1865,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1818,6 +1896,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1844,6 +1923,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1891,6 +1977,16 @@
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1932,6 +2028,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1979,6 +2076,13 @@
               }
             ]
           }
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2017,6 +2121,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2043,6 +2148,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2079,6 +2191,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2105,6 +2218,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2146,6 +2266,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2172,6 +2293,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2203,6 +2331,7 @@
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2229,6 +2358,13 @@
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -3049,6 +3185,19 @@
   ],
   "events": [
     {
+      "name": "AdminCosignEvent",
+      "discriminator": [
+        104,
+        29,
+        148,
+        107,
+        156,
+        103,
+        87,
+        203
+      ]
+    },
+    {
       "name": "AdminProposedEvent",
       "discriminator": [
         212,
@@ -3775,9 +3924,73 @@
       "code": 6074,
       "name": "BadWindowTiming",
       "msg": "Window timing out of range, or guard band leaves no crankable window"
+    },
+    {
+      "code": 6075,
+      "name": "MissingCosign",
+      "msg": "Admin ix requires a fee-holder Ed25519 cosign, but none was found in the transaction"
+    },
+    {
+      "code": 6076,
+      "name": "BadCosign",
+      "msg": "Cosign message is malformed (wrong tag/length/program, or precompile data is not self-contained)"
+    },
+    {
+      "code": 6077,
+      "name": "StaleCosign",
+      "msg": "Cosign signature is stale or from the future (outside the freshness window)"
+    },
+    {
+      "code": 6078,
+      "name": "BadCosignNonce",
+      "msg": "Cosign nonce does not match Config.admin_auth_nonce (replay / out-of-order)"
+    },
+    {
+      "code": 6079,
+      "name": "CosignIxMismatch",
+      "msg": "Cosign does not bind to this exact instruction + args (ix-data hash mismatch)"
+    },
+    {
+      "code": 6080,
+      "name": "NotFeeCosigner",
+      "msg": "Cosigner is not one of the current fee holders"
     }
   ],
   "types": [
+    {
+      "name": "AdminCosignEvent",
+      "docs": [
+        "Emitted on EVERY successful fee-holder cosign of an admin ix — records WHICH",
+        "fee holder authorized the action (`cosigner`), the consumed one-time nonce,",
+        "the signing timestamp, and the sha256 of the authorized instruction's data."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "signed_ts",
+            "type": "i64"
+          },
+          {
+            "name": "ix_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "AdminProposedEvent",
       "type": {
@@ -4339,6 +4552,30 @@
               "Required to be true before `accept_admin` will commit the rotation."
             ],
             "type": "bool"
+          },
+          {
+            "name": "admin_auth_nonce",
+            "docs": [
+              "Monotonic one-time nonce. The signed cosign message must carry the",
+              "CURRENT value; each successful admin ix bumps it, so a captured message",
+              "cannot be replayed even within its freshness window."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "fee_cosigners",
+            "docs": [
+              "Denormalized mirror of `FeeSchedule.recipients[*].recipient` — the set of",
+              "keys allowed to co-sign. Written by `init_fee_schedule` / `set_fee_schedule`",
+              "so the cosign check needs only `Config` (already in every admin context),",
+              "not the FeeSchedule account. Empty slots are `Pubkey::default()`."
+            ],
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
           }
         ]
       }

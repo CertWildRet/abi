@@ -7,9 +7,9 @@ export type CwrVaultIdl = typeof cwrVaultIdlJson;
 export const CWR_VAULT_IDL = cwrVaultIdlJson as unknown as CwrVault;
 
 export const PROGRAM_IDS = {
-  localnet: "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
-  devnet: "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
-  mainnet: "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
+  localnet: "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
+  devnet: "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
+  mainnet: "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
 } as const;
 
 export type Cluster = keyof typeof PROGRAM_IDS;

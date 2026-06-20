@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/cwr_vault.json`.
  */
 export type CwrVault = {
-  "address": "3FSH7MkXUb1AkNQFwj2ppNer657dCtxfWHSvhiyfqCRP",
+  "address": "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
   "metadata": {
     "name": "cwrVault",
     "version": "0.1.0",
@@ -109,6 +109,16 @@ export type CwrVault = {
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": []
@@ -1149,6 +1159,13 @@ export type CwrVault = {
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1195,6 +1212,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1310,6 +1328,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1337,6 +1356,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
           "name": "miningAuthority",
@@ -1516,6 +1542,16 @@ export type CwrVault = {
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1563,6 +1599,16 @@ export type CwrVault = {
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1595,6 +1641,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1621,6 +1668,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1645,6 +1699,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1671,6 +1726,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1716,6 +1778,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1742,6 +1805,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1774,6 +1844,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1800,6 +1871,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1824,6 +1902,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1850,6 +1929,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1897,6 +1983,16 @@ export type CwrVault = {
           "relations": [
             "config"
           ]
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
+            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
+            "simply pass this account unused."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -1938,6 +2034,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1985,6 +2082,13 @@ export type CwrVault = {
               }
             ]
           }
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2023,6 +2127,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2049,6 +2154,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2085,6 +2197,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2111,6 +2224,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2152,6 +2272,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2178,6 +2299,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -2209,6 +2337,7 @@ export type CwrVault = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2235,6 +2364,13 @@ export type CwrVault = {
         {
           "name": "bucket",
           "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs) to verify the Ed25519 precompile signature."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
         }
       ],
       "args": [
@@ -3055,6 +3191,19 @@ export type CwrVault = {
   ],
   "events": [
     {
+      "name": "adminCosignEvent",
+      "discriminator": [
+        104,
+        29,
+        148,
+        107,
+        156,
+        103,
+        87,
+        203
+      ]
+    },
+    {
       "name": "adminProposedEvent",
       "discriminator": [
         212,
@@ -3781,9 +3930,73 @@ export type CwrVault = {
       "code": 6074,
       "name": "badWindowTiming",
       "msg": "Window timing out of range, or guard band leaves no crankable window"
+    },
+    {
+      "code": 6075,
+      "name": "missingCosign",
+      "msg": "Admin ix requires a fee-holder Ed25519 cosign, but none was found in the transaction"
+    },
+    {
+      "code": 6076,
+      "name": "badCosign",
+      "msg": "Cosign message is malformed (wrong tag/length/program, or precompile data is not self-contained)"
+    },
+    {
+      "code": 6077,
+      "name": "staleCosign",
+      "msg": "Cosign signature is stale or from the future (outside the freshness window)"
+    },
+    {
+      "code": 6078,
+      "name": "badCosignNonce",
+      "msg": "Cosign nonce does not match Config.admin_auth_nonce (replay / out-of-order)"
+    },
+    {
+      "code": 6079,
+      "name": "cosignIxMismatch",
+      "msg": "Cosign does not bind to this exact instruction + args (ix-data hash mismatch)"
+    },
+    {
+      "code": 6080,
+      "name": "notFeeCosigner",
+      "msg": "Cosigner is not one of the current fee holders"
     }
   ],
   "types": [
+    {
+      "name": "adminCosignEvent",
+      "docs": [
+        "Emitted on EVERY successful fee-holder cosign of an admin ix — records WHICH",
+        "fee holder authorized the action (`cosigner`), the consumed one-time nonce,",
+        "the signing timestamp, and the sha256 of the authorized instruction's data."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "signedTs",
+            "type": "i64"
+          },
+          {
+            "name": "ixHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "adminProposedEvent",
       "type": {
@@ -4345,6 +4558,30 @@ export type CwrVault = {
               "Required to be true before `accept_admin` will commit the rotation."
             ],
             "type": "bool"
+          },
+          {
+            "name": "adminAuthNonce",
+            "docs": [
+              "Monotonic one-time nonce. The signed cosign message must carry the",
+              "CURRENT value; each successful admin ix bumps it, so a captured message",
+              "cannot be replayed even within its freshness window."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeCosigners",
+            "docs": [
+              "Denormalized mirror of `FeeSchedule.recipients[*].recipient` — the set of",
+              "keys allowed to co-sign. Written by `init_fee_schedule` / `set_fee_schedule`",
+              "so the cosign check needs only `Config` (already in every admin context),",
+              "not the FeeSchedule account. Empty slots are `Pubkey::default()`."
+            ],
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
           }
         ]
       }
