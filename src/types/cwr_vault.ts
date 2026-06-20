@@ -10,7 +10,7 @@ export type CwrVault = {
     "name": "cwrVault",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "CWR multi-tranche vault on Solana — backend-managed ORE farming pools"
+    "description": "CWR multi-tranche vault on Solana — operator-cranked ORE farming pools"
   },
   "instructions": [
     {
@@ -113,7 +113,7 @@ export type CwrVault = {
         {
           "name": "instructions",
           "docs": [
-            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "fee-holder cosign check in `set_fee_recipient`. The",
             "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
             "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
             "simply pass this account unused."
@@ -867,7 +867,7 @@ export type CwrVault = {
           "name": "config",
           "docs": [
             "External-audit hardening: read-only access to Config so the ix handler",
-            "can refuse deposits from privileged keys (admin / backend / fee_recipient)."
+            "can refuse deposits from privileged keys (admin / fee_recipient)."
           ],
           "pda": {
             "seeds": [
@@ -1438,10 +1438,6 @@ export type CwrVault = {
       ],
       "args": [
         {
-          "name": "backend",
-          "type": "pubkey"
-        },
-        {
           "name": "feeRecipient",
           "type": "pubkey"
         },
@@ -1503,7 +1499,7 @@ export type CwrVault = {
         "Rejects:",
         "- new_admin == Pubkey::default() (bricking)",
         "- new_admin == current admin (no-op)",
-        "- new_admin == backend or fee_recipient (role collapse)",
+        "- new_admin == fee_recipient (role collapse)",
         "- a proposal is already pending (must `cancel_admin_transfer` first)"
       ],
       "discriminator": [
@@ -1546,7 +1542,7 @@ export type CwrVault = {
         {
           "name": "instructions",
           "docs": [
-            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "fee-holder cosign check in `set_fee_recipient`. The",
             "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
             "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
             "simply pass this account unused."
@@ -1557,63 +1553,6 @@ export type CwrVault = {
       "args": [
         {
           "name": "newAdmin",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "setBackend",
-      "discriminator": [
-        150,
-        129,
-        11,
-        115,
-        232,
-        141,
-        179,
-        55
-      ],
-      "accounts": [
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "admin",
-          "signer": true,
-          "relations": [
-            "config"
-          ]
-        },
-        {
-          "name": "instructions",
-          "docs": [
-            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
-            "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
-            "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
-            "simply pass this account unused."
-          ],
-          "address": "Sysvar1nstructions1111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "newBackend",
           "type": "pubkey"
         }
       ]
@@ -1987,7 +1926,7 @@ export type CwrVault = {
         {
           "name": "instructions",
           "docs": [
-            "fee-holder cosign check in `set_backend` / `set_fee_recipient`. The",
+            "fee-holder cosign check in `set_fee_recipient`. The",
             "admin-transfer ixs (propose/cancel) share this context but do NOT cosign",
             "(they're gated by the separate ADMIN_TRANSFER_CONFIRMER flow); they",
             "simply pass this account unused."
@@ -3386,19 +3325,6 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "setBackendEvent",
-      "discriminator": [
-        151,
-        52,
-        109,
-        250,
-        0,
-        182,
-        196,
-        76
-      ]
-    },
-    {
       "name": "setBucketOperatorEvent",
       "discriminator": [
         14,
@@ -3563,8 +3489,8 @@ export type CwrVault = {
     },
     {
       "code": 6001,
-      "name": "notBackend",
-      "msg": "Caller is not the backend operator"
+      "name": "reservedRoleErr",
+      "msg": "Reserved error code (unused)"
     },
     {
       "code": 6002,
@@ -3624,7 +3550,7 @@ export type CwrVault = {
     {
       "code": 6013,
       "name": "insufficientVaultSol",
-      "msg": "Insufficient SOL in vault to fulfill withdraw — backend must top up"
+      "msg": "Insufficient SOL in vault to fulfill withdraw — operator must top up"
     },
     {
       "code": 6014,
@@ -3769,12 +3695,12 @@ export type CwrVault = {
     {
       "code": 6042,
       "name": "operatorRoleOverlap",
-      "msg": "Operator wallet must not equal admin / backend / fee_recipient (role separation)"
+      "msg": "Operator wallet must not equal admin / fee_recipient (role separation)"
     },
     {
       "code": 6043,
       "name": "feeRecipientRoleOverlap",
-      "msg": "Fee recipient must not equal admin / backend / a bucket operator (role separation)"
+      "msg": "Fee recipient must not equal admin / a bucket operator (role separation)"
     },
     {
       "code": 6044,
@@ -3784,7 +3710,7 @@ export type CwrVault = {
     {
       "code": 6045,
       "name": "privilegedRoleCannotBeUser",
-      "msg": "admin / backend / fee_recipient are forbidden from acting as a vault depositor / withdrawer"
+      "msg": "admin / fee_recipient are forbidden from acting as a vault depositor / withdrawer"
     },
     {
       "code": 6046,
@@ -4097,8 +4023,8 @@ export type CwrVault = {
           {
             "name": "paused",
             "docs": [
-              "Master kill switch. When true, EVERY user + backend instruction is",
-              "blocked. Only `set_paused(false)` from admin can re-enable."
+              "Master kill switch. When true, EVERY user + crank/operator instruction",
+              "is blocked. Only `set_paused(false)` from admin can re-enable."
             ],
             "type": "bool"
           },
@@ -4200,7 +4126,7 @@ export type CwrVault = {
             "docs": [
               "External-audit hardening (2026-06): NPS snapshot taken when",
               "`set_claims_open(true)` is called. Withdraw uses this frozen value",
-              "so backend cannot pre-pump NPS via report_nav immediately before a",
+              "so the crank cannot pre-pump NPS immediately before a",
               "claim window opens. Set back to 0 when claims_open=false.",
               "",
               "V6 non-custodial: now the FROZEN DERIVED NAV-per-share snapshotted at",
@@ -4500,13 +4426,6 @@ export type CwrVault = {
             "type": "pubkey"
           },
           {
-            "name": "backend",
-            "docs": [
-              "Backend hot key. Can call pull/push/report_nav."
-            ],
-            "type": "pubkey"
-          },
-          {
             "name": "feeRecipient",
             "docs": [
               "Where performance fees flow."
@@ -4518,7 +4437,7 @@ export type CwrVault = {
             "docs": [
               "V5 — stORE mint. Pinned at `initialize`; cannot be changed after init",
               "(would break per-bucket `store_treasury` ATAs and the `address =",
-              "config.store_mint` constraints on `Withdraw` / `BackendPushStore`).",
+              "config.store_mint` constraints on `Withdraw`).",
               "**Must be a real mint** — `Pubkey::default()` is rejected at init",
               "(`CwrError::StoreMintMustBeSet`). Localnet/devnet environments that",
               "don't have a deployed `ore-lst` should still mint a placeholder SPL",
@@ -4834,10 +4753,6 @@ export type CwrVault = {
             "type": "pubkey"
           },
           {
-            "name": "backend",
-            "type": "pubkey"
-          },
-          {
             "name": "feeRecipient",
             "type": "pubkey"
           },
@@ -4940,22 +4855,6 @@ export type CwrVault = {
               "later withdraw collect dust that an earlier partial withdraw floored."
             ],
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "setBackendEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "old",
-            "type": "pubkey"
-          },
-          {
-            "name": "new",
-            "type": "pubkey"
           }
         ]
       }
