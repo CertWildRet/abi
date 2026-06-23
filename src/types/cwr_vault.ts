@@ -2369,7 +2369,10 @@ export type CwrVault = {
         {
           "name": "miningAuthorityOreAta",
           "docs": [
-            "mining_authority's ORE ATA (ClaimORE destination, Wrap source)."
+            "mining_authority's ORE ATA (ClaimORE destination, Wrap source). A",
+            "non-custodial vault self-creates its own ATAs: init_if_needed so the",
+            "first settle_harvest creates it (paid by caller) instead of reverting",
+            "AccountNotInitialized. Idempotent — found pre-existing on later settles."
           ],
           "writable": true,
           "pda": {
@@ -2462,7 +2465,8 @@ export type CwrVault = {
         {
           "name": "miningAuthorityStoreAta",
           "docs": [
-            "mining_authority's stORE ATA (Wrap destination)."
+            "mining_authority's stORE ATA (Wrap destination). init_if_needed (paid by",
+            "caller) so the first settle_harvest creates it; idempotent thereafter."
           ],
           "writable": true,
           "pda": {
@@ -2560,8 +2564,12 @@ export type CwrVault = {
         {
           "name": "storeMint",
           "docs": [
-            "stORE mint, pinned to config.store_mint AND the on-chain STORE_MINT."
+            "stORE mint, pinned to config.store_mint AND the on-chain STORE_MINT.",
+            "`mut` because the ore-lst Wrap CPI MINTS stORE (supply changes), so",
+            "ix_wrap passes STORE_MINT writable — without mut here the inner CPI would",
+            "escalate its privilege over the outer settle_harvest ix."
           ],
+          "writable": true,
           "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
         },
         {
@@ -2884,10 +2892,19 @@ export type CwrVault = {
           "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
         },
         {
+          "name": "oreLstProgram",
+          "docs": [
+            "invoke_signed must receive the target program in its account list, else",
+            "the runtime can't resolve it (\"Unknown program LStwN…\")."
+          ],
+          "address": "LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y"
+        },
+        {
           "name": "caller",
           "docs": [
-            "Permissionless caller (pays tx fee)."
+            "Permissionless caller (pays tx fee + the one-time ATA rent on first settle)."
           ],
+          "writable": true,
           "signer": true
         },
         {
