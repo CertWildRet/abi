@@ -124,6 +124,52 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "cancelPending",
+      "docs": [
+        "Owner pulls their parked escrow back out before it is finalized. Allowed",
+        "in ANY phase and EVEN WHEN PAUSED — this only returns the owner's own",
+        "un-shared SOL, so a pause or a stuck window can never trap it. No shares",
+        "were ever minted, so there is nothing to unwind on the share side."
+      ],
+      "discriminator": [
+        74,
+        87,
+        109,
+        242,
+        64,
+        192,
+        151,
+        71
+      ],
+      "accounts": [
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "pendingState",
+          "writable": true
+        },
+        {
+          "name": "pendingTreasury",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pendingDeposit",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "checkpoint",
       "docs": [
         "Permissionless. CPI ORE Checkpoint signed by mining_authority, then",
@@ -1080,6 +1126,164 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "finalizePending",
+      "docs": [
+        "Convert a parked ticket into a real position. Permissionless (the keeper",
+        "runs this for users right after `settle_harvest`). Gated identically to",
+        "`deposit` (phase==OPEN && window_settled), so the stORE accumulator has",
+        "already advanced over the prior cycle and the price is the settled one:",
+        "the parker mints exactly as if they had deposited the instant the window",
+        "opened — they neither win nor lose the round they did not fund, and they",
+        "do not backdate onto the prior cycle's ORE (watermark = current acc)."
+      ],
+      "discriminator": [
+        161,
+        202,
+        177,
+        180,
+        230,
+        183,
+        40,
+        171
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "Read-only Config so finalize can enforce the same privileged-role",
+            "exclusion as deposit/withdraw (AUDIT L1)."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "pendingState",
+          "writable": true
+        },
+        {
+          "name": "pendingTreasury",
+          "writable": true
+        },
+        {
+          "name": "shareMint",
+          "writable": true
+        },
+        {
+          "name": "ownerShareAta",
+          "docs": [
+            "The parked owner's share ATA. The finalizer idempotently creates it in a",
+            "preInstruction. Pins `owner` via token::authority."
+          ],
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "docs": [
+            "The parked depositor. NOT a signer (finalize is permissionless). Receives",
+            "the PendingDeposit rent on close. System-owned (a normal wallet)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "finalizer",
+          "docs": [
+            "Whoever runs the conversion (typically the keeper). Pays tx fee + the",
+            "owner's Position rent. Gains nothing (no custody, no fund destination)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "writable": true
+        },
+        {
+          "name": "pendingDeposit",
+          "writable": true
+        },
+        {
+          "name": "oreMiner"
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initBucket",
       "discriminator": [
         237,
@@ -1381,6 +1585,83 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "initPending",
+      "docs": [
+        "One-time (per bucket) bootstrap of the parked-capital buffer. Cosigned",
+        "admin op. Creates the `pending_state` counter account and rent-seeds the",
+        "`pending_treasury` escrow from admin's own pocket (the seed is locked and",
+        "is NEVER part of `pending_total`, so finalize/cancel can never drain the",
+        "escrow below rent-exempt)."
+      ],
+      "discriminator": [
+        34,
+        165,
+        58,
+        159,
+        84,
+        97,
+        180,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "pendingState",
+          "writable": true
+        },
+        {
+          "name": "pendingTreasury",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "bucketId",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -1483,6 +1764,89 @@ export type CwrVault = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "parkDeposit",
+      "docs": [
+        "Park SOL during the cranking window. Escrows `amount` into",
+        "`pending_treasury` with NO shares minted and NO NAV impact. Only allowed",
+        "in BETTING (in OPEN, the normal `deposit` path applies). Repeated parks",
+        "by the same owner accumulate into one ticket. Always reversible via",
+        "`cancel_pending`."
+      ],
+      "discriminator": [
+        78,
+        114,
+        71,
+        170,
+        175,
+        185,
+        137,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "Read-only Config so the handler can refuse privileged depositors."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bucket",
+          "docs": [
+            "Read-only: park never mutates the bucket (no shares, no NAV)."
+          ]
+        },
+        {
+          "name": "pendingState",
+          "writable": true
+        },
+        {
+          "name": "pendingTreasury",
+          "writable": true
+        },
+        {
+          "name": "oreMiner",
+          "docs": [
+            "V6 — ORE Miner for the derived-NAV cap read. Validated in-handler against",
+            "`bucket.ore_miner`. CHECK: see handler."
+          ]
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pendingDeposit",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "proposeAdmin",
@@ -3132,6 +3496,32 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "pendingDeposit",
+      "discriminator": [
+        103,
+        40,
+        193,
+        187,
+        176,
+        121,
+        76,
+        40
+      ]
+    },
+    {
+      "name": "pendingState",
+      "discriminator": [
+        240,
+        47,
+        79,
+        212,
+        168,
+        191,
+        86,
+        183
+      ]
+    },
+    {
       "name": "position",
       "discriminator": [
         170,
@@ -3264,6 +3654,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "depositParkedEvent",
+      "discriminator": [
+        6,
+        116,
+        169,
+        48,
+        122,
+        11,
+        136,
+        158
+      ]
+    },
+    {
       "name": "feeScheduleInitializedEvent",
       "discriminator": [
         166,
@@ -3326,6 +3729,45 @@ export type CwrVault = {
         47,
         75,
         2
+      ]
+    },
+    {
+      "name": "pendingCancelledEvent",
+      "discriminator": [
+        215,
+        137,
+        149,
+        33,
+        24,
+        242,
+        12,
+        140
+      ]
+    },
+    {
+      "name": "pendingFinalizedEvent",
+      "discriminator": [
+        25,
+        207,
+        129,
+        54,
+        123,
+        219,
+        255,
+        104
+      ]
+    },
+    {
+      "name": "pendingStateInitializedEvent",
+      "discriminator": [
+        128,
+        156,
+        28,
+        150,
+        158,
+        92,
+        208,
+        198
       ]
     },
     {
@@ -3908,6 +4350,26 @@ export type CwrVault = {
       "code": 6081,
       "name": "roundAlreadyCranked",
       "msg": "This ORE round was already cranked this cycle (no double-deploy)"
+    },
+    {
+      "code": 6082,
+      "name": "pendingStateNotInit",
+      "msg": "Parked-capital buffer not initialized for this bucket — call init_pending first"
+    },
+    {
+      "code": 6083,
+      "name": "notBettingPhase",
+      "msg": "park_deposit is only allowed during the BETTING (cranking) phase"
+    },
+    {
+      "code": 6084,
+      "name": "noPendingDeposit",
+      "msg": "No parked deposit found for this owner (amount is zero / already settled)"
+    },
+    {
+      "code": 6085,
+      "name": "pendingAccountingError",
+      "msg": "Pending-buffer accounting error (total/count would underflow or mismatch)"
     }
   ],
   "types": [
@@ -4612,6 +5074,38 @@ export type CwrVault = {
       }
     },
     {
+      "name": "depositParkedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "amountLamports",
+            "type": "u64"
+          },
+          {
+            "name": "ticketTotalLamports",
+            "type": "u64"
+          },
+          {
+            "name": "pendingTotalLamports",
+            "type": "u64"
+          },
+          {
+            "name": "parkedAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "feeRecipient",
       "type": {
         "kind": "struct",
@@ -4800,6 +5294,184 @@ export type CwrVault = {
           },
           {
             "name": "oreMiner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingCancelledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "refundedLamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingDeposit",
+      "docs": [
+        "Per-user parked-deposit ticket. Created on `park_deposit` (escrows SOL with",
+        "NO shares minted and NO NAV impact), closed on `finalize_pending` (converted",
+        "to a real deposit at the next settled OPEN price) or `cancel_pending`",
+        "(escrow returned to the owner). Multiple parks by the same owner in one",
+        "cycle accumulate into `amount`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Escrowed lamports (gross; the entry fee is skimmed at finalize, matching",
+              "`deposit`). Equal to this owner's share of `pending_treasury`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "parkedAt",
+            "docs": [
+              "Unix ts of the FIRST park into this ticket (telemetry)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "entryFeeBpsSnapshot",
+            "docs": [
+              "AUDIT L3 — entry-fee terms SNAPSHOTTED at the first park. Finalize uses",
+              "these, NOT the live params, so a parker is charged exactly the rate they",
+              "agreed to at park time even if admin changes fees during the cranking",
+              "window. (No-stuck-capital is unaffected either way; this is fairness.)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "entryFeeEnabledSnapshot",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingFinalizedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "grossLamports",
+            "type": "u64"
+          },
+          {
+            "name": "entryFeeLamports",
+            "type": "u64"
+          },
+          {
+            "name": "netLamports",
+            "type": "u64"
+          },
+          {
+            "name": "sharesMinted",
+            "type": "u64"
+          },
+          {
+            "name": "navPerShare",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingState",
+      "docs": [
+        "Per-bucket state for the parked-capital buffer (deposit-while-cranking).",
+        "Lives in its OWN account, NOT on `Bucket`, so enabling the buffer on an",
+        "already-deployed bucket needs no account realloc. Created once by",
+        "`init_pending`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "pendingTreasuryBump",
+            "docs": [
+              "Canonical bump of the `pending_treasury` escrow PDA (cached so the",
+              "escrow can sign PDA transfers without recompute)."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "pendingTotal",
+            "docs": [
+              "Sum of all escrowed lamports across open `PendingDeposit` records.",
+              "EXCLUDES the escrow's rent-exempt seed. Invariant:",
+              "`pending_treasury.lamports == rent_seed + pending_total`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "pendingCount",
+            "docs": [
+              "Number of currently-open `PendingDeposit` records."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingStateInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "pendingState",
+            "type": "pubkey"
+          },
+          {
+            "name": "pendingTreasury",
             "type": "pubkey"
           }
         ]
@@ -5185,6 +5857,36 @@ export type CwrVault = {
       ],
       "type": "bytes",
       "value": "[109, 105, 110, 105, 110, 103]"
+    },
+    {
+      "name": "pendingSeed",
+      "docs": [
+        "Per-user parked-deposit ticket: PDA([PENDING_SEED, bucket_id, owner]).",
+        "Created on `park_deposit`, closed (rent -> owner) on finalize/cancel."
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103]"
+    },
+    {
+      "name": "pendingStateSeed",
+      "docs": [
+        "Per-bucket pending-buffer state PDA: PDA([PENDING_STATE_SEED, bucket_id]).",
+        "Holds the running escrow total + open-record count. Kept in its OWN account",
+        "(not on `Bucket`) so enabling the buffer needs no realloc of live buckets."
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 115, 116, 97, 116, 101]"
+    },
+    {
+      "name": "pendingTreasurySeed",
+      "docs": [
+        "Per-bucket escrow holding parked SOL: PDA([PENDING_TREASURY_SEED, bucket_id]).",
+        "System account, rent-seeded at `init_pending`. The rent seed is NEVER part of",
+        "the tracked `pending_total`, so finalize/cancel can never drain it below",
+        "rent-exempt."
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 116, 114, 101, 97, 115, 117, 114, 121]"
     },
     {
       "name": "positionSeed",
