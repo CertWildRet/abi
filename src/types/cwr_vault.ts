@@ -3903,6 +3903,11 @@ export type CwrVault = {
       "code": 6080,
       "name": "notFeeCosigner",
       "msg": "Cosigner is not one of the current fee holders"
+    },
+    {
+      "code": 6081,
+      "name": "roundAlreadyCranked",
+      "msg": "This ORE round was already cranked this cycle (no double-deploy)"
     }
   ],
   "types": [
