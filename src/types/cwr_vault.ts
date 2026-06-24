@@ -1289,6 +1289,141 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "distributeReferrals",
+      "docs": [
+        "PUSH variant of `claim_referral`: pay a referrer their accrued rewards",
+        "WITHOUT the referrer signing. A `relayer` (e.g. the keeper) signs and",
+        "fee-pays; the funds go to the `referrer` account. Uses the SAME",
+        "settlement-authority attestation (binds the referrer pubkey) and the SAME",
+        "per-referrer `claimed` watermark as `claim_referral`, so a referrer can",
+        "NEVER double-collect across pull-claim and push-distribute, and a stale",
+        "attestation pays 0. The relayer can't redirect: the payout goes only to",
+        "the attested referrer. The \"selective\" vs \"all opted-in\" mode is an",
+        "off-chain decision of WHICH referrers the relayer distributes to."
+      ],
+      "discriminator": [
+        155,
+        48,
+        4,
+        171,
+        220,
+        85,
+        213,
+        29
+      ],
+      "accounts": [
+        {
+          "name": "relayer",
+          "docs": [
+            "Relayer signs + fee-pays (and pays first-time referrer_state rent). NOT",
+            "the recipient."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "referrer",
+          "docs": [
+            "The referrer who RECEIVES the payout — just an account, NOT a signer. The",
+            "settlement attestation binds the payout to this exact pubkey, so the",
+            "relayer cannot redirect it."
+          ],
+          "writable": true
+        },
+        {
+          "name": "referrerState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "referrer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "finalizePending",
       "docs": [
         "Convert a parked ticket into a real position. Permissionless (the keeper",
@@ -4342,6 +4477,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "referralDistributedEvent",
+      "discriminator": [
+        159,
+        58,
+        88,
+        184,
+        236,
+        106,
+        134,
+        165
+      ]
+    },
+    {
       "name": "referralInitializedEvent",
       "discriminator": [
         170,
@@ -6233,6 +6381,30 @@ export type CwrVault = {
               "pays only `attested_cumulative - swept`, so replaying an attestation moves",
               "0 and a refilling pool can never be over-swept into referrer liability."
             ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralDistributedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referrer",
+            "type": "pubkey"
+          },
+          {
+            "name": "relayer",
+            "type": "pubkey"
+          },
+          {
+            "name": "payoutLamports",
+            "type": "u64"
+          },
+          {
+            "name": "cumulativeLamports",
             "type": "u64"
           }
         ]
