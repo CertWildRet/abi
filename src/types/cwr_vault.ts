@@ -403,6 +403,132 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "claimReferral",
+      "docs": [
+        "Claim accrued referral rewards. PULL-based and permissionless: the",
+        "referrer signs and supplies (via a preceding Ed25519 ix) a settlement-",
+        "authority attestation of their CUMULATIVE owed. Pays `cumulative -",
+        "claimed` from the bounded `referral_treasury` and advances the watermark.",
+        "Idempotent: a replayed/stale attestation pays 0; a lower cumulative than",
+        "already claimed is rejected."
+      ],
+      "discriminator": [
+        219,
+        247,
+        18,
+        148,
+        63,
+        247,
+        112,
+        198
+      ],
+      "accounts": [
+        {
+          "name": "referrer",
+          "docs": [
+            "The referrer claims and receives the payout, and pays for first-claim",
+            "watermark init."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "referrerState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "referrer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "attestation (referral.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "closeWindow",
       "docs": [
         "Permissionless Clock-driven phase transition OPEN -> BETTING.",
@@ -666,6 +792,43 @@ export type CwrVault = {
                   117,
                   108,
                   101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "docs": [
+            "Segregated referral pool PDA — receives the REFERRAL_BPS carve of each",
+            "deploy. Physically separate from `treasury` (user funds) and `fee_bucket`",
+            "(protocol fees); its balance bounds total referrer payouts. Derived by the",
+            "canonical seed (no referral_config read needed in the hot crank path). A",
+            "transfer in is valid even before init_referral has rent-seeded it."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
                 ]
               }
             ]
@@ -1658,6 +1821,129 @@ export type CwrVault = {
         {
           "name": "bucketId",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "initReferral",
+      "docs": [
+        "One-time global setup for the referral program. Creates `referral_config`",
+        "(settlement authority + treasury bump) and rent-seeds the segregated",
+        "`referral_treasury`. Admin-cosigned. After this, the REFERRAL_BPS carve in",
+        "`crank_mine` accumulates here and referrers can `claim_referral`."
+      ],
+      "discriminator": [
+        227,
+        98,
+        142,
+        124,
+        254,
+        233,
+        166,
+        118
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "referralConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "settlementAuthority",
+          "type": "pubkey"
         }
       ]
     },
@@ -2688,6 +2974,92 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setSettlementAuthority",
+      "docs": [
+        "Rotate the off-chain settlement authority (e.g. on key compromise).",
+        "Admin-cosigned. Moves NO funds; only future attestations must be signed by",
+        "the new key. Outstanding claims are unaffected (the watermark is",
+        "per-referrer and independent of the authority key)."
+      ],
+      "discriminator": [
+        102,
+        3,
+        152,
+        158,
+        128,
+        19,
+        49,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "referralConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "newAuthority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "settleHarvest",
       "docs": [
         "Permissionless harvest. Vault-PDA-signed inner CPIs:",
@@ -3287,6 +3659,153 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "sweepReferralSurplus",
+      "docs": [
+        "Reclaim the protocol's surplus from `referral_treasury` back to the",
+        "`fee_bucket` (then distributed via `distribute_fees`). Surplus = the carve",
+        "taken on NON-referred (organic) volume plus rounding dust, i.e. lamports",
+        "the off-chain attribution did NOT allocate to any referrer. The settlement",
+        "authority attests `max_sweepable = balance - rent - outstanding referrer",
+        "liability`, so the sweep can NEVER move what referrers are owed. The",
+        "contract additionally clamps to (balance - rent), so even a too-high",
+        "attestation cannot break rent-exemption. Permissionless (the destination",
+        "is the fixed protocol fee_bucket); the relayer just fee-pays."
+      ],
+      "discriminator": [
+        39,
+        131,
+        187,
+        84,
+        180,
+        10,
+        134,
+        21
+      ],
+      "accounts": [
+        {
+          "name": "referralConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "Destination: the protocol fee_bucket (then flows via distribute_fees to",
+            "the configured recipients). Pinned by seeds + the fee_schedule bump."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "attestation (referral.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "withdraw",
       "docs": [
         "User withdraws SOL by burning shares. Gated by:",
@@ -3532,6 +4051,32 @@ export type CwrVault = {
         64,
         247,
         208
+      ]
+    },
+    {
+      "name": "referralConfig",
+      "discriminator": [
+        102,
+        148,
+        171,
+        235,
+        148,
+        83,
+        250,
+        140
+      ]
+    },
+    {
+      "name": "referrerState",
+      "discriminator": [
+        194,
+        81,
+        217,
+        103,
+        12,
+        19,
+        12,
+        66
       ]
     }
   ],
@@ -3784,6 +4329,45 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "referralClaimedEvent",
+      "discriminator": [
+        127,
+        153,
+        255,
+        239,
+        24,
+        20,
+        29,
+        106
+      ]
+    },
+    {
+      "name": "referralInitializedEvent",
+      "discriminator": [
+        170,
+        2,
+        201,
+        193,
+        12,
+        219,
+        166,
+        194
+      ]
+    },
+    {
+      "name": "referralSurplusSweptEvent",
+      "discriminator": [
+        136,
+        212,
+        200,
+        193,
+        161,
+        225,
+        190,
+        221
+      ]
+    },
+    {
       "name": "setBucketOperatorEvent",
       "discriminator": [
         14,
@@ -3924,6 +4508,19 @@ export type CwrVault = {
         162,
         4,
         41
+      ]
+    },
+    {
+      "name": "settlementAuthoritySetEvent",
+      "discriminator": [
+        23,
+        170,
+        233,
+        21,
+        29,
+        95,
+        167,
+        124
       ]
     },
     {
@@ -4370,6 +4967,36 @@ export type CwrVault = {
       "code": 6085,
       "name": "pendingAccountingError",
       "msg": "Pending-buffer accounting error (total/count would underflow or mismatch)"
+    },
+    {
+      "code": 6086,
+      "name": "missingReferralAttest",
+      "msg": "claim_referral requires a settlement-authority Ed25519 attestation, but none was found"
+    },
+    {
+      "code": 6087,
+      "name": "badReferralAttest",
+      "msg": "Referral attestation is malformed (wrong tag / length / program / referrer)"
+    },
+    {
+      "code": 6088,
+      "name": "notSettlementAuthority",
+      "msg": "Referral attestation signer is not the configured settlement authority"
+    },
+    {
+      "code": 6089,
+      "name": "staleReferralAttest",
+      "msg": "Referral attestation has expired (now > expiry_ts)"
+    },
+    {
+      "code": 6090,
+      "name": "referralCumulativeRegression",
+      "msg": "Attested cumulative is below the already-claimed watermark (regression)"
+    },
+    {
+      "code": 6091,
+      "name": "referralTreasuryInsufficient",
+      "msg": "referral_treasury has insufficient balance above rent for this payout"
     }
   ],
   "types": [
@@ -5554,6 +6181,127 @@ export type CwrVault = {
       }
     },
     {
+      "name": "referralClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referrer",
+            "type": "pubkey"
+          },
+          {
+            "name": "payoutLamports",
+            "type": "u64"
+          },
+          {
+            "name": "cumulativeLamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralConfig",
+      "docs": [
+        "Global referral-program config. Holds the off-chain settlement authority",
+        "(whose Ed25519 attestations authorize claim payouts) and the canonical bump",
+        "of the `referral_treasury` escrow. Created once by `init_referral`; the",
+        "authority is rotatable via `set_settlement_authority` (cosigned) for key",
+        "recovery. Lives in its OWN account (strictly additive — no live layout",
+        "touched)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "settlementAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "referralTreasuryBump",
+            "type": "u8"
+          },
+          {
+            "name": "swept",
+            "docs": [
+              "Cumulative lamports already swept to fee_bucket via sweep_referral_surplus.",
+              "The sweep anti-replay watermark (mirrors ReferrerState.claimed): a sweep",
+              "pays only `attested_cumulative - swept`, so replaying an attestation moves",
+              "0 and a refilling pool can never be over-swept into referrer liability."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "settlementAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "referralTreasury",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralSurplusSweptEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amountLamports",
+            "type": "u64"
+          },
+          {
+            "name": "cumulativeSwept",
+            "type": "u64"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referrerState",
+      "docs": [
+        "Per-referrer claim watermark. `claimed` is the cumulative lamports this",
+        "referrer has already withdrawn from `referral_treasury`. A claim pays",
+        "`attested_cumulative - claimed` and advances the watermark, so re-submitting",
+        "a stale/replayed attestation pays 0 (idempotent, replay-safe). Created on the",
+        "referrer's first claim (init_if_needed, payer = referrer)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referrer",
+            "type": "pubkey"
+          },
+          {
+            "name": "claimed",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "setBucketOperatorEvent",
       "type": {
         "kind": "struct",
@@ -5774,6 +6522,22 @@ export type CwrVault = {
       }
     },
     {
+      "name": "settlementAuthoritySetEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "oldAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "newAuthority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "withdrawEvent",
       "type": {
         "kind": "struct",
@@ -5895,6 +6659,36 @@ export type CwrVault = {
       ],
       "type": "bytes",
       "value": "[112, 111, 115, 105, 116, 105, 111, 110]"
+    },
+    {
+      "name": "referralConfigSeed",
+      "docs": [
+        "Global referral config PDA: PDA([REFERRAL_CONFIG_SEED]). Holds the settlement",
+        "authority pubkey + the referral_treasury bump. Created once by init_referral."
+      ],
+      "type": "bytes",
+      "value": "[114, 101, 102, 101, 114, 114, 97, 108, 95, 99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "referralTreasurySeed",
+      "docs": [
+        "Global referral escrow PDA: PDA([REFERRAL_TREASURY_SEED]). System account,",
+        "rent-seeded at init_referral. Receives the REFERRAL_BPS carve from every",
+        "crank across all buckets; pays referrers via claim_referral. The rent seed is",
+        "never part of any payout (claims keep it rent-exempt)."
+      ],
+      "type": "bytes",
+      "value": "[114, 101, 102, 101, 114, 114, 97, 108, 95, 116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
+      "name": "referrerSeed",
+      "docs": [
+        "Per-referrer claim-watermark PDA: PDA([REFERRER_SEED, referrer]). Stores the",
+        "cumulative lamports already claimed (monotonic), making claims idempotent and",
+        "replay-safe. Created on first claim."
+      ],
+      "type": "bytes",
+      "value": "[114, 101, 102, 101, 114, 114, 101, 114]"
     },
     {
       "name": "shareMintSeed",
