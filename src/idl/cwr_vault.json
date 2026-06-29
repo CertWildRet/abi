@@ -4,7 +4,7 @@
     "name": "cwr_vault",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "dORE multi-pool vault on Solana: operator-cranked ORE (dORE) and ZINC (dZINC) mining pools"
+    "description": "Diamond Pools: non-custodial multi-pool vault on Solana. dORE = exposure to ORE, dZINC = exposure to ZINC; operator-cranked"
   },
   "instructions": [
     {
