@@ -5,12 +5,12 @@
  * IDL can be found at `target/idl/cwr_vault.json`.
  */
 export type CwrVault = {
-  "address": "CLDmHatW3uszqHqCYgMkAk9jFW1Zse5yPV6RWdTArx2E",
+  "address": "BLi7NKqekZGh5zWNwmUK2bzs2tAR3sPC7A1VrgQdEaYL",
   "metadata": {
     "name": "cwrVault",
     "version": "0.1.0",
     "spec": "0.1.0",
-    "description": "CWR multi-tranche vault on Solana — operator-cranked ORE farming pools"
+    "description": "dORE multi-pool vault on Solana: operator-cranked ORE (dORE) and ZINC (dZINC) mining pools"
   },
   "instructions": [
     {
@@ -59,6 +59,606 @@ export type CwrVault = {
         {
           "name": "newAdmin",
           "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "batchReplenish",
+      "docs": [
+        "dORE Stage 2: operator-gated reserve top-up. The ONLY site that claims +",
+        "wraps the miner's ORE. Claims the whole (all-or-nothing) unclaimed pile,",
+        "wraps it to stORE, and folds the MEASURED stORE (numerator) plus the",
+        "matching NET ore (refined + 0.9 * rewards; denominator) into the reserve.",
+        "It advances NO accumulator and pays NO holder: it only swaps miner-ORE",
+        "backing for stORE backing so exits can be paid from the reserve without",
+        "touching the miner on a normal exit. Operator-gated + NoBatchNeeded so it",
+        "cannot be spammed to burn the 10% fee or reset everyone's refining."
+      ],
+      "discriminator": [
+        61,
+        207,
+        193,
+        83,
+        73,
+        47,
+        214,
+        6
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "storeTreasury",
+          "docs": [
+            "Per-bucket stORE-holding token account (authority = bucket PDA)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "miningAuthorityOreAta",
+          "docs": [
+            "mining_authority's ORE ATA (ClaimORE destination, Wrap source). A",
+            "non-custodial vault self-creates its own ATAs: init_if_needed so the",
+            "first batch creates it (paid by operator) instead of reverting",
+            "AccountNotInitialized. Idempotent — found pre-existing on later batches."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "miningAuthorityStoreAta",
+          "docs": [
+            "mining_authority's stORE ATA (Wrap destination). init_if_needed (paid by",
+            "operator) so the first batch creates it; idempotent thereafter."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreMint",
+          "writable": true,
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "storeMint",
+          "docs": [
+            "stORE mint, pinned to config.store_mint AND the on-chain STORE_MINT.",
+            "`mut` because the ore-lst Wrap CPI MINTS stORE (supply changes), so",
+            "ix_wrap passes STORE_MINT writable — without mut here the inner CPI would",
+            "escalate its privilege over the outer settle_harvest ix."
+          ],
+          "writable": true,
+          "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
+        },
+        {
+          "name": "oreMiner",
+          "writable": true
+        },
+        {
+          "name": "oreBoard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreProgram",
+          "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
+        },
+        {
+          "name": "oreLstVault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                4,
+                251,
+                80,
+                194,
+                234,
+                15,
+                72,
+                106,
+                104,
+                80,
+                91,
+                93,
+                174,
+                212,
+                106,
+                243,
+                71,
+                70,
+                149,
+                89,
+                215,
+                70,
+                161,
+                100,
+                153,
+                213,
+                221,
+                81,
+                78,
+                163,
+                190,
+                130
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreLstVaultOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstStake",
+          "writable": true
+        },
+        {
+          "name": "oreLstStakeOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstTreasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                6,
+                133,
+                194,
+                223,
+                210,
+                129,
+                79,
+                202,
+                69,
+                159,
+                227,
+                210,
+                86,
+                178,
+                85,
+                73,
+                103,
+                66,
+                7,
+                177,
+                177,
+                163,
+                250,
+                233,
+                206,
+                220,
+                177,
+                218,
+                50,
+                19,
+                243,
+                181
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreLstTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "oreLstVesting",
+          "docs": [
+            "re-added in the Jun-17-2026 ore-lst update; verified vs a live mainnet",
+            "Wrap tx (2026-06-18). Omitting it reverts the wrap and bricks the bucket."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                6,
+                133,
+                194,
+                223,
+                210,
+                129,
+                79,
+                202,
+                69,
+                159,
+                227,
+                210,
+                86,
+                178,
+                85,
+                73,
+                103,
+                66,
+                7,
+                177,
+                177,
+                163,
+                250,
+                233,
+                206,
+                220,
+                177,
+                218,
+                50,
+                19,
+                243,
+                181
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreStakeProgram",
+          "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
+        },
+        {
+          "name": "oreLstProgram",
+          "docs": [
+            "invoke_signed must receive the target program in its account list, else",
+            "the runtime can't resolve it (\"Unknown program LStwN…\")."
+          ],
+          "address": "LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y"
+        },
+        {
+          "name": "operator",
+          "docs": [
+            "Operator-gated: only the bucket's crank operator may trigger a batch",
+            "claim+wrap (prevents griefing the 10% fee / resetting refining). Pays the",
+            "tx fee + the one-time ATA rent on the first batch."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -1651,6 +2251,19 @@ export type CwrVault = {
           ]
         },
         {
+          "name": "metadata",
+          "docs": [
+            "token metadata program via CPI in `init_bucket`. Its seeds",
+            "([\"metadata\", token_metadata_program, share_mint]) are validated by that",
+            "program, so we only need it writable here."
+          ],
+          "writable": true
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+        },
+        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -1686,6 +2299,18 @@ export type CwrVault = {
         {
           "name": "operatorWallet",
           "type": "pubkey"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
         }
       ]
     },
@@ -3195,7 +3820,7 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "settleHarvest",
+      "name": "settleUore",
       "docs": [
         "Permissionless harvest. Vault-PDA-signed inner CPIs:",
         "1. ClaimSOL (miner -> mining_authority), then PDA-internal transfer",
@@ -3205,17 +3830,26 @@ export type CwrVault = {
         "4. transfer stORE ATA(mining_authority) -> store_treasury PDA.",
         "FIX #2: credit store_in_vault from the store_treasury balance DELTA",
         "(authoritative custody). Also advance the accumulator from the ACTUAL",
-        "wrapped grams (the single crediting site — see `checkpoint`)."
+        "wrapped grams (the single crediting site — see `checkpoint`).",
+        "dORE Stage 2: permissionless per-cycle settle. Claims ONLY the won SOL",
+        "(working capital) and advances the two uORE accumulators from the GROWTH",
+        "of the miner's still-unclaimed rewards_ore / refined_ore. It deliberately",
+        "does NOT claim or wrap ORE: the miner is left unclaimed so refined_ore",
+        "keeps compounding for everyone. The expensive all-or-nothing claim+wrap",
+        "happens only in `batch_replenish` (operator-gated). Runs first in the OPEN",
+        "window (deposit/withdraw blocked until window_settled), so the accumulators",
+        "advance over the PRIOR cycle's share base: no newcomer can backdate onto",
+        "refining that grew before they held shares."
       ],
       "discriminator": [
-        73,
-        14,
-        208,
-        42,
-        20,
-        29,
-        55,
-        100
+        71,
+        239,
+        75,
+        46,
+        232,
+        116,
+        160,
+        229
       ],
       "accounts": [
         {
@@ -3229,219 +3863,6 @@ export type CwrVault = {
         {
           "name": "miningAuthority",
           "writable": true
-        },
-        {
-          "name": "storeTreasury",
-          "docs": [
-            "Per-bucket stORE-holding token account (authority = bucket PDA)."
-          ],
-          "writable": true
-        },
-        {
-          "name": "miningAuthorityOreAta",
-          "docs": [
-            "mining_authority's ORE ATA (ClaimORE destination, Wrap source). A",
-            "non-custodial vault self-creates its own ATAs: init_if_needed so the",
-            "first settle_harvest creates it (paid by caller) instead of reverting",
-            "AccountNotInitialized. Idempotent — found pre-existing on later settles."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "miningAuthority"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "oreMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "miningAuthorityStoreAta",
-          "docs": [
-            "mining_authority's stORE ATA (Wrap destination). init_if_needed (paid by",
-            "caller) so the first settle_harvest creates it; idempotent thereafter."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "miningAuthority"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "oreMint",
-          "writable": true,
-          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
-        },
-        {
-          "name": "storeMint",
-          "docs": [
-            "stORE mint, pinned to config.store_mint AND the on-chain STORE_MINT.",
-            "`mut` because the ore-lst Wrap CPI MINTS stORE (supply changes), so",
-            "ix_wrap passes STORE_MINT writable — without mut here the inner CPI would",
-            "escalate its privilege over the outer settle_harvest ix."
-          ],
-          "writable": true,
-          "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
         },
         {
           "name": "oreMiner",
@@ -3503,288 +3924,15 @@ export type CwrVault = {
           }
         },
         {
-          "name": "oreTreasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                12,
-                0,
-                218,
-                56,
-                205,
-                148,
-                79,
-                95,
-                157,
-                57,
-                234,
-                175,
-                167,
-                180,
-                108,
-                229,
-                43,
-                215,
-                237,
-                195,
-                185,
-                162,
-                118,
-                164,
-                114,
-                44,
-                46,
-                42,
-                174,
-                52,
-                137,
-                67
-              ]
-            }
-          }
-        },
-        {
-          "name": "oreTreasuryOreAta",
-          "writable": true
-        },
-        {
           "name": "oreProgram",
           "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
         },
         {
-          "name": "oreLstVault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                4,
-                251,
-                80,
-                194,
-                234,
-                15,
-                72,
-                106,
-                104,
-                80,
-                91,
-                93,
-                174,
-                212,
-                106,
-                243,
-                71,
-                70,
-                149,
-                89,
-                215,
-                70,
-                161,
-                100,
-                153,
-                213,
-                221,
-                81,
-                78,
-                163,
-                190,
-                130
-              ]
-            }
-          }
-        },
-        {
-          "name": "oreLstVaultOreAta",
-          "writable": true
-        },
-        {
-          "name": "oreLstStake",
-          "writable": true
-        },
-        {
-          "name": "oreLstStakeOreAta",
-          "writable": true
-        },
-        {
-          "name": "oreLstTreasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                6,
-                133,
-                194,
-                223,
-                210,
-                129,
-                79,
-                202,
-                69,
-                159,
-                227,
-                210,
-                86,
-                178,
-                85,
-                73,
-                103,
-                66,
-                7,
-                177,
-                177,
-                163,
-                250,
-                233,
-                206,
-                220,
-                177,
-                218,
-                50,
-                19,
-                243,
-                181
-              ]
-            }
-          }
-        },
-        {
-          "name": "oreLstTreasuryOreAta",
-          "writable": true
-        },
-        {
-          "name": "oreLstVesting",
-          "docs": [
-            "re-added in the Jun-17-2026 ore-lst update; verified vs a live mainnet",
-            "Wrap tx (2026-06-18). Omitting it reverts the wrap and bricks the bucket."
-          ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  101,
-                  115,
-                  116,
-                  105,
-                  110,
-                  103
-                ]
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                6,
-                133,
-                194,
-                223,
-                210,
-                129,
-                79,
-                202,
-                69,
-                159,
-                227,
-                210,
-                86,
-                178,
-                85,
-                73,
-                103,
-                66,
-                7,
-                177,
-                177,
-                163,
-                250,
-                233,
-                206,
-                220,
-                177,
-                218,
-                50,
-                19,
-                243,
-                181
-              ]
-            }
-          }
-        },
-        {
-          "name": "oreStakeProgram",
-          "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
-        },
-        {
-          "name": "oreLstProgram",
-          "docs": [
-            "invoke_signed must receive the target program in its account list, else",
-            "the runtime can't resolve it (\"Unknown program LStwN…\")."
-          ],
-          "address": "LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y"
-        },
-        {
           "name": "caller",
           "docs": [
-            "Permissionless caller (pays tx fee + the one-time ATA rent on first settle)."
+            "Permissionless caller (pays the tx fee)."
           ],
-          "writable": true,
           "signer": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -4282,6 +4430,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "batchReplenishEvent",
+      "discriminator": [
+        8,
+        97,
+        37,
+        123,
+        14,
+        239,
+        77,
+        200
+      ]
+    },
+    {
       "name": "bucketInitializedEvent",
       "discriminator": [
         209,
@@ -4646,16 +4807,16 @@ export type CwrVault = {
       ]
     },
     {
-      "name": "settleHarvestEvent",
+      "name": "settleUoreEvent",
       "discriminator": [
-        50,
-        16,
-        139,
-        46,
-        104,
-        162,
-        4,
-        41
+        161,
+        97,
+        200,
+        99,
+        241,
+        219,
+        128,
+        128
       ]
     },
     {
@@ -5054,7 +5215,7 @@ export type CwrVault = {
     {
       "code": 6073,
       "name": "windowNotSettled",
-      "msg": "Claim window not settled — the first user action must run settle_harvest first"
+      "msg": "Claim window not settled: the first user action must run settle_uore first"
     },
     {
       "code": 6074,
@@ -5104,7 +5265,7 @@ export type CwrVault = {
     {
       "code": 6083,
       "name": "notBettingPhase",
-      "msg": "park_deposit is only allowed during the BETTING (cranking) phase"
+      "msg": "park_deposit is only allowed during BETTING, or during an OPEN-but-unsettled window"
     },
     {
       "code": 6084,
@@ -5145,6 +5306,26 @@ export type CwrVault = {
       "code": 6091,
       "name": "referralTreasuryInsufficient",
       "msg": "referral_treasury has insufficient balance above rent for this payout"
+    },
+    {
+      "code": 6092,
+      "name": "metadataFieldTooLong",
+      "msg": "Token metadata field too long (name <= 32, symbol <= 10, uri <= 200 bytes)"
+    },
+    {
+      "code": 6093,
+      "name": "uoreAccountingError",
+      "msg": "uORE ledger accounting error (overflow/underflow in the per-leg accumulators)"
+    },
+    {
+      "code": 6094,
+      "name": "reserveShortfall",
+      "msg": "Reserve cannot cover this exit's stORE; run batch_replenish first, then retry"
+    },
+    {
+      "code": 6095,
+      "name": "noBatchNeeded",
+      "msg": "batch_replenish is not needed (reserve already adequate or miner empty)"
     }
   ],
   "types": [
@@ -5262,6 +5443,45 @@ export type CwrVault = {
           {
             "name": "confirmedAt",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "batchReplenishEvent",
+      "docs": [
+        "dORE Stage 2: operator-gated batch reserve top-up (claim+wrap -> reserve)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "rewardsBefore",
+            "type": "u64"
+          },
+          {
+            "name": "refinedBefore",
+            "type": "u64"
+          },
+          {
+            "name": "wrapped",
+            "type": "u64"
+          },
+          {
+            "name": "netBefore",
+            "type": "u64"
+          },
+          {
+            "name": "storeInVault",
+            "type": "u64"
+          },
+          {
+            "name": "reserveBackedNetOre",
+            "type": "u64"
           }
         ]
       }
@@ -5463,9 +5683,10 @@ export type CwrVault = {
           {
             "name": "accStorePerShare",
             "docs": [
-              "stORE-per-share accumulator (scaled by ACC_SCALE). Advanced when",
-              "realized stORE is folded into `store_treasury`. Drives the per-user",
-              "reward-debt payout in withdraw."
+              "stORE-per-share accumulator (scaled by ACC_SCALE). FROZEN at 0 for dORE",
+              "pools (Stage 2 leaves the miner unclaimed and pays exits from the reserve",
+              "via the two uORE accumulators below). Kept for layout continuity; a",
+              "future claim-every-cycle pool could un-freeze it."
             ],
             "type": "u128"
           },
@@ -5474,6 +5695,68 @@ export type CwrVault = {
             "docs": [
               "Last observed (rewards_ore + refined_ore) on the ORE Miner, used to",
               "compute the per-checkpoint delta. (Bookkeeping for the accrual site.)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "accRewardsUorePerShare",
+            "docs": [
+              "uORE-per-share accumulator for the mined (rewards_ore) leg, ACC_SCALE-scaled."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUorePerShare",
+            "docs": [
+              "uORE-per-share accumulator for the refining (refined_ore) leg, ACC_SCALE-scaled."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "lastRewardsOreWatermark",
+            "docs": [
+              "Last observed miner.rewards_ore at the last settle_uore advance; reset to",
+              "0 by batch_replenish post-claim. Growth = saturating_sub(now, watermark)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastRefinedOreWatermark",
+            "docs": [
+              "Last observed miner.refined_ore at the last settle_uore advance."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uoreRewardsOutstanding",
+            "docs": [
+              "Running total of GROSS rewards-leg uORE grams owed to current holders",
+              "(sum of per-holder entitlements; += growth at settle, -= at exit)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uoreRefinedOutstanding",
+            "docs": [
+              "Running total of GROSS refined-leg uORE grams owed to current holders."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserveBackedNetOre",
+            "docs": [
+              "Sum of NET ore (refined + 0.9 * rewards) folded into the reserve at",
+              "batches, minus what exiters have drawn. The denominator of the exit",
+              "payout: store_due = exit_net_ore * store_in_vault / reserve_backed_net_ore",
+              "(exact blended pro-rata of the reserve's physical stORE). store_in_vault",
+              "is the matching numerator (reserve stORE grams; INV-CUSTODY-MIRROR)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastBatchRoundId",
+            "docs": [
+              "betting_round_id at the last batch_replenish (cadence telemetry + guard)."
             ],
             "type": "u64"
           },
@@ -6324,6 +6607,37 @@ export type CwrVault = {
               "later withdraw collect dust that an earlier partial withdraw floored."
             ],
             "type": "u64"
+          },
+          {
+            "name": "accRewardsUorePerSharePaid",
+            "docs": [
+              "Reward-debt watermark for the mined (rewards_ore) leg: the bucket's",
+              "`acc_rewards_uore_per_share` as of this position's last settle. Owed gross",
+              "rewards-leg uORE since = shares * (acc - paid) / ACC_SCALE. Set to the",
+              "CURRENT acc on first deposit (no backdating, FIX A)."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUorePerSharePaid",
+            "docs": [
+              "Reward-debt watermark for the refining (refined_ore) leg."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "uoreRewardsCreditGrams",
+            "docs": [
+              "Carried (rounded-down) GROSS rewards-leg uORE grams owed but not yet paid."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uoreRefinedCreditGrams",
+            "docs": [
+              "Carried (rounded-down) GROSS refined-leg uORE grams owed but not yet paid."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -6666,7 +6980,10 @@ export type CwrVault = {
       }
     },
     {
-      "name": "settleHarvestEvent",
+      "name": "settleUoreEvent",
+      "docs": [
+        "dORE Stage 2: per-cycle settle (SOL claim + uORE accumulator advance)."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -6679,15 +6996,19 @@ export type CwrVault = {
             "type": "u64"
           },
           {
-            "name": "wrappedGrams",
+            "name": "rewardsGrowth",
             "type": "u64"
           },
           {
-            "name": "storeCredited",
+            "name": "refinedGrowth",
             "type": "u64"
           },
           {
-            "name": "accStorePerShare",
+            "name": "accRewardsUorePerShare",
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUorePerShare",
             "type": "u128"
           }
         ]
