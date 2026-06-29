@@ -1161,6 +1161,43 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "closeWindowZinc",
+      "docs": [
+        "Permissionless Clock-driven dZINC phase transition OPEN -> BETTING.",
+        "Miner-FREE version of `close_window`. Allowed once",
+        "(now - phase_started_ts) >= open_secs. Clears the frozen NAV snapshot; the",
+        "new phase_started_slot becomes the ZINC inflight window epoch, so",
+        "window_inflight effectively resets for the new betting window."
+      ],
+      "discriminator": [
+        65,
+        242,
+        13,
+        61,
+        173,
+        122,
+        143,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller."
+          ],
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "confirmAdminTransfer",
       "docs": [
         "V5 external-audit hardening — STEP 2 of admin handover.",
@@ -1651,6 +1688,430 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "crankMineZinc",
+      "docs": [
+        "Operator-signed crank that deploys `amount` SOL into the ZINC board for",
+        "`round_id`. Mirrors `crank_mine` (same operator, same rake) minus the",
+        "25-square ORE split: ZINC deploys a single net total_amount via an",
+        "encrypted mask supplied by the keeper. The mining_authority PDA signs the",
+        "ZINC Deploy via invoke_signed.",
+        "Gate: !paused && phase==BETTING && pool init && !pool paused && !dd_halt &&",
+        "amount >= min_round_lamports && per-window inflight cap && not double-crank",
+        "&& guard band && sol_in_vault >= amount."
+      ],
+      "discriminator": [
+        226,
+        233,
+        94,
+        58,
+        72,
+        111,
+        247,
+        98
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "operator",
+          "docs": [
+            "Operator signs the OUTER crank (controls WHEN). Pinned to the bucket's",
+            "operator_wallet via `has_one` (the SAME operator as the dORE pool)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "operatorWallet",
+          "relations": [
+            "bucket"
+          ]
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "docs": [
+            "The bucket's mining authority PDA (SOL source + ZINC Deploy signer)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "Global fee bucket PDA — volume fee skim destination."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "referralTreasury",
+          "docs": [
+            "Segregated referral pool PDA — receives the REFERRAL_BPS carve."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  102,
+                  101,
+                  114,
+                  114,
+                  97,
+                  108,
+                  95,
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "zincRound",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "roundId"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincMiner",
+          "docs": [
+            "by deploy_round). PINNED for defense-in-depth (the CPI also validates it)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "roundId"
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincPlayerProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincBoard",
+          "writable": true,
+          "address": "DnryjThdeJbK4qfrVooTPRgWcjgAnQ5cVm2pF5mbeCeF"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincStockpileSolVault",
+          "writable": true
+        },
+        {
+          "name": "zincBonanzaSolVault",
+          "writable": true
+        },
+        {
+          "name": "zincBuybackSolVault",
+          "writable": true
+        },
+        {
+          "name": "zincStockpile",
+          "docs": [
+            "sentinel; keeper-supplied (cannot be PDA-pinned; ZINC validates internally)."
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "roundId",
+          "type": "u64"
+        },
+        {
+          "name": "maskEncryptionKey",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "maskNonce",
+          "type": "u128"
+        },
+        {
+          "name": "maskCiphertext",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "deposit",
       "docs": [
         "User deposits SOL into a bucket. V6 non-custodial:",
@@ -1738,6 +2199,143 @@ export type CwrVault = {
             "V5 — global fee bucket PDA. Entry fees flow here for later",
             "permissionless distribution via `distribute_fees`."
           ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "depositZinc",
+      "docs": [
+        "User deposits SOL into a dZINC pool. Mirrors `deposit` but SIMPLER: the",
+        "NAV is the SOL leg only (`bucket.sol_in_vault`; no miner read — settle",
+        "already claimed back any won SOL and there is no in-flight at OPEN). A",
+        "per-user ZincPosition tracks shares + the ZINC reward-debt watermark (set",
+        "to the CURRENT acc on first deposit, no backdating).",
+        "Gate: !paused && phase==OPEN && window_settled && amount >= min_deposit &&",
+        "caller not operator/admin/fee_recipient."
+      ],
+      "discriminator": [
+        179,
+        138,
+        37,
+        112,
+        169,
+        46,
+        58,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "Read-only Config — refuses privileged depositors."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "shareMint",
+          "writable": true
+        },
+        {
+          "name": "userShareAta",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "zincPosition",
+          "docs": [
+            "Per-user dZINC position PDA. Created lazily on first deposit."
+          ],
+          "writable": true
+        },
+        {
+          "name": "feeBucket",
           "writable": true,
           "pda": {
             "seeds": [
@@ -2708,6 +3306,206 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "initZincPool",
+      "docs": [
+        "One-time (per ZINC bucket) bootstrap. Cosigned admin op. Repurposes the",
+        "bucket's `mining_authority` PDA as the ZINC player / CPI signer + SOL",
+        "escrow (this is the ZINC analogue of init_mining_pda; DO NOT call",
+        "init_mining_pda for a ZINC bucket — that would pin an ORE Miner). Creates",
+        "the ZincPool sidecar, rent-seeds mining_authority, and creates/caches the",
+        "custody ZINC ATA. Leaves `bucket.ore_miner` = default (ZINC, not ORE)."
+      ],
+      "discriminator": [
+        175,
+        253,
+        59,
+        157,
+        33,
+        146,
+        174,
+        95
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "docs": [
+            "The dZINC pool sidecar — `init` fails if it already exists."
+          ],
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "docs": [
+            "The bucket's mining authority PDA — repurposed as the ZINC player / CPI",
+            "signer + SOL escrow. Seeded rent-exempt here."
+          ],
+          "writable": true
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA = ATA(mining_authority, ZINC_MINT). Created here so",
+            "the smelt destination + in-kind exit source exists before the first crank."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "bucketId",
+          "type": "u8"
+        },
+        {
+          "name": "minRoundLamports",
+          "type": "u64"
+        },
+        {
+          "name": "maxInflightLamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -2800,6 +3598,43 @@ export type CwrVault = {
         },
         {
           "name": "oreMiner"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller."
+          ],
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "openWindowZinc",
+      "docs": [
+        "Permissionless Clock-driven dZINC phase transition BETTING -> OPEN.",
+        "Miner-FREE version of `open_window` (a ZINC bucket has ore_miner = default).",
+        "Allowed once (now - phase_started_ts) >= betting_secs. Snapshots the frozen",
+        "SOL-leg NPS over `sol_in_vault / total_shares`, and sets window_settled =",
+        "false (forces settle_harvest_zinc as the first OPEN action)."
+      ],
+      "discriminator": [
+        252,
+        249,
+        206,
+        227,
+        84,
+        252,
+        190,
+        216
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
         },
         {
           "name": "caller",
@@ -3820,6 +4655,449 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setZincPoolCaps",
+      "docs": [
+        "Admin+cosign: tune the dZINC pool's per-round + per-window SOL caps.",
+        "Mirrors set_adapter_caps. A 0 min_round falls back to the pool default."
+      ],
+      "discriminator": [
+        215,
+        43,
+        50,
+        39,
+        124,
+        44,
+        250,
+        233
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "minRoundLamports",
+          "type": "u64"
+        },
+        {
+          "name": "maxInflightLamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "setZincPoolDdHalt",
+      "docs": [
+        "Admin+cosign: flip the dZINC pool drawdown halt (refuses the ZINC crank)."
+      ],
+      "discriminator": [
+        134,
+        52,
+        190,
+        114,
+        105,
+        97,
+        87,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ddHalt",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setZincPoolPause",
+      "docs": [
+        "Admin+cosign: flip the dZINC pool pause (independent of bucket pause)."
+      ],
+      "discriminator": [
+        52,
+        46,
+        106,
+        43,
+        1,
+        252,
+        226,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "settleHarvestZinc",
+      "docs": [
+        "Permissionless per-cycle ZINC harvest. The FIRST OPEN action: it claims the",
+        "round's won SOL into the treasury, smelts the mined ZINC (-10% inside the",
+        "ZINC protocol) into the custody ATA (HELD, never staked), advances the",
+        "pool accumulator from the realized smelted grams over the prior cycle's",
+        "share base, and sets `bucket.window_settled = true` (deposit_zinc /",
+        "withdraw_zinc require it, exactly like settle_uore for dORE).",
+        "PAUSE-EXEMPT / bootstrap-robust: a paused/halted pool, or a never-cranked",
+        "pool (no player profile), still marks settled (skipping all CPIs) so a ZINC",
+        "incident cannot brick the window. The claim/smelt CPIs are SOFT-FAIL +",
+        "gated on the decoded profile accruals, so a losing/zero round never reverts."
+      ],
+      "discriminator": [
+        211,
+        249,
+        200,
+        197,
+        207,
+        178,
+        62,
+        255
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA (smelt dest + held balance). init_if_needed so a",
+            "permissionless caller can run the first settle if init somehow lagged."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincPlayerProfile",
+          "docs": [
+            "pre-CPI accrual decode (which GATES claim/smelt) reads the genuine account.",
+            "Unpinned, a permissionless caller could pass a substitute that decodes",
+            "(0,0) to skip the harvest yet still mark settled."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincRoundZincRewardTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller (pays tx + one-time ATA rent on first settle)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "settleUore",
       "docs": [
         "Permissionless harvest. Vault-PDA-signed inner CPIs:",
@@ -4255,6 +5533,257 @@ export type CwrVault = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "withdrawZinc",
+      "docs": [
+        "User withdraws SOL from a dZINC pool by burning shares, plus the held ZINC",
+        "owed in-kind. Mirrors `withdraw` but pays ZINC from custody (the",
+        "mining_authority's ZINC ATA) via the acc_zinc_per_share accumulator instead",
+        "of stORE from a reserve. SOL is paid at the FROZEN `claims_window_nps`",
+        "snapshotted at open_window_zinc. Fail-closed if custody can't cover the exit.",
+        "Gate: !paused && phase==OPEN && window_settled && shares>0 &&",
+        "position.owner==user && position.shares>=shares."
+      ],
+      "discriminator": [
+        60,
+        244,
+        222,
+        164,
+        86,
+        191,
+        200,
+        38
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "shareMint",
+          "writable": true
+        },
+        {
+          "name": "userShareAta",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "zincPosition",
+          "docs": [
+            "Per-user dZINC position PDA. Pinned to (bucket_id, user); the handler also",
+            "asserts `position.owner == user`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningAuthority",
+          "docs": [
+            "in-kind transfer). Pinned to bucket.mining_authority + seeds."
+          ],
+          "writable": true
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA (held smelted ZINC; authority = mining_authority).",
+            "Pinned to ATA(mining_authority, ZINC_MINT) via the cached pool field."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "userZincAta",
+          "docs": [
+            "User's ZINC ATA (in-kind payout destination). Mint must be ZINC_MINT."
+          ],
+          "writable": true
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -4360,6 +5889,32 @@ export type CwrVault = {
         19,
         12,
         66
+      ]
+    },
+    {
+      "name": "zincPool",
+      "discriminator": [
+        24,
+        221,
+        20,
+        32,
+        94,
+        138,
+        118,
+        56
+      ]
+    },
+    {
+      "name": "zincPosition",
+      "discriminator": [
+        204,
+        81,
+        114,
+        42,
+        206,
+        140,
+        251,
+        211
       ]
     }
   ],
@@ -4482,6 +6037,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "crankMineZincEvent",
+      "discriminator": [
+        145,
+        147,
+        255,
+        166,
+        252,
+        79,
+        2,
+        173
+      ]
+    },
+    {
       "name": "depositEvent",
       "discriminator": [
         120,
@@ -4505,6 +6073,19 @@ export type CwrVault = {
         11,
         136,
         158
+      ]
+    },
+    {
+      "name": "depositZincEvent",
+      "discriminator": [
+        61,
+        0,
+        128,
+        196,
+        233,
+        55,
+        140,
+        251
       ]
     },
     {
@@ -4807,6 +6388,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "settleHarvestZincEvent",
+      "discriminator": [
+        141,
+        18,
+        135,
+        47,
+        61,
+        46,
+        54,
+        17
+      ]
+    },
+    {
       "name": "settleUoreEvent",
       "discriminator": [
         161,
@@ -4843,6 +6437,45 @@ export type CwrVault = {
         44,
         71,
         192
+      ]
+    },
+    {
+      "name": "withdrawZincEvent",
+      "discriminator": [
+        29,
+        6,
+        62,
+        180,
+        17,
+        112,
+        157,
+        234
+      ]
+    },
+    {
+      "name": "zincPoolConfigEvent",
+      "discriminator": [
+        222,
+        55,
+        113,
+        80,
+        94,
+        191,
+        242,
+        168
+      ]
+    },
+    {
+      "name": "zincPoolInitializedEvent",
+      "discriminator": [
+        245,
+        238,
+        242,
+        145,
+        122,
+        132,
+        244,
+        194
       ]
     }
   ],
@@ -5326,6 +6959,56 @@ export type CwrVault = {
       "code": 6095,
       "name": "noBatchNeeded",
       "msg": "batch_replenish is not needed (reserve already adequate or miner empty)"
+    },
+    {
+      "code": 6096,
+      "name": "zincPoolNotInitialized",
+      "msg": "dZINC pool not initialized for this bucket — call init_zinc_pool first"
+    },
+    {
+      "code": 6097,
+      "name": "zincPoolAlreadyInitialized",
+      "msg": "dZINC pool already initialized for this bucket"
+    },
+    {
+      "code": 6098,
+      "name": "zincDeployBelowMin",
+      "msg": "Deploy below the dZINC pool's min_round_lamports (e.g. the 1.5 SOL floor)"
+    },
+    {
+      "code": 6099,
+      "name": "zincInflightCapExceeded",
+      "msg": "Deploy would exceed the dZINC pool's max_inflight_lamports per-window cap"
+    },
+    {
+      "code": 6100,
+      "name": "zincRoundAlreadyCranked",
+      "msg": "This ZINC round was already cranked this window (no double-deploy)"
+    },
+    {
+      "code": 6101,
+      "name": "zincPoolPaused",
+      "msg": "dZINC pool is paused (ZincPool.paused) — independent of bucket pause"
+    },
+    {
+      "code": 6102,
+      "name": "zincNotZincBucket",
+      "msg": "Bucket is not a dZINC pool (ZincPool not initialized / wrong bucket)"
+    },
+    {
+      "code": 6103,
+      "name": "zincCustodyShortfall",
+      "msg": "ZINC custody cannot cover this exit's in-kind ZINC (fail-closed)"
+    },
+    {
+      "code": 6104,
+      "name": "zincAccountingError",
+      "msg": "dZINC reward-debt accounting underflow/overflow"
+    },
+    {
+      "code": 6105,
+      "name": "zincInflightCeilExceeded",
+      "msg": "max_inflight_lamports exceeds the contract ceiling (MAX_ZINC_INFLIGHT_CEIL)"
     }
   ],
   "types": [
@@ -6096,6 +7779,43 @@ export type CwrVault = {
       }
     },
     {
+      "name": "crankMineZincEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "roundId",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "Gross SOL debited from sol_in_vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeLamports",
+            "docs": [
+              "Volume fee skimmed to the global fee_bucket (incl. referral carve)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "netAmount",
+            "docs": [
+              "NET deployed into ZINC (amount - fee) = the ZINC deploy total_amount."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "depositEvent",
       "type": {
         "kind": "struct",
@@ -6159,6 +7879,42 @@ export type CwrVault = {
           {
             "name": "parkedAt",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "depositZincEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "amountLamports",
+            "type": "u64"
+          },
+          {
+            "name": "entryFeeLamports",
+            "type": "u64"
+          },
+          {
+            "name": "netDepositedLamports",
+            "type": "u64"
+          },
+          {
+            "name": "sharesMinted",
+            "type": "u64"
+          },
+          {
+            "name": "navPerShare",
+            "type": "u128"
           }
         ]
       }
@@ -6980,6 +8736,37 @@ export type CwrVault = {
       }
     },
     {
+      "name": "settleHarvestZincEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "claimedSol",
+            "type": "u64"
+          },
+          {
+            "name": "smeltedZinc",
+            "type": "u64"
+          },
+          {
+            "name": "credited",
+            "docs": [
+              "Smelted ZINC grams credited to the held custody balance this settle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "accZincPerShare",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
       "name": "settleUoreEvent",
       "docs": [
         "dORE Stage 2: per-cycle settle (SOL claim + uORE accumulator advance)."
@@ -7079,6 +8866,282 @@ export type CwrVault = {
           {
             "name": "newHighWaterNps",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "withdrawZincEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "sharesBurned",
+            "type": "u64"
+          },
+          {
+            "name": "grossPayoutLamports",
+            "type": "u64"
+          },
+          {
+            "name": "exitFeeLamports",
+            "type": "u64"
+          },
+          {
+            "name": "userPayoutLamports",
+            "type": "u64"
+          },
+          {
+            "name": "zincPayoutAtomic",
+            "docs": [
+              "Atomic ZINC units paid in-kind pro-rata alongside the SOL payout."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPool",
+      "docs": [
+        "Per-bucket dZINC pool sidecar. PDA([ZINC_POOL_SEED, bucket_id]). Its",
+        "EXISTENCE turns a bucket into a dZINC pool. Created by `init_zinc_pool`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "initialized",
+            "type": "bool"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "Per-pool pause, INDEPENDENT of `Bucket.paused`. Kills the ZINC crank",
+              "(e.g. a ZINC god-key incident) without touching the dORE pool."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "ddHalt",
+            "docs": [
+              "Drawdown kill switch: when true, the ZINC crank is refused."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "accZincPerShare",
+            "docs": [
+              "Smelted-ZINC-per-share accumulator (ACC_SCALE-scaled). Advanced from",
+              "REALIZED smelted grams at `settle_harvest_zinc` over the BLENDED",
+              "`bucket.total_shares`. Mirrors the dORE `acc_store_per_share` path; the",
+              "SIMPLE single-accumulator model (smelt+hold is one leg), not the dORE",
+              "two-leg uORE/reserve path."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "zincInVault",
+            "docs": [
+              "Smelted ZINC grams physically held in the custody ATA (custody balance",
+              "mirror; grows at settle, shrinks pro-rata on withdraw_zinc)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "pendingZincCredit",
+            "docs": [
+              "Carry-forward: realized smelted ZINC credited while `total_shares == 0`",
+              "(no LPs to distribute to). Folded into `acc_zinc_per_share` at the next",
+              "settle once shares exist, so no realized ZINC is stranded un-allocatable",
+              "(the `advance(_, 0)` dust trap). Normally 0."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bettingRoundId",
+            "docs": [
+              "Last ZINC round cranked this betting window (anti-double-crank; the ZINC",
+              "analogue of `Bucket.betting_round_id`, kept here so the dORE field is",
+              "untouched on a ZINC bucket)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "minRoundLamports",
+            "docs": [
+              "Min gross SOL to crank one ZINC round (default",
+              "ZINC_POOL_MIN_ROUND_LAMPORTS_DEFAULT = 1.5 SOL; admin-tunable)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "maxInflightLamports",
+            "docs": [
+              "Per-WINDOW SOL exposure ceiling (admin-tunable, <= MAX_ZINC_INFLIGHT_CEIL).",
+              "ZINC escrows into a DISTINCT per-round account each crank, so a per-crank",
+              "cap would let N rounds stack N x cap in one window; tracking the running",
+              "sum makes this a true per-window ceiling."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "windowInflightLamports",
+            "docs": [
+              "Cumulative gross SOL deployed this betting window (lazy epoch reset)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "inflightWindowEpoch",
+            "docs": [
+              "The window epoch `window_inflight_lamports` accrues against. Standalone",
+              "has no basket window_epoch, so this is the BETTING window's",
+              "`bucket.phase_started_slot`: the cap resets when this != the current",
+              "betting phase_started_slot (its only job is \"don't over-expose within one",
+              "betting window\")."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastSeenRewards",
+            "docs": [
+              "Telemetry: last smelted ZINC observed at a settle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "zincProfile",
+            "docs": [
+              "Cached PDA([b\"player-profile\", mining_authority], ZINC) — the ZINC player",
+              "profile (created lazily by the first deploy). Cache only."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "zincCustodyAta",
+            "docs": [
+              "Cached ATA(mining_authority, ZINC_MINT) = the held-ZINC custody account."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPoolConfigEvent",
+      "docs": [
+        "dZINC pool config change (caps / dd_halt / pause). `field`: 0=caps, 1=dd_halt,",
+        "2=pause; `flag` carries the new bool for dd_halt/pause (ignored for caps)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "field",
+            "type": "u8"
+          },
+          {
+            "name": "flag",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPoolInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "miningAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "zincProfile",
+            "type": "pubkey"
+          },
+          {
+            "name": "zincCustodyAta",
+            "type": "pubkey"
+          },
+          {
+            "name": "minRoundLamports",
+            "type": "u64"
+          },
+          {
+            "name": "maxInflightLamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPosition",
+      "docs": [
+        "Per-user dZINC position. PDA([ZINC_POSITION_SEED, bucket_id, owner]). Created",
+        "init_if_needed in `deposit_zinc`. Holds the reward-debt watermark + carried",
+        "(floored) ZINC grams owed, collected by a later withdraw_zinc."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "accZincPerSharePaid",
+            "docs": [
+              "Reward-debt watermark: the pool's `acc_zinc_per_share` as of this",
+              "holder's last settle. Owed smelted ZINC since = shares * (acc - paid) /",
+              "ACC_SCALE. Set to the CURRENT acc on first deposit (no backdating)."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "zincCreditGrams",
+            "docs": [
+              "Carried (floored) ZINC grams owed but not yet paid out — lets a later",
+              "withdraw collect dust that an earlier partial withdraw floored."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -7201,6 +9264,27 @@ export type CwrVault = {
       "name": "treasurySeed",
       "type": "bytes",
       "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
+      "name": "zincPoolSeed",
+      "docs": [
+        "Per-bucket dZINC pool sidecar PDA: PDA([ZINC_POOL_SEED, bucket_id]). Its",
+        "EXISTENCE turns a bucket into a dZINC pool. Holds the smelted-ZINC-per-share",
+        "accumulator + custody mirror + inflight caps. Created once by init_zinc_pool."
+      ],
+      "type": "bytes",
+      "value": "[122, 105, 110, 99, 95, 112, 111, 111, 108]"
+    },
+    {
+      "name": "zincPositionSeed",
+      "docs": [
+        "Per-user dZINC position PDA: PDA([ZINC_POSITION_SEED, bucket_id, owner]).",
+        "Holds the user's reward-debt watermark + carried (floored) ZINC grams owed.",
+        "Created init_if_needed in deposit_zinc. Separate from the legacy `Position`",
+        "so its layout is never touched."
+      ],
+      "type": "bytes",
+      "value": "[122, 105, 110, 99, 95, 112, 111, 115, 105, 116, 105, 111, 110]"
     }
   ]
 };
