@@ -4351,6 +4351,165 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "reseedPool",
+      "docs": [
+        "Admin+cosign: inject external SOL into a pool's treasury, raising",
+        "`sol_in_vault` 1:1 with NO share mint and NO `total_shares` change. The",
+        "added SOL is socialized across ALL existing shares (NPS rises), making",
+        "holders of a shortfalling/drained pool whole at the price they were",
+        "promised. The funder gains nothing they do not share pro-rata with every",
+        "other holder. BETTING-only and NPS-bounded so it can never be used to",
+        "manufacture a frozen withdraw price or pump beyond par."
+      ],
+      "discriminator": [
+        212,
+        189,
+        244,
+        98,
+        74,
+        163,
+        15,
+        49
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "funder",
+          "docs": [
+            "External SOL source. May be the admin or a separate sponsor; gains nothing",
+            "(the SOL is socialized across all shares)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "resolvePool",
+      "docs": [
+        "Admin+cosign: reconcile a pool's `sol_in_vault` DOWN to the treasury PDA's",
+        "real balance, realizing a shortfall. Moves NO SOL, mints/burns nothing, and",
+        "NEVER changes `total_shares` (so no SPL share tokens are orphaned): NPS",
+        "simply falls uniformly across ALL shares and holders exit at the corrected",
+        "price via the normal withdraw path. Requires the bucket be paused first",
+        "(separate cosigned set_pause) and runs in BETTING so it never rewrites a",
+        "live frozen claims window. A move within the per-call drop bound needs no",
+        "extra ack; a larger / full write-down requires `acknowledge_full_write_down`."
+      ],
+      "discriminator": [
+        191,
+        164,
+        190,
+        142,
+        178,
+        198,
+        162,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "targetSolInVault",
+          "type": "u64"
+        },
+        {
+          "name": "acknowledgeFullWriteDown",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "setBucketOperator",
       "docs": [
         "V5 — narrow admin setter for a single bucket's operator wallet.",
@@ -6832,6 +6991,32 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "reseedPoolEvent",
+      "discriminator": [
+        8,
+        0,
+        66,
+        220,
+        147,
+        155,
+        184,
+        174
+      ]
+    },
+    {
+      "name": "resolvePoolEvent",
+      "discriminator": [
+        205,
+        201,
+        65,
+        86,
+        178,
+        213,
+        16,
+        82
+      ]
+    },
+    {
       "name": "setBucketOperatorEvent",
       "discriminator": [
         14,
@@ -7588,6 +7773,21 @@ export type CwrVault = {
       "code": 6106,
       "name": "zincInflightCeilExceeded",
       "msg": "max_inflight_lamports exceeds the contract ceiling (MAX_ZINC_INFLIGHT_CEIL)"
+    },
+    {
+      "code": 6107,
+      "name": "bucketNotPaused",
+      "msg": "resolve_pool requires the bucket be paused first (set_pause) so no user op races the reconcile"
+    },
+    {
+      "code": 6108,
+      "name": "fullWriteDownNotAcknowledged",
+      "msg": "resolve_pool full write-down requires acknowledge_full_write_down = true (explicit operator ack)"
+    },
+    {
+      "code": 6109,
+      "name": "reseedEmptyPool",
+      "msg": "reseed_pool requires an existing holder base (total_shares > 0); an empty pool has nothing to make whole"
     }
   ],
   "types": [
@@ -9169,6 +9369,86 @@ export type CwrVault = {
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reseedPoolEvent",
+      "docs": [
+        "Emitted by `reseed_pool`. Every privileged NPS move is logged with the",
+        "before/after price + amount for off-chain monitoring."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "funder",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "prevNps",
+            "type": "u128"
+          },
+          {
+            "name": "newNps",
+            "type": "u128"
+          },
+          {
+            "name": "solInVaultAfter",
+            "type": "u64"
+          },
+          {
+            "name": "totalShares",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "resolvePoolEvent",
+      "docs": [
+        "Emitted by `resolve_pool`. `full_write_down` is true when the reconcile",
+        "exceeded the per-call drop bound (i.e. required acknowledgement)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "solInVaultBefore",
+            "type": "u64"
+          },
+          {
+            "name": "solInVaultAfter",
+            "type": "u64"
+          },
+          {
+            "name": "prevNps",
+            "type": "u128"
+          },
+          {
+            "name": "newNps",
+            "type": "u128"
+          },
+          {
+            "name": "totalShares",
+            "type": "u64"
+          },
+          {
+            "name": "fullWriteDown",
+            "type": "bool"
           }
         ]
       }
