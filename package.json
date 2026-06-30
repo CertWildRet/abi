@@ -1,6 +1,6 @@
 {
   "name": "@cwr/abi",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Canonical IDL + TypeScript types for CWR Solana programs. Source of truth — never edit dist/ by hand; run `scripts/sync.sh` after a contract rebuild.",
   "license": "MIT",
   "main": "dist/index.js",
