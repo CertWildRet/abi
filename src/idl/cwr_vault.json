@@ -795,7 +795,78 @@
         },
         {
           "name": "mining_authority",
+          "docs": [
+            "`authority` account passed to the v3.8.13 checkpoint)."
+          ],
           "writable": true
+        },
+        {
+          "name": "ore_automation",
+          "docs": [
+            "v3.8.13 checkpoint (it auto-handles autominer reloads). Pinned to",
+            "PDA([b\"automation\", mining_authority], ORE); created/closed by ORE."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  116,
+                  111,
+                  109,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mining_authority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                12,
+                0,
+                218,
+                56,
+                205,
+                148,
+                79,
+                95,
+                157,
+                57,
+                234,
+                175,
+                167,
+                180,
+                108,
+                229,
+                43,
+                215,
+                237,
+                195,
+                185,
+                162,
+                118,
+                164,
+                114,
+                44,
+                46,
+                42,
+                174,
+                52,
+                137,
+                67
+              ]
+            }
+          }
         },
         {
           "name": "ore_miner",
