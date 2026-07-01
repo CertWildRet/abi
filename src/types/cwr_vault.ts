@@ -1636,6 +1636,664 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "crankClaimZincYield",
+      "docs": [
+        "Permissionless per-cycle staking-yield compound. Claims the vested staking",
+        "yield ZINC into custody (also minting Stockpile Bricks to the profile),",
+        "restakes the MEASURED yield delta (compound), and credits it to holders via",
+        "the accumulator. Gated on PHASE_BETTING (NOT PHASE_OPEN): in BETTING both",
+        "deposit_zinc and withdraw_zinc are blocked, so total_shares is FROZEN while",
+        "this crank runs. That eliminates the yield-backdating interleave a mid-OPEN",
+        "depositor could exploit to share in yield that accrued before they joined.",
+        "A paused/halted or never-staked pool EARLY-RETURNS Ok (no error, no CPI) so",
+        "a ZINC incident cannot brick it. Crediting is driven ONLY by the measured",
+        "custody delta."
+      ],
+      "discriminator": [
+        3,
+        242,
+        201,
+        18,
+        193,
+        214,
+        80,
+        67
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA (yield dest + restake source). Pinned to the cached",
+            "pool field. init_if_needed for robustness (matches settle)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincStakePosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincPlayerProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincStakingRewardTokenAccount",
+          "writable": true,
+          "address": "HnLFJtSxc3435T4BmJbaTUHJQErePpyV3phXXcDxPfHj"
+        },
+        {
+          "name": "zincStakingTokenAccount",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller (pays tx + one-time ATA rent)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "crankJoinZincStockpile",
+      "docs": [
+        "Operator-gated Stockpile JOIN, funded from the war chest. Commits all",
+        "available Bricks into the currently-Open Stockpile cycle, paying the ZINC",
+        "entry fee out of the war chest (house money, NOT part of zinc_in_vault, so",
+        "this never affects holder solvency). Gates: pool init + stockpile_enabled +",
+        "operator signer + PHASE_BETTING + not paused/dd_halt. All ZINC reads are",
+        "SOFT-RETURN (log via a zero event + Ok) on any unmet precondition so a",
+        "keeper loop is never bricked. `stockpile_id` address-pins the stockpile PDA;",
+        "it MUST equal board.active_stockpile_id after the on-chain decode."
+      ],
+      "discriminator": [
+        235,
+        98,
+        131,
+        109,
+        210,
+        95,
+        35,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "docs": [
+            "Operator signs (controls WHEN). Pinned to bucket.operator_wallet."
+          ],
+          "signer": true
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA (entry-fee source; unstake dest / restake source)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned. WRITABLE: ix_join_stockpile takes zinc_mint as",
+            "AccountMeta::new (join burns/mints against the mint), so a non-mut here",
+            "soft-bricks the join CPI."
+          ],
+          "writable": true,
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincStakePosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincStakingTokenAccount",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincBoard",
+          "writable": true,
+          "address": "DnryjThdeJbK4qfrVooTPRgWcjgAnQ5cVm2pF5mbeCeF"
+        },
+        {
+          "name": "zincPlayerProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincStockpile",
+          "writable": true
+        },
+        {
+          "name": "zincStockpileTokenAccount",
+          "writable": true,
+          "address": "F9534iDWh4aJpZavSyq34Vdf8rL44eRwMMb2mUnZNBmr"
+        },
+        {
+          "name": "zincStakingRewardTokenAccount",
+          "writable": true,
+          "address": "HnLFJtSxc3435T4BmJbaTUHJQErePpyV3phXXcDxPfHj"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stockpileId",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "crankMine",
       "docs": [
         "REPLACES `pull`. Operator-signed crank that deploys `amount` SOL into",
@@ -2431,6 +3089,189 @@ export type CwrVault = {
               64
             ]
           }
+        }
+      ]
+    },
+    {
+      "name": "crankPayoutZincStockpile",
+      "docs": [
+        "Permissionless Stockpile PAYOUT. When our mining_authority is an unpaid",
+        "winner at some rank, claims the base SOL+ZINC for that rank. The won SOL",
+        "lands on mining_authority and is swept into the treasury (bumping",
+        "sol_in_vault, exactly like settle's SOL claim); the won ZINC accrues on our",
+        "profile as claimable_round_zinc_rewards and is smelted+staked+credited by",
+        "the NEXT settle_harvest_zinc (NO action here; do NOT double-count). Gates:",
+        "pool init + stockpile_enabled + not paused. SOFT-FAIL the payout CPI.",
+        "`stockpile_id` address-pins the stockpile + winners PDAs."
+      ],
+      "discriminator": [
+        124,
+        58,
+        201,
+        36,
+        240,
+        64,
+        61,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincStockpile",
+          "writable": true
+        },
+        {
+          "name": "zincStockpileWinners",
+          "writable": true
+        },
+        {
+          "name": "zincStockpileExtras",
+          "address": "rHy8WWBrefdyFM8mmFAsvJpmEoACRUjE5rxCb7vdEYz"
+        },
+        {
+          "name": "zincBoard",
+          "writable": true,
+          "address": "DnryjThdeJbK4qfrVooTPRgWcjgAnQ5cVm2pF5mbeCeF"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincStockpileSolVault",
+          "writable": true,
+          "address": "8RxMJD7BtdzxuZkmDqcxhR6gWvegLJ1GNf9NFrPkCmwf"
+        },
+        {
+          "name": "zincStockpileTokenAccount",
+          "writable": true,
+          "address": "F9534iDWh4aJpZavSyq34Vdf8rL44eRwMMb2mUnZNBmr"
+        },
+        {
+          "name": "zincPlayerProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincRoundZincRewardTokenAccount",
+          "writable": true,
+          "address": "FAfNcJe2wXC38EqL5KrL3PpHtZMDb4czFXYMyoHUDZ6g"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stockpileId",
+          "type": "u64"
         }
       ]
     },
@@ -4105,6 +4946,80 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "migrateZincPoolStaking",
+      "docs": [
+        "Admin+cosign: grow the LIVE (pre-v1.2.0, 157-byte) ZincPool account to fit",
+        "the appended staking + Stockpile fields and seed them. The account is taken",
+        "RAW (UncheckedAccount) and grown via a MANUAL realloc BEFORE any deserialize,",
+        "because `Account<ZincPool>` would fail to load the new (larger) struct from",
+        "the old (smaller) account and brick the pool. realloc(_, true) zeroes the",
+        "appended bytes so they deserialize as valid defaults, then every new field is",
+        "set EXPLICITLY. One-time: guarded on account size (data.len() < new_len).",
+        "A fresh pool is born correct via init_zinc_pool; this is only for bucket 1."
+      ],
+      "discriminator": [
+        148,
+        149,
+        229,
+        251,
+        154,
+        181,
+        60,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "docs": [
+            "(smaller) size, so `Account<ZincPool>` would fail to deserialize the NEW,",
+            "larger struct from it BEFORE any realloc could run (which would brick dZINC).",
+            "This ix therefore takes the account RAW and grows + seeds it manually. The",
+            "PDA is pinned by seeds; owner + size + initialized are verified in the handler."
+          ],
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "openWindow",
       "docs": [
         "Permissionless Clock-driven phase transition BETTING -> OPEN.",
@@ -5621,6 +6536,90 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "setZincPoolStockpileCfg",
+      "docs": [
+        "Admin+cosign: configure the dZINC staking + Stockpile knobs. Mirrors",
+        "set_zinc_pool_caps' cosign pattern. `skim_bps` is capped at",
+        "`MAX_ZINC_STOCKPILE_SKIM_BPS` (2000 = 20%): a cosigned admin cannot divert",
+        "more than that of each settle's smelted ZINC from holders to the war chest."
+      ],
+      "discriminator": [
+        237,
+        79,
+        11,
+        230,
+        186,
+        62,
+        243,
+        229
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "enabled",
+          "type": "bool"
+        },
+        {
+          "name": "skimBps",
+          "type": "u16"
+        },
+        {
+          "name": "entryZincBudget",
+          "type": "u64"
+        },
+        {
+          "name": "minJoinBricksX10k",
+          "type": "u64"
+        },
+        {
+          "name": "maxStakedGrams",
+          "type": "u64"
+        },
+        {
+          "name": "minCustodyFloat",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "settleHarvestZinc",
       "docs": [
         "Permissionless per-cycle ZINC harvest. The FIRST OPEN action: it claims the",
@@ -5847,6 +6846,83 @@ export type CwrVault = {
         {
           "name": "zincRoundZincRewardTokenAccount",
           "writable": true
+        },
+        {
+          "name": "zincStakePosition",
+          "docs": [
+            "balance watermark source). Pinned to (stake-position, mining_authority)",
+            "under the ZINC program; created lazily by the first ix_stake."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincStakingTokenAccount",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
         },
         {
           "name": "zincProgram",
@@ -6548,8 +7624,97 @@ export type CwrVault = {
           "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
         },
         {
+          "name": "zincStakePosition",
+          "docs": [
+            "Pinned to (stake-position, mining_authority) under the ZINC program."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincStakingTokenAccount",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -6802,6 +7967,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "claimZincYieldEvent",
+      "discriminator": [
+        108,
+        176,
+        67,
+        58,
+        100,
+        179,
+        232,
+        94
+      ]
+    },
+    {
       "name": "closeZincMinerEvent",
       "discriminator": [
         152,
@@ -6945,6 +8123,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "joinZincStockpileEvent",
+      "discriminator": [
+        203,
+        60,
+        203,
+        240,
+        183,
+        214,
+        233,
+        78
+      ]
+    },
+    {
       "name": "miningPdaInitializedEvent",
       "discriminator": [
         229,
@@ -6955,6 +8146,19 @@ export type CwrVault = {
         47,
         75,
         2
+      ]
+    },
+    {
+      "name": "payoutZincStockpileEvent",
+      "discriminator": [
+        213,
+        128,
+        75,
+        89,
+        56,
+        101,
+        150,
+        104
       ]
     },
     {
@@ -7306,6 +8510,32 @@ export type CwrVault = {
         132,
         244,
         194
+      ]
+    },
+    {
+      "name": "zincPoolMigratedEvent",
+      "discriminator": [
+        118,
+        218,
+        30,
+        252,
+        3,
+        227,
+        58,
+        240
+      ]
+    },
+    {
+      "name": "zincPoolStockpileCfgEvent",
+      "discriminator": [
+        65,
+        2,
+        124,
+        49,
+        118,
+        244,
+        97,
+        68
       ]
     }
   ],
@@ -7859,6 +9089,31 @@ export type CwrVault = {
       "code": 6109,
       "name": "reseedEmptyPool",
       "msg": "reseed_pool requires an existing holder base (total_shares > 0); an empty pool has nothing to make whole"
+    },
+    {
+      "code": 6110,
+      "name": "zincUnstakeFailed",
+      "msg": "withdraw_zinc could not unstake the exiter's pro-rata ZINC from the staking vault (fail-closed; user retries)"
+    },
+    {
+      "code": 6111,
+      "name": "zincStakeCapExceeded",
+      "msg": "staking would exceed ZincPool.max_staked_grams (circuit breaker)"
+    },
+    {
+      "code": 6112,
+      "name": "zincStockpileDisabled",
+      "msg": "dZINC Stockpile harvesting is disabled (ZincPool.stockpile_enabled = false)"
+    },
+    {
+      "code": 6113,
+      "name": "zincStockpileNoCycle",
+      "msg": "no open dZINC Stockpile cycle to join / no unresolved cycle to pay out"
+    },
+    {
+      "code": 6114,
+      "name": "zincStockpileNotReady",
+      "msg": "dZINC Stockpile join/payout preconditions not met (bricks below floor, already joined, budget, or not a winner)"
     }
   ],
   "types": [
@@ -8489,6 +9744,53 @@ export type CwrVault = {
       }
     },
     {
+      "name": "claimZincYieldEvent",
+      "docs": [
+        "Emitted by `crank_claim_zinc_yield` (staking-yield compound)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "yieldClaimed",
+            "docs": [
+              "Measured yield ZINC delta claimed into custody this crank."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "yieldRestaked",
+            "docs": [
+              "Portion of that yield restaked (compounded) this crank."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "credited",
+            "docs": [
+              "Grams credited to holders via the accumulator (== yield_claimed)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "accZincPerShare",
+            "type": "u128"
+          },
+          {
+            "name": "stakeBalance",
+            "docs": [
+              "Post-crank StakePosition.balance watermark (telemetry)."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "closeZincMinerEvent",
       "type": {
         "kind": "struct",
@@ -8995,6 +10297,47 @@ export type CwrVault = {
       }
     },
     {
+      "name": "joinZincStockpileEvent",
+      "docs": [
+        "Emitted by `crank_join_zinc_stockpile` (Stockpile entry). A zero-`zinc_spent`",
+        "event means a SOFT-RETURN (precondition unmet) with no join performed."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "stockpileId",
+            "type": "u64"
+          },
+          {
+            "name": "bricksCommitted",
+            "docs": [
+              "Available Bricks (x10k) committed to the cycle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "zincSpent",
+            "docs": [
+              "War-chest ZINC grams consumed by the entry fee."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "warChestGrams",
+            "docs": [
+              "War-chest balance after the spend."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "miningPdaInitializedEvent",
       "type": {
         "kind": "struct",
@@ -9010,6 +10353,44 @@ export type CwrVault = {
           {
             "name": "oreMiner",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payoutZincStockpileEvent",
+      "docs": [
+        "Emitted by `crank_payout_zinc_stockpile` (Stockpile winnings). A zero event",
+        "means a SOFT-RETURN (not an unpaid winner) with no payout performed."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "stockpileId",
+            "type": "u64"
+          },
+          {
+            "name": "rank",
+            "type": "u8"
+          },
+          {
+            "name": "solWon",
+            "docs": [
+              "SOL swept from mining_authority into the treasury (real TVL)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "zincWon",
+            "docs": [
+              "Reported rank ZINC (accrues on the profile; harvested by the next settle)."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -9886,6 +11267,14 @@ export type CwrVault = {
               "Atomic ZINC units paid in-kind pro-rata alongside the SOL payout."
             ],
             "type": "u64"
+          },
+          {
+            "name": "zincUnstaked",
+            "docs": [
+              "Atomic ZINC unstaked from the staking vault to cover the exit shortfall",
+              "(custody was near-zero in OPEN with all backing staked)."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -9940,8 +11329,13 @@ export type CwrVault = {
           {
             "name": "zincInVault",
             "docs": [
-              "Smelted ZINC grams physically held in the custody ATA (custody balance",
-              "mirror; grows at settle, shrinks pro-rata on withdraw_zinc)."
+              "Total smelted+compounded ZINC grams BACKING the pool. Post-staking this is",
+              "the staked balance (in the ZINC staking vault); the custody ATA is now a",
+              "transient hop (smelt-dest / restake-source / unstake-dest), near-zero",
+              "between handlers. Grows at settle (smelt+stake) and at",
+              "`crank_claim_zinc_yield` (yield+restake); shrinks by exactly the exiter's",
+              "pro-rata on withdraw_zinc (unstake -> pay). Logical mirror; the physical",
+              "solvency check at withdraw is post-unstake on the reloaded custody ATA."
             ],
             "type": "u64"
           },
@@ -10021,6 +11415,117 @@ export type CwrVault = {
               "Cached ATA(mining_authority, ZINC_MINT) = the held-ZINC custody account."
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "stakePosition",
+            "docs": [
+              "Cached PDA([\"stake-position\", mining_authority], ZINC). The pool's single",
+              "StakePosition (mining_authority IS the staker). Cache only; created lazily",
+              "by the first `ix_stake`."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "lastSeenStakeBalance",
+            "docs": [
+              "Yield-delta watermark: the post-CPI `stake_position.balance` after the last",
+              "stake/unstake/claim. The single-leg twin of the dORE `last_*_ore_watermark`",
+              "pair. Telemetry + sanity; crediting is driven by the MEASURED custody delta,",
+              "never this field."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalYieldCompounded",
+            "docs": [
+              "Cumulative realized staking yield restaked (compounded). Telemetry."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "maxStakedGrams",
+            "docs": [
+              "Circuit breaker: max ZINC grams allowed staked (0 = unlimited). When",
+              "`zinc_in_vault >= max_staked_grams`, settle/yield skip the `ix_stake` (grams",
+              "stay in custody, still credited + recoverable) so an incident response can",
+              "stop further restaking without pausing the bucket. The ZINC-staking",
+              "analogue of `max_inflight_lamports`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "minCustodyFloat",
+            "docs": [
+              "Fallback-path only: custody float kept liquid for fast exits IF the sandbox",
+              "shows partial unstake re-vests the remainder (the `batch_unstake_zinc`",
+              "buffer model). 0 in the per-exit-unstake model."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileEnabled",
+            "docs": [
+              "Master switch for the Stockpile join/payout cranks. Default OFF (dark",
+              "rollout); flipped on via `set_zinc_pool_stockpile_cfg` once staking is",
+              "proven live."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "lastJoinedStockpileId",
+            "docs": [
+              "Last Stockpile cycle id we joined (advisory; ZINC enforces single-join per",
+              "cycle itself). Sentinel u64::MAX = never joined."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileEntryZincBudget",
+            "docs": [
+              "War-chest TARGET size in ZINC grams: the settle skim fills the war chest up",
+              "to this cap, and the join crank spends Stockpile entry fees from the war",
+              "chest. 0 = no war chest (Stockpile inert even if enabled)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileMinJoinBricksX10k",
+            "docs": [
+              "Min available Bricks (x10k) before the join crank will enter a cycle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileSkimBps",
+            "docs": [
+              "War-chest skim rate (bps of each settle's smelted ZINC diverted to the war",
+              "chest BEFORE crediting holders, up to stockpile_entry_zinc_budget). This is",
+              "the ONLY holder cost of the Stockpile: house money, never part of",
+              "zinc_in_vault / the accumulator, so exits stay fully solvent. 0 = off."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "stockpileWarChestGrams",
+            "docs": [
+              "Current war-chest balance in ZINC grams (house money). Physically STAKED",
+              "alongside holder backing (part of StakePosition.balance) but tracked",
+              "separately and NEVER drawn by exits: total staked ~= zinc_in_vault +",
+              "stockpile_war_chest_grams. Grows by the settle skim, shrinks by join entry",
+              "fees."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileSolWon",
+            "docs": [
+              "Telemetry: cumulative Stockpile SOL + ZINC won (lifetime)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stockpileZincWon",
+            "type": "u64"
           }
         ]
       }
@@ -10076,6 +11581,64 @@ export type CwrVault = {
           },
           {
             "name": "maxInflightLamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPoolMigratedEvent",
+      "docs": [
+        "Emitted by `migrate_zinc_pool_staking` (one-time realloc + field seed)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "stakePosition",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPoolStockpileCfgEvent",
+      "docs": [
+        "Emitted by `set_zinc_pool_stockpile_cfg` (staking + Stockpile knobs)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "skimBps",
+            "type": "u16"
+          },
+          {
+            "name": "entryZincBudget",
+            "type": "u64"
+          },
+          {
+            "name": "minJoinBricksX10k",
+            "type": "u64"
+          },
+          {
+            "name": "maxStakedGrams",
+            "type": "u64"
+          },
+          {
+            "name": "minCustodyFloat",
             "type": "u64"
           }
         ]
