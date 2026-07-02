@@ -101,7 +101,8 @@ export type CwrVault = {
         {
           "name": "storeTreasury",
           "docs": [
-            "Per-bucket stORE-holding token account (authority = bucket PDA)."
+            "Per-bucket stORE-holding token account (authority = bucket PDA).",
+            "Post stORE migration: pinned to the v2 (NEW-mint) reserve."
           ],
           "writable": true
         },
@@ -309,7 +310,7 @@ export type CwrVault = {
             "escalate its privilege over the outer settle_harvest ix."
           ],
           "writable": true,
-          "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
+          "address": "storenSbvkfzircixnaosc5CbzNZVrHJ6S3EKrS1yqR"
         },
         {
           "name": "oreMiner",
@@ -455,38 +456,38 @@ export type CwrVault = {
             "program": {
               "kind": "const",
               "value": [
-                4,
-                251,
-                80,
-                194,
-                234,
-                15,
-                72,
-                106,
-                104,
-                80,
-                91,
-                93,
-                174,
-                212,
-                106,
-                243,
-                71,
-                70,
-                149,
-                89,
-                215,
-                70,
-                161,
-                100,
-                153,
-                213,
-                221,
-                81,
-                78,
-                163,
-                190,
-                130
+                13,
+                9,
+                158,
+                170,
+                108,
+                180,
+                41,
+                193,
+                172,
+                46,
+                159,
+                173,
+                128,
+                178,
+                198,
+                144,
+                207,
+                75,
+                247,
+                214,
+                204,
+                160,
+                44,
+                67,
+                24,
+                19,
+                94,
+                21,
+                67,
+                6,
+                102,
+                187
               ]
             }
           }
@@ -525,38 +526,38 @@ export type CwrVault = {
             "program": {
               "kind": "const",
               "value": [
-                6,
-                133,
-                194,
-                223,
-                210,
-                129,
-                79,
-                202,
+                13,
+                9,
+                93,
                 69,
-                159,
-                227,
-                210,
-                86,
-                178,
-                85,
-                73,
-                103,
-                66,
-                7,
-                177,
-                177,
+                99,
+                44,
+                92,
+                91,
+                216,
+                77,
+                13,
                 163,
-                250,
-                233,
-                206,
-                220,
-                177,
-                218,
-                50,
-                19,
-                243,
-                181
+                99,
+                98,
+                141,
+                110,
+                224,
+                89,
+                157,
+                62,
+                245,
+                37,
+                244,
+                189,
+                201,
+                155,
+                172,
+                6,
+                43,
+                93,
+                112,
+                190
               ]
             }
           }
@@ -590,45 +591,45 @@ export type CwrVault = {
             "program": {
               "kind": "const",
               "value": [
-                6,
-                133,
-                194,
-                223,
-                210,
-                129,
-                79,
-                202,
+                13,
+                9,
+                93,
                 69,
-                159,
-                227,
-                210,
-                86,
-                178,
-                85,
-                73,
-                103,
-                66,
-                7,
-                177,
-                177,
+                99,
+                44,
+                92,
+                91,
+                216,
+                77,
+                13,
                 163,
-                250,
-                233,
-                206,
-                220,
-                177,
-                218,
-                50,
-                19,
-                243,
-                181
+                99,
+                98,
+                141,
+                110,
+                224,
+                89,
+                157,
+                62,
+                245,
+                37,
+                244,
+                189,
+                201,
+                155,
+                172,
+                6,
+                43,
+                93,
+                112,
+                190
               ]
             }
           }
         },
         {
           "name": "oreStakeProgram",
-          "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
+          "address": "stakecNP3FpiExZPCgZfqRgumVzi6dNqnfrjwXyTgeH"
         },
         {
           "name": "oreLstProgram",
@@ -636,7 +637,7 @@ export type CwrVault = {
             "invoke_signed must receive the target program in its account list, else",
             "the runtime can't resolve it (\"Unknown program LStwN…\")."
           ],
-          "address": "LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y"
+          "address": "storeD7bEkywTTMrje19WRoyrkEhbhrvyjVnLxWih6a"
         },
         {
           "name": "operator",
@@ -1627,6 +1628,157 @@ export type CwrVault = {
               }
             ]
           }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "crankClaimZincSolYield",
+      "docs": [
+        "Permissionless: capture the stZINC SOL-yield leg (SEPARATE from the ZINC",
+        "buyback leg claimed by `crank_claim_zinc_yield`; independent checkpoints,",
+        "so no ordering between the two is required). The SOL reward lands as RAW",
+        "lamports on the mining_authority PDA; we measure the lamport DELTA and",
+        "sweep it into `bucket.sol_in_vault` (the SOL-leg NAV), exactly like the",
+        "settle round-SOL sweep. Brick-safe by construction: a separate ix (cannot",
+        "abort settle/withdraw), a SOFT-FAIL claim CPI (a disc/account drift or a",
+        "ZINC revert yields claimed==0, never a mis-credit), pause-exempt +",
+        "empty-stake early return, and it writes ONLY sol_in_vault (never the ZINC",
+        "leg `zinc_in_vault` / `acc_zinc_per_share`), so it can only raise NAV."
+      ],
+      "discriminator": [
+        133,
+        229,
+        234,
+        94,
+        166,
+        172,
+        174,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool"
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "docs": [
+            "The bucket's SOL treasury (sweep destination = SOL-leg NAV backing). Pinned."
+          ],
+          "writable": true
+        },
+        {
+          "name": "zincStakePosition",
+          "docs": [
+            "deserialized (on-chain 120 bytes vs 82 in codama); we lamport-measure the",
+            "authority instead."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincStakingSolRewardVault",
+          "docs": [
+            "spoofed vault is rejected at resolve)."
+          ],
+          "writable": true,
+          "address": "4xzryReuJRamP4zKEdJagsWQaCYQQvN7aT64LFmu2b4A"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless caller (pays tx fee)."
+          ],
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
@@ -4210,7 +4362,10 @@ export type CwrVault = {
             "V5 — per-bucket stORE token account. Mint = `cfg.store_mint`,",
             "authority = bucket PDA. Created at init even when store_mint is",
             "Pubkey::default() so the contract layout is stable across envs",
-            "(in that case the account just holds 0 stORE forever)."
+            "(in that case the account just holds 0 stORE forever).",
+            "Post stORE migration: born on the v2 seed so new buckets match the",
+            "withdraw/batch_replenish reserve (the OLD seed survives only as the",
+            "`migrate_ore_reserve` drain source for the pre-existing bucket 0)."
           ],
           "writable": true
         },
@@ -4944,6 +5099,479 @@ export type CwrVault = {
           "type": "pubkey"
         }
       ]
+    },
+    {
+      "name": "migrateOreReserve",
+      "docs": [
+        "ONE-TIME dORE stORE reserve migration (2026-06-15 ore-stake hack). Moves",
+        "the reserve out of the FROZEN, yield-halted OLD stORE into the NEW stORE in",
+        "ONE atomic tx, then repoints `config.store_mint` + the store_treasury bump",
+        "to the v2 reserve. Cosign-gated + `require!(paused)` so no user op",
+        "(withdraw/deposit/batch/open_window) can race a half-migrated reserve.",
+        "Idempotent: refuses to re-run once `config.store_mint == STORE_MINT` (NEW),",
+        "and `init` on store_treasury_v2 hard-fails a second run regardless. Atomic:",
+        "any leg reverting rolls back the whole tx, leaving the fully-OLD reserve",
+        "intact (still redeemable via the live OLD unwrap). Chain: drain OLD reserve",
+        "-> ATA(MA, OLD mint) -> ix_unwrap(OLD) -> ORE -> ix_wrap(NEW) -> NEW stORE",
+        "-> store_treasury_v2, then SET (overwrite, NOT add) store_in_vault to the",
+        "measured v2 balance and leave reserve_backed_net_ore UNCHANGED",
+        "(ORE-denominated + mint-agnostic; ORE value is conserved across the",
+        "1.0747 -> 1.0063 rate-basis change, only the gram count re-prices).",
+        "Needs a raised compute budget (~1.4M CU) + simulate-first: unwrap alone is",
+        "~240k CU. See ore-stake-hack migration notes."
+      ],
+      "discriminator": [
+        166,
+        117,
+        65,
+        173,
+        41,
+        44,
+        227,
+        185
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "storeTreasuryOld",
+          "docs": [
+            "The OLD-mint reserve (the current live reserve; drained to zero). Pinned via",
+            "the OLD seed + the still-current stored bump (overwritten to v2 at the end)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "storeTreasuryV2",
+          "docs": [
+            "The NEW-mint reserve (created here; the live reserve thereafter). Distinct",
+            "PDA because a token account's mint is immutable."
+          ],
+          "writable": true
+        },
+        {
+          "name": "miningAuthorityOldStoreAta",
+          "docs": [
+            "ATA(MA, OLD mint) — drain dest + unwrap source."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oldStoreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "miningAuthorityOreAta",
+          "docs": [
+            "ATA(MA, ORE) — unwrap dest + wrap source."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "miningAuthorityNewStoreAta",
+          "docs": [
+            "ATA(MA, NEW mint) — wrap dest + v2 transfer source."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreMint",
+          "writable": true,
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "oldStoreMint",
+          "docs": [
+            "OLD stORE mint (unwrap burns against it). Pinned to the migration const."
+          ],
+          "writable": true,
+          "address": "sTorERYB6xAZ1SSbwpK3zoK2EEwbBrc7TZAzg1uCGiH"
+        },
+        {
+          "name": "storeMint",
+          "docs": [
+            "NEW stORE mint (wrap mints against it; the v2 + NEW-ATA mint). Pinned."
+          ],
+          "writable": true,
+          "address": "storenSbvkfzircixnaosc5CbzNZVrHJ6S3EKrS1yqR"
+        },
+        {
+          "name": "oldOreLstVault",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstVaultOreAta",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstStake",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstStakeOreAta",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstTreasury",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "oldOreLstVesting",
+          "writable": true
+        },
+        {
+          "name": "oldOreStakeProgram",
+          "address": "STkEAu2cEyQp5ktgUauRVq8es6mEP2w6ixw4NEd5tDJ"
+        },
+        {
+          "name": "oldOreLstProgram",
+          "address": "LStwN2E5Uw6MCtuxHRLhy8RY9hxqW2XRpLzettb696y"
+        },
+        {
+          "name": "newOreLstVault",
+          "writable": true
+        },
+        {
+          "name": "newOreLstVaultOreAta",
+          "writable": true
+        },
+        {
+          "name": "newOreLstStake",
+          "writable": true
+        },
+        {
+          "name": "newOreLstStakeOreAta",
+          "writable": true
+        },
+        {
+          "name": "newOreLstTreasury",
+          "writable": true
+        },
+        {
+          "name": "newOreLstTreasuryOreAta",
+          "writable": true
+        },
+        {
+          "name": "newOreLstVesting",
+          "writable": true
+        },
+        {
+          "name": "newOreStakeProgram",
+          "address": "stakecNP3FpiExZPCgZfqRgumVzi6dNqnfrjwXyTgeH"
+        },
+        {
+          "name": "newOreLstProgram",
+          "address": "storeD7bEkywTTMrje19WRoyrkEhbhrvyjVnLxWih6a"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "migrateZincPoolStaking",
@@ -7354,7 +7982,9 @@ export type CwrVault = {
           "name": "storeTreasury",
           "docs": [
             "V5 — per-bucket stORE-holding token account. Source of pro-rata",
-            "stORE paid out alongside the SOL payout. Authority = bucket PDA."
+            "stORE paid out alongside the SOL payout. Authority = bucket PDA.",
+            "Post stORE migration: pinned to the v2 (NEW-mint) reserve; the stored",
+            "`store_treasury_bump` holds the v2 bump after `migrate_ore_reserve`."
           ],
           "writable": true
         },
@@ -7967,6 +8597,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "claimZincSolYieldEvent",
+      "discriminator": [
+        65,
+        27,
+        102,
+        217,
+        127,
+        158,
+        155,
+        82
+      ]
+    },
+    {
       "name": "claimZincYieldEvent",
       "discriminator": [
         108,
@@ -8133,6 +8776,19 @@ export type CwrVault = {
         214,
         233,
         78
+      ]
+    },
+    {
+      "name": "migrateOreReserveEvent",
+      "discriminator": [
+        108,
+        200,
+        79,
+        140,
+        158,
+        72,
+        251,
+        53
       ]
     },
     {
@@ -9114,6 +9770,16 @@ export type CwrVault = {
       "code": 6114,
       "name": "zincStockpileNotReady",
       "msg": "dZINC Stockpile join/payout preconditions not met (bricks below floor, already joined, budget, or not a winner)"
+    },
+    {
+      "code": 6115,
+      "name": "storeAlreadyMigrated",
+      "msg": "stORE reserve already migrated (config.store_mint is already the NEW mint) — migrate_ore_reserve is one-time"
+    },
+    {
+      "code": 6116,
+      "name": "storeMigrationLegFailed",
+      "msg": "stORE reserve migration leg produced zero output (unwrap/wrap/transfer) — atomic revert, reserve stays fully OLD"
     }
   ],
   "types": [
@@ -9744,6 +10410,38 @@ export type CwrVault = {
       }
     },
     {
+      "name": "claimZincSolYieldEvent",
+      "docs": [
+        "Emitted by `crank_claim_zinc_sol_yield` (stZINC SOL-yield leg capture). A",
+        "zero `sol_claimed` means a soft-return (paused / empty position / nothing",
+        "vested / claim CPI drifted) with no state change."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "solClaimed",
+            "docs": [
+              "Measured lamport delta swept from mining_authority into the SOL-leg NAV."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "solInVault",
+            "type": "u64"
+          },
+          {
+            "name": "totalShares",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "claimZincYieldEvent",
       "docs": [
         "Emitted by `crank_claim_zinc_yield` (staking-yield compound)."
@@ -10331,6 +11029,56 @@ export type CwrVault = {
             "name": "warChestGrams",
             "docs": [
               "War-chest balance after the spend."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "migrateOreReserveEvent",
+      "docs": [
+        "Emitted by `migrate_ore_reserve` (one-time stORE reserve OLD -> NEW migration)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "oldStoreDrained",
+            "docs": [
+              "OLD stORE grams drained from the reserve (== unwrap input)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "redeemedOre",
+            "docs": [
+              "ORE redeemed by the unwrap (== wrap input)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "newStoreMinted",
+            "docs": [
+              "NEW stORE grams minted by the wrap + moved into the v2 reserve."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "storeInVault",
+            "docs": [
+              "store_in_vault AFTER the migration (SET to the measured v2 balance)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserveBackedNetOre",
+            "docs": [
+              "reserve_backed_net_ore (UNCHANGED; conserved across the rate-basis change)."
             ],
             "type": "u64"
           }
@@ -11799,10 +12547,24 @@ export type CwrVault = {
       "name": "storeTreasurySeed",
       "docs": [
         "Seed for the per-bucket stORE-holding token account. PDA's mint is",
-        "`Config.store_mint`; its authority is the bucket PDA. V5."
+        "`Config.store_mint`; its authority is the bucket PDA. V5.",
+        "NOTE (post stORE migration): the OLD-mint reserve lives at this seed; the",
+        "live reserve moved to `STORE_TREASURY_V2_SEED` because a token account's mint",
+        "is immutable, so the NEW-mint reserve cannot reuse the same PDA."
       ],
       "type": "bytes",
       "value": "[115, 116, 111, 114, 101, 95, 116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
+      "name": "storeTreasuryV2Seed",
+      "docs": [
+        "Seed for the post-migration NEW-mint stORE reserve token account. Mint is the",
+        "NEW `STORE_MINT`; authority is the bucket PDA. `migrate_ore_reserve` inits it",
+        "and moves the unwrapped+rewrapped reserve here; withdraw/batch_replenish pin",
+        "their `store_treasury` to this seed thereafter. See ore-stake-hack migration."
+      ],
+      "type": "bytes",
+      "value": "[115, 116, 111, 114, 101, 95, 116, 114, 101, 97, 115, 117, 114, 121, 95, 118, 50]"
     },
     {
       "name": "treasurySeed",
