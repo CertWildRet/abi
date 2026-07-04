@@ -10671,7 +10671,7 @@ export type CwrVault = {
           {
             "name": "amount",
             "docs": [
-              "Gross SOL debited from sol_in_vault."
+              "Gross SOL for the deploy stake (amount - fee = net_amount deployed)."
             ],
             "type": "u64"
           },
@@ -10686,6 +10686,21 @@ export type CwrVault = {
             "name": "netAmount",
             "docs": [
               "NET deployed into ZINC (amount - fee) = the ZINC deploy total_amount."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "zincFee",
+            "docs": [
+              "ZINC on-top-fee budget funded to the escrow (margin + miner/profile rent)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "shortfall",
+            "docs": [
+              "Fresh treasury -> escrow top-up this round (drain-first shortfall). NAV cost",
+              "this deploy = fee_lamports + shortfall."
             ],
             "type": "u64"
           }
