@@ -5574,6 +5574,84 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "migrateZincPoolMinDeploy",
+      "docs": [
+        "ONE-TIME (per pool) v1.3.x migration: grow a LIVE ZincPool by 8 bytes and",
+        "seed the appended `min_deploy_lamports` field (the state-var successor of",
+        "the retired ZINC_MIN_DEPLOY_LAMPORTS const). Same manual raw-bytes shape",
+        "as `migrate_zinc_pool_staking` (an `Account<ZincPool>` load would fail on",
+        "the pre-migration size before any realloc could run). Cosigned admin op.",
+        "",
+        "ORDERING: after the program upgrade every typed ZincPool ix fails to",
+        "deserialize until this runs — run it in the same breath as the upgrade",
+        "(see the deploy runbook). Refuses pools already at the new size AND pools",
+        "still at the PRE-STAKING size (under v1.3.2+ binaries,",
+        "migrate_zinc_pool_staking grows those straight to the FULL current size",
+        "and seeds this field itself — they never need this ix)."
+      ],
+      "discriminator": [
+        184,
+        17,
+        189,
+        166,
+        255,
+        31,
+        128,
+        58
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "docs": [
+            "(smaller) size, so `Account<ZincPool>` would fail to deserialize the NEW,",
+            "larger struct from it BEFORE any realloc could run (which would brick dZINC).",
+            "This ix therefore takes the account RAW and grows + seeds it manually. The",
+            "PDA is pinned by seeds; owner + size + initialized are verified in the handler."
+          ],
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "migrateZincPoolStaking",
       "docs": [
         "Admin+cosign: grow the LIVE (pre-v1.2.0, 157-byte) ZincPool account to fit",
@@ -7099,6 +7177,74 @@ export type CwrVault = {
         {
           "name": "ddHalt",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setZincPoolMinDeploy",
+      "docs": [
+        "Admin+cosign: set the dZINC pool NET-deploy floor (mirror of ZINC",
+        "`config.min_deploy_lamports`). The state-var successor of the retired",
+        "compile-time ZINC_MIN_DEPLOY_LAMPORTS const — when ZINC moves their",
+        "floor, this is a cosigned admin op, never a program upgrade. 0 disables",
+        "the local pre-check (ZINC's own on-chain floor still reverts the deploy",
+        "CPI; the pre-check only fails fast/clear before escrow funding). No",
+        "non-zero clamp: a fat-fingered high floor merely refuses cranks and is",
+        "reversible by re-running this ix."
+      ],
+      "discriminator": [
+        44,
+        160,
+        185,
+        183,
+        129,
+        253,
+        3,
+        201
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "minDeployLamports",
+          "type": "u64"
         }
       ]
     },
@@ -9689,7 +9835,7 @@ export type CwrVault = {
     {
       "code": 6098,
       "name": "zincDeployBelowMin",
-      "msg": "Deploy below the dZINC pool's min_round_lamports (e.g. the 1.5 SOL floor)"
+      "msg": "Deploy below a dZINC pool floor (gross < min_round_lamports, or net < min_deploy_lamports)"
     },
     {
       "code": 6099,
@@ -12289,6 +12435,21 @@ export type CwrVault = {
           {
             "name": "stockpileZincWon",
             "type": "u64"
+          },
+          {
+            "name": "minDeployLamports",
+            "docs": [
+              "Minimum NET lamports (post pull-fee) per crank_mine_zinc deploy. The",
+              "state-var successor of the retired compile-time ZINC_MIN_DEPLOY_LAMPORTS",
+              "const: mirrors ZINC `config.min_deploy_lamports` (live 0.01 SOL,",
+              "2026-07-05) WITHOUT freezing it into the binary — tracking a ZINC-side",
+              "change is a cosigned admin op (`set_zinc_pool_min_deploy`), never a",
+              "program upgrade again. 0 = local pre-check disabled (ZINC's own on-chain",
+              "floor still reverts the deploy CPI regardless; this gate exists to fail",
+              "FAST and CLEAR before any escrow funding runs). Distinct from",
+              "`min_round_lamports`, the POLICY floor on the GROSS crank amount."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -12296,8 +12457,11 @@ export type CwrVault = {
     {
       "name": "zincPoolConfigEvent",
       "docs": [
-        "dZINC pool config change (caps / dd_halt / pause). `field`: 0=caps, 1=dd_halt,",
-        "2=pause; `flag` carries the new bool for dd_halt/pause (ignored for caps)."
+        "dZINC pool config change. `field`: 0=caps (min_round/max_inflight),",
+        "1=dd_halt, 2=pause, 3=min_deploy set (flag = floor disabled i.e. 0),",
+        "4=min_deploy migration (one-time realloc+seed; values in the tx log via",
+        "msg!). `flag` carries the new bool for dd_halt/pause; see per-field notes",
+        "otherwise."
       ],
       "type": {
         "kind": "struct",
