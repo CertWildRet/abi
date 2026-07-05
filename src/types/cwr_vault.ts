@@ -665,6 +665,332 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "batchReplenishZinc",
+      "docs": [
+        "v1.4.0 dZINC Stage 2: operator-gated reserve top-up — the ONLY site that",
+        "smelts the profile's uZINC. Smelts the whole (all-or-nothing) unsmelted",
+        "pile (-10% on the base leg inside ZINC), stakes the proceeds, and folds",
+        "the MEASURED smelted grams (numerator, minus the war-chest skim) plus the",
+        "matching NET zinc (refined + 0.9 * base; denominator) into the exit",
+        "reserve. It advances NO accumulator and pays NO holder: it only swaps",
+        "unsmelted-profile backing for smelted-reserve backing so exits can be",
+        "paid without touching the profile on a normal exit. Operator-gated +",
+        "NoZincBatchNeeded so it cannot be spammed to burn the 10% fee or reset",
+        "everyone's refining (the exact mirror of dORE batch_replenish). The",
+        "keeper calls it only on reserve low-water (exits drained the smelted",
+        "reserve) — \"max refining\" policy.",
+        "HARD-FAIL CPIs (unlike settle): a failed smelt/measure reverts the whole",
+        "ix atomically; state never records a smelt that didn't land."
+      ],
+      "discriminator": [
+        94,
+        141,
+        228,
+        132,
+        230,
+        161,
+        154,
+        185
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zincPool",
+          "writable": true
+        },
+        {
+          "name": "miningAuthority",
+          "writable": true
+        },
+        {
+          "name": "zincCustodyAta",
+          "docs": [
+            "The custody ZINC ATA (smelt dest / stake source). Must already exist",
+            "(settle_harvest_zinc creates it on the first window)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zincMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincMint",
+          "docs": [
+            "ZINC mint, pinned."
+          ],
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zincPlayerProfile",
+          "docs": [
+            "pre-smelt leg read (which drives the reserve denominator) is genuine."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincConfig",
+          "address": "48W7ZVgfdqmpVfTxdoRKuVg7gqGk5GHF3QpmxhHCUieG"
+        },
+        {
+          "name": "zincTreasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zincRoundZincRewardTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "zincStakePosition",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "miningAuthority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zincStakingTokenAccount",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
+        },
+        {
+          "name": "zincProgram",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "operator",
+          "docs": [
+            "The bucket's crank operator — the ONLY allowed batcher."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancelAdminTransfer",
       "docs": [
         "V5 external-audit hardening — escape hatch.",
@@ -5574,6 +5900,85 @@ export type CwrVault = {
       "args": []
     },
     {
+      "name": "migrateZincPoolLazy",
+      "docs": [
+        "ONE-TIME (per pool) v1.4.0 migration: grow a LIVE v1.3.2-era ZincPool",
+        "(exactly 280 bytes) to the full current size and seed the appended",
+        "lazy-smelt uZINC ledger (all zeros: accumulators start at 0, watermarks",
+        "anchor to 0 so the FIRST settle credits the profile's entire",
+        "currently-unclaimed pile — at most one window's winnings under the",
+        "outgoing eager regime, owed to the holders who held through the upgrade —",
+        "and the reserve starts empty). Same manual raw-bytes + pinned-entry-size",
+        "shape as the two migrations above. Cosigned admin op.",
+        "",
+        "ORDERING: after the v1.4.0 program upgrade every typed ZincPool ix fails",
+        "to deserialize until this runs — run it in the same breath as the",
+        "upgrade (deploy runbook), then migrate_zinc_position for each live",
+        "position."
+      ],
+      "discriminator": [
+        115,
+        116,
+        12,
+        31,
+        151,
+        166,
+        117,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zincPool",
+          "docs": [
+            "(smaller) size, so `Account<ZincPool>` would fail to deserialize the NEW,",
+            "larger struct from it BEFORE any realloc could run (which would brick dZINC).",
+            "This ix therefore takes the account RAW and grows + seeds it manually. The",
+            "PDA is pinned by seeds; owner + size + initialized are verified in the handler."
+          ],
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "migrateZincPoolMinDeploy",
       "docs": [
         "ONE-TIME (per pool) v1.3.x migration: grow a LIVE ZincPool by 8 bytes and",
@@ -5717,6 +6122,51 @@ export type CwrVault = {
         {
           "name": "instructions",
           "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "migrateZincPosition",
+      "docs": [
+        "Permissionless v1.4.0 migration for a single LIVE ZincPosition: grow the",
+        "74-byte pre-lazy layout to the full current size, zero-seeding the two",
+        "uZINC leg watermarks + credits. Zero `paid` is CORRECT for every",
+        "pre-upgrade position: the pool's uZINC accumulators start at 0 at",
+        "migration, so paid=0 means \"entitled to everything accrued since the",
+        "upgrade\" — exactly what a holder who held through it is owed, no matter",
+        "how long after the upgrade this runs. Positions created post-upgrade are",
+        "born full-size (seeded to the CURRENT accs by deposit_zinc), so only",
+        "pre-upgrade positions can ever be 74 bytes — permissionless is safe: the",
+        "ix can only extend a genuine old position with zeros, and the caller",
+        "pays the rent delta."
+      ],
+      "discriminator": [
+        235,
+        101,
+        175,
+        157,
+        237,
+        211,
+        37,
+        21
+      ],
+      "accounts": [
+        {
+          "name": "zincPosition",
+          "docs": [
+            "discriminator, exact 74-byte pre-lazy length)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "systemProgram",
@@ -7396,16 +7846,20 @@ export type CwrVault = {
     {
       "name": "settleHarvestZinc",
       "docs": [
-        "Permissionless per-cycle ZINC harvest. The FIRST OPEN action: it claims the",
-        "round's won SOL into the treasury, smelts the mined ZINC (-10% inside the",
-        "ZINC protocol) into the custody ATA (HELD, never staked), advances the",
-        "pool accumulator from the realized smelted grams over the prior cycle's",
-        "share base, and sets `bucket.window_settled = true` (deposit_zinc /",
-        "withdraw_zinc require it, exactly like settle_uore for dORE).",
+        "Permissionless per-cycle ZINC settle. The FIRST OPEN action: claims ONLY",
+        "the round's won SOL into the treasury (working capital) and advances the",
+        "two uZINC accumulators from the GROWTH of the profile's still-unsmelted",
+        "base + LIVE refined legs, then sets `bucket.window_settled = true`",
+        "(deposit_zinc / withdraw_zinc require it) — the exact dZINC twin of",
+        "`settle_uore`. v1.4.0 LAZY SMELT: it deliberately does NOT smelt; the",
+        "profile is left unsmelted so the refining rebase (other players' 10%",
+        "smelt fees, ~441% APR 7d-window at ship time vs ~193% staking) keeps",
+        "compounding for everyone. The expensive all-or-nothing smelt happens",
+        "only in `batch_replenish_zinc` (operator-gated).",
         "PAUSE-EXEMPT / bootstrap-robust: a paused/halted pool, or a never-cranked",
         "pool (no player profile), still marks settled (skipping all CPIs) so a ZINC",
-        "incident cannot brick the window. The claim/smelt CPIs are SOFT-FAIL +",
-        "gated on the decoded profile accruals, so a losing/zero round never reverts."
+        "incident cannot brick the window. The SOL claim CPI is SOFT-FAIL + gated",
+        "on the decoded profile accrual, so a losing/zero round never reverts."
       ],
       "discriminator": [
         211,
@@ -8167,11 +8621,19 @@ export type CwrVault = {
     {
       "name": "withdrawZinc",
       "docs": [
-        "User withdraws SOL from a dZINC pool by burning shares, plus the held ZINC",
-        "owed in-kind. Mirrors `withdraw` but pays ZINC from custody (the",
-        "mining_authority's ZINC ATA) via the acc_zinc_per_share accumulator instead",
-        "of stORE from a reserve. SOL is paid at the FROZEN `claims_window_nps`",
-        "snapshotted at open_window_zinc. Fail-closed if custody can't cover the exit.",
+        "User withdraws SOL from a dZINC pool by burning shares, plus the ZINC",
+        "owed in-kind. SOL is paid at the FROZEN `claims_window_nps` snapshotted",
+        "at open_window_zinc. The ZINC leg has TWO classes (v1.4.0):",
+        "(a) legacy realized grams (acc_zinc_per_share: pre-v1.4.0 smelt credit",
+        "+ staking yield), paid 1:1 against `zinc_in_vault`;",
+        "(b) the exiter's pro-rata uZINC entitlement (two-leg accumulators),",
+        "valued NET of the smelt fee (base leg only) and paid from the",
+        "pre-smelted reserve at the reserve's OWN realized composition",
+        "(zinc_reserve_grams / reserve_backed_net_zinc) — the profile's",
+        "unsmelted pile is UNTOUCHED, so stayers keep refining.",
+        "Fail-closed (ZincReserveShortfall) if the reserve can't cover (b): the",
+        "operator runs batch_replenish_zinc and the user retries the SAME window.",
+        "Physically both classes are paid by unstaking exactly the shortfall.",
         "Gate: !paused && phase==OPEN && window_settled && shares>0 &&",
         "position.owner==user && position.shares>=shares."
       ],
@@ -8717,6 +9179,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "batchReplenishZincEvent",
+      "discriminator": [
+        165,
+        161,
+        2,
+        218,
+        109,
+        103,
+        175,
+        61
+      ]
+    },
+    {
       "name": "bucketInitializedEvent",
       "discriminator": [
         209,
@@ -9250,6 +9725,19 @@ export type CwrVault = {
       ]
     },
     {
+      "name": "settleUzincEvent",
+      "discriminator": [
+        98,
+        233,
+        37,
+        222,
+        183,
+        164,
+        52,
+        194
+      ]
+    },
+    {
       "name": "settlementAuthoritySetEvent",
       "discriminator": [
         23,
@@ -9273,6 +9761,19 @@ export type CwrVault = {
         44,
         71,
         192
+      ]
+    },
+    {
+      "name": "withdrawUzincEvent",
+      "discriminator": [
+        75,
+        85,
+        137,
+        231,
+        80,
+        42,
+        163,
+        99
       ]
     },
     {
@@ -9338,6 +9839,19 @@ export type CwrVault = {
         244,
         97,
         68
+      ]
+    },
+    {
+      "name": "zincPositionMigratedEvent",
+      "discriminator": [
+        141,
+        172,
+        231,
+        24,
+        160,
+        203,
+        191,
+        228
       ]
     }
   ],
@@ -9926,6 +10440,21 @@ export type CwrVault = {
       "code": 6116,
       "name": "storeMigrationLegFailed",
       "msg": "stORE reserve migration leg produced zero output (unwrap/wrap/transfer) — atomic revert, reserve stays fully OLD"
+    },
+    {
+      "code": 6117,
+      "name": "zincReserveShortfall",
+      "msg": "smelted-ZINC reserve cannot cover this exit's uZINC entitlement — operator runs batch_replenish_zinc, then retry (fail-closed, never partial-pay)"
+    },
+    {
+      "code": 6118,
+      "name": "noZincBatchNeeded",
+      "msg": "batch_replenish_zinc: nothing to smelt / preconditions not met (empty profile legs, no holders, or unsettled window)"
+    },
+    {
+      "code": 6119,
+      "name": "zincSmeltFailed",
+      "msg": "batch_replenish_zinc: the smelt CPI produced no measured custody delta — atomic revert"
     }
   ],
   "types": [
@@ -10081,6 +10610,81 @@ export type CwrVault = {
           },
           {
             "name": "reserveBackedNetOre",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "batchReplenishZincEvent",
+      "docs": [
+        "v1.4.0: emitted by batch_replenish_zinc — the ONLY smelt site."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "baseBefore",
+            "docs": [
+              "Profile legs the instant before the all-or-nothing smelt."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refinedBefore",
+            "type": "u64"
+          },
+          {
+            "name": "smelted",
+            "docs": [
+              "MEASURED custody delta from the smelt CPI."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "skim",
+            "docs": [
+              "War-chest skim taken off the smelted grams (house money)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "creditedToReserve",
+            "docs": [
+              "smelted - skim: grams folded into the exit reserve (numerator)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "netBefore",
+            "docs": [
+              "net_zinc(base_before, refined_before): folded into the denominator."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rewardsGrowth",
+            "docs": [
+              "Tail growth credited by the batch's credit-then-convert accrual",
+              "(growth since the window's settle: pause-exempt settles, mid-window",
+              "Stockpile wins, refining since settle)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refinedGrowth",
+            "type": "u64"
+          },
+          {
+            "name": "zincReserveGrams",
+            "type": "u64"
+          },
+          {
+            "name": "reserveBackedNetZinc",
             "type": "u64"
           }
         ]
@@ -12026,7 +12630,8 @@ export type CwrVault = {
           {
             "name": "credited",
             "docs": [
-              "Smelted ZINC grams credited to the held custody balance this settle."
+              "Smelted ZINC grams credited to the held custody balance this settle.",
+              "v1.4.0: always 0 (settle no longer smelts); kept for decoder continuity."
             ],
             "type": "u64"
           },
@@ -12067,6 +12672,56 @@ export type CwrVault = {
           },
           {
             "name": "accRefinedUorePerShare",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "settleUzincEvent",
+      "docs": [
+        "v1.4.0: the lazy-smelt twin of SettleUoreEvent — per-window growth of the",
+        "profile's two unsmelted legs and the post-advance accumulators. Emitted by",
+        "settle_harvest_zinc alongside the legacy event above."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "rewardsGrowth",
+            "docs": [
+              "Base-leg (mined uZINC) growth credited this settle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refinedGrowth",
+            "docs": [
+              "LIVE refined-leg growth credited this settle."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "baseLeg",
+            "docs": [
+              "Absolute profile legs at this settle (the new watermarks)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refinedLeg",
+            "type": "u64"
+          },
+          {
+            "name": "accRewardsUzincPerShare",
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUzincPerShare",
             "type": "u128"
           }
         ]
@@ -12137,6 +12792,52 @@ export type CwrVault = {
           {
             "name": "newHighWaterNps",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "withdrawUzincEvent",
+      "docs": [
+        "v1.4.0: the uZINC-leg detail of a withdraw_zinc (emitted alongside the",
+        "unchanged WithdrawZincEvent, whose zinc_payout_atomic is the TOTAL of both",
+        "classes)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "exitUzincRewards",
+            "docs": [
+              "Gross uZINC legs leaving the outstanding entitlement."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "exitUzincRefined",
+            "type": "u64"
+          },
+          {
+            "name": "exitNetZinc",
+            "docs": [
+              "Fee-valued net zinc drawn against the reserve denominator."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserveDue",
+            "docs": [
+              "Grams actually paid from the reserve (numerator draw)."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -12450,6 +13151,84 @@ export type CwrVault = {
               "`min_round_lamports`, the POLICY floor on the GROSS crank amount."
             ],
             "type": "u64"
+          },
+          {
+            "name": "accRewardsUzincPerShare",
+            "docs": [
+              "uZINC-per-share accumulator for the mined (base) leg, ACC_SCALE-scaled."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUzincPerShare",
+            "docs": [
+              "uZINC-per-share accumulator for the refining leg, ACC_SCALE-scaled.",
+              "The refined leg is computed LIVE at settle: materialized",
+              "`refined_round_zinc_rewards` + base * (treasury factor - profile",
+              "checkpoint) / ZINC_REFINE_FACTOR_SCALE, so lazy ZINC-side checkpoint",
+              "syncs can never lump stale refining onto later share bases."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "lastRewardsZincWatermark",
+            "docs": [
+              "Last observed profile base leg (claimable_round_zinc_rewards) at the last",
+              "settle advance; reset to 0 by batch_replenish_zinc post-smelt."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastRefinedZincWatermark",
+            "docs": [
+              "Last observed LIVE refined leg (materialized + pending) at the last",
+              "settle advance; reset to 0 by batch_replenish_zinc post-smelt."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uzincRewardsOutstanding",
+            "docs": [
+              "Running total of GROSS base-leg uZINC grams owed to current holders."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uzincRefinedOutstanding",
+            "docs": [
+              "Running total of GROSS refined-leg uZINC grams owed to current holders."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "zincReserveGrams",
+            "docs": [
+              "Smelted ZINC grams in the exit reserve (numerator). Physically staked",
+              "(or custody residue) alongside zinc_in_vault + the war chest; grown by",
+              "batch_replenish_zinc's MEASURED smelt delta (minus war-chest skim),",
+              "drained by exits' reserve draw. Disjoint from `zinc_in_vault` (the",
+              "realized/staking-yield channel) — the two classes never mix because",
+              "their payout rules differ (1:1 vs reserve ratio)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reserveBackedNetZinc",
+            "docs": [
+              "Sum of NET zinc (refined + 0.9 * base) folded into the reserve at",
+              "batches, minus what exiters have drawn (denominator). The exit payout is",
+              "exit_net_zinc * zinc_reserve_grams / reserve_backed_net_zinc — the exact",
+              "blended grams-per-net-zinc of everything physically smelted into the",
+              "reserve (absorbs ZINC fee-bps drift + rounding; drains exactly to zero)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastBatchRoundId",
+            "docs": [
+              "ZincPool.betting_round_id at the last batch_replenish_zinc (telemetry)."
+            ],
+            "type": "u64"
           }
         ]
       }
@@ -12460,7 +13239,8 @@ export type CwrVault = {
         "dZINC pool config change. `field`: 0=caps (min_round/max_inflight),",
         "1=dd_halt, 2=pause, 3=min_deploy set (flag = floor disabled i.e. 0),",
         "4=min_deploy migration (one-time realloc+seed; values in the tx log via",
-        "msg!). `flag` carries the new bool for dd_halt/pause; see per-field notes",
+        "msg!), 5=lazy-smelt migration (v1.4.0 one-time realloc+seed of the uZINC",
+        "ledger). `flag` carries the new bool for dd_halt/pause; see per-field notes",
         "otherwise."
       ],
       "type": {
@@ -12613,6 +13393,53 @@ export type CwrVault = {
               "withdraw collect dust that an earlier partial withdraw floored."
             ],
             "type": "u64"
+          },
+          {
+            "name": "accRewardsUzincPerSharePaid",
+            "docs": [
+              "Reward-debt watermark for the mined (base) uZINC leg."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "accRefinedUzincPerSharePaid",
+            "docs": [
+              "Reward-debt watermark for the refining uZINC leg."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "uzincRewardsCreditGrams",
+            "docs": [
+              "Carried (floored) GROSS base-leg uZINC grams owed but not yet paid."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uzincRefinedCreditGrams",
+            "docs": [
+              "Carried (floored) GROSS refined-leg uZINC grams owed but not yet paid."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "zincPositionMigratedEvent",
+      "docs": [
+        "v1.4.0: emitted by the permissionless migrate_zinc_position."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucketId",
+            "type": "u8"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
           }
         ]
       }
