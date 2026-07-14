@@ -1700,6 +1700,303 @@
       "args": []
     },
     {
+      "name": "cancel_queued_withdraw",
+      "docs": [
+        "Owner pulls their queued shares back out. ANY phase, EVEN PAUSED",
+        "(mirror of cancel_pending: only returns the owner's own escrowed share",
+        "tokens, touches no vault accounting; deliberately NO role gate so a",
+        "role change can never trap a ticket). ORE-bucket ticket seeds."
+      ],
+      "discriminator": [
+        103,
+        69,
+        40,
+        63,
+        175,
+        46,
+        0,
+        6
+      ],
+      "accounts": [
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "share_mint"
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "owner_share_ata",
+          "docs": [
+            "Return destination for the escrowed shares. init_if_needed with payer",
+            "= owner (the owner signs cancel), so a closed share ATA can never",
+            "strand a cancel."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "share_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_queued_withdraw_zinc",
+      "docs": [
+        "dZINC twin of cancel_queued_withdraw (only the ticket seed literal",
+        "differs — the flavor split makes cross-path tickets unrepresentable)."
+      ],
+      "discriminator": [
+        213,
+        156,
+        140,
+        248,
+        7,
+        6,
+        184,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "share_mint"
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "owner_share_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "share_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "checkpoint",
       "docs": [
         "Permissionless. CPI ORE Checkpoint signed by mining_authority, then",
@@ -5179,6 +5476,499 @@
       "args": []
     },
     {
+      "name": "finalize_queued_withdraw",
+      "docs": [
+        "Execute a queued ORE-bucket exit. PERMISSIONLESS (the keeper runs it",
+        "right after settle + reserve in the OPEN window). Gates and body are",
+        "the live `withdraw` verbatim, with three substitutions: shares =",
+        "ticket.shares burned FROM THE ESCROW (bucket PDA signs), payouts go to",
+        "the ticket OWNER (SOL to the seeds-pinned owner, stORE to the",
+        "queue-pinned payout ATA), and the exit fee = min(queue-time cap, live)",
+        "so a queued exit never pays more than a live one. Fail-closed",
+        "ReserveShortfall reverts leave the ticket intact (keeper retries after",
+        "the reserve batch). Closes the ticket, rent to the owner."
+      ],
+      "discriminator": [
+        90,
+        116,
+        86,
+        226,
+        59,
+        107,
+        110,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "docs": [
+            "The queued owner. NOT a signer (finalize is permissionless); mutually",
+            "pinned by the ticket seeds below + the handler's ticket.owner check.",
+            "Receives the SOL payout + the ticket rent on close."
+          ],
+          "writable": true
+        },
+        {
+          "name": "finalizer",
+          "docs": [
+            "Whoever cranks the finalize (typically the keeper). Pays the tx fee;",
+            "gains nothing (no custody, no fund destination)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "writable": true
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "fee_bucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_schedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "store_treasury",
+          "writable": true
+        },
+        {
+          "name": "owner_store_ata",
+          "docs": [
+            "stORE payout destination: pinned by ADDRESS to the ticket's",
+            "queue-time ATA (never created here; a closed ATA fail-closes and",
+            "cancel is the recovery)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "store_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "finalize_queued_withdraw_zinc",
+      "docs": [
+        "Execute a queued dZINC exit — the withdraw_zinc body verbatim with the",
+        "same three substitutions as finalize_queued_withdraw (escrow burn,",
+        "owner payouts, min-fee rule). Fail-closed ZincReserveShortfall /",
+        "ZincCustodyShortfall reverts leave the ticket intact."
+      ],
+      "discriminator": [
+        42,
+        60,
+        182,
+        9,
+        131,
+        19,
+        44,
+        174
+      ],
+      "accounts": [
+        {
+          "name": "bucket",
+          "writable": true
+        },
+        {
+          "name": "zinc_pool",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "share_mint",
+          "writable": true
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "docs": [
+            "The queued owner (NOT a signer; seeds-pinned via the ticket)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "finalizer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "zinc_position",
+          "writable": true
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "fee_bucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_schedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mining_authority",
+          "writable": true
+        },
+        {
+          "name": "zinc_custody_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mining_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zinc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_zinc_ata",
+          "docs": [
+            "ZINC payout destination: pinned by ADDRESS to the ticket's queue-time",
+            "ATA (never created here)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "zinc_mint",
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "zinc_stake_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  45,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mining_authority"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                14,
+                201,
+                90,
+                170,
+                12,
+                35,
+                248,
+                117,
+                75,
+                27,
+                51,
+                129,
+                50,
+                125,
+                182,
+                249,
+                187,
+                202,
+                222,
+                199,
+                195,
+                175,
+                101,
+                73,
+                72,
+                81,
+                174,
+                107,
+                92,
+                165,
+                201,
+                248
+              ]
+            }
+          }
+        },
+        {
+          "name": "zinc_staking_token_account",
+          "writable": true,
+          "address": "4Ym9uvwrwdpiTKq874T8wSqzaFkh8AVazf255FKLt9MR"
+        },
+        {
+          "name": "zinc_treasury",
+          "writable": true,
+          "address": "4Ucw8BNkLWBu6gxkQsw3BRG2qRtw5WrG1UxiKpQjScH5"
+        },
+        {
+          "name": "zinc_program",
+          "address": "zincUFpnqYwdYMc1KfH6rKcBvbcdVtHKckKhvrHLDsV"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "fund_mining_authority",
       "docs": [
         "Top up a bucket's `mining_authority` PDA with external SOL — the rent",
@@ -5628,6 +6418,92 @@
           "name": "instructions",
           "docs": [
             "cosign check (cosign.rs)."
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "bucket_id",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "init_pending_withdraw",
+      "docs": [
+        "One-time per-bucket setup (cosigned; exact mirror of init_pending):",
+        "creates the PendingWithdrawState sidecar + the share-token escrow",
+        "(mint = share_mint, authority = bucket PDA)."
+      ],
+      "discriminator": [
+        9,
+        58,
+        110,
+        79,
+        159,
+        247,
+        218,
+        242
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "docs": [
+            "The queued-share SPL escrow. Mint = the bucket's share mint, authority",
+            "= the bucket PDA (which signs the finalize burn / cancel return)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "share_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "fee-holder cosign check (cosign.rs)."
           ],
           "address": "Sysvar1nstructions1111111111111111111111111"
         }
@@ -7092,6 +7968,394 @@
         {
           "name": "new_admin",
           "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "queue_withdraw",
+      "docs": [
+        "Queue an exit on the ORE bucket. ANY phase (BETTING, OPEN-unsettled,",
+        "OPEN-settled — the point is queue-anytime; at OPEN-settled the keeper",
+        "simply finalizes moments later). POSITION-GATED (design HIGH): bare",
+        "share tokens without a covering Position cannot mint unfinalizable",
+        "poison tickets. Creates the stORE payout ATA at queue time (payer =",
+        "user) and pins it on the ticket so the permissionless finalize NEVER",
+        "creates user accounts."
+      ],
+      "discriminator": [
+        39,
+        53,
+        211,
+        194,
+        198,
+        120,
+        137,
+        170
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "Read-only Config for the privileged-role exclusion."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bucket",
+          "docs": [
+            "Read-only: queueing never mutates the bucket (no burn, no NAV)."
+          ]
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "share_mint"
+        },
+        {
+          "name": "user_share_ata",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "Read-only Position cover check (design HIGH: no poison tickets from",
+            "bare tokens). Pinned to (bucket_id, user)."
+          ]
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "user_store_ata",
+          "docs": [
+            "The stORE payout destination, created HERE (payer = user) so the",
+            "permissionless finalize never creates user accounts. Pinned onto the",
+            "ticket."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "store_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "store_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "queue_withdraw_zinc",
+      "docs": [
+        "Queue an exit on the dZINC bucket — twin of queue_withdraw with the",
+        "zinc flavor gates (zinc_pool pinned + initialized), the ZincPosition",
+        "cover check, and the ZINC payout ATA pinned on the ticket."
+      ],
+      "discriminator": [
+        155,
+        81,
+        29,
+        241,
+        217,
+        153,
+        28,
+        180
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "bucket"
+        },
+        {
+          "name": "zinc_pool",
+          "docs": [
+            "Flavor gate: pinned + bucket-matched zinc pool (mirror WithdrawZinc)."
+          ]
+        },
+        {
+          "name": "pending_withdraw_state",
+          "writable": true
+        },
+        {
+          "name": "share_escrow",
+          "writable": true
+        },
+        {
+          "name": "share_mint"
+        },
+        {
+          "name": "user_share_ata",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "zinc_position"
+        },
+        {
+          "name": "pending_withdraw",
+          "writable": true
+        },
+        {
+          "name": "user_zinc_ata",
+          "docs": [
+            "The ZINC payout destination, created HERE (payer = user); pinned onto",
+            "the ticket."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "zinc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "zinc_mint",
+          "address": "zinc155BS4mSPk8GXQj4R5hkVDQXcW253pTYq5SGyfi"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
         }
       ]
     },
@@ -9639,6 +10903,32 @@
       ]
     },
     {
+      "name": "PendingWithdraw",
+      "discriminator": [
+        215,
+        125,
+        62,
+        82,
+        12,
+        143,
+        112,
+        133
+      ]
+    },
+    {
+      "name": "PendingWithdrawState",
+      "discriminator": [
+        178,
+        226,
+        23,
+        68,
+        154,
+        51,
+        228,
+        149
+      ]
+    },
+    {
       "name": "Position",
       "discriminator": [
         170,
@@ -10083,6 +11373,19 @@
       ]
     },
     {
+      "name": "PendingWithdrawStateInitializedEvent",
+      "discriminator": [
+        158,
+        162,
+        126,
+        67,
+        177,
+        81,
+        174,
+        187
+      ]
+    },
+    {
       "name": "PhaseChangedEvent",
       "discriminator": [
         138,
@@ -10093,6 +11396,32 @@
         56,
         41,
         4
+      ]
+    },
+    {
+      "name": "QueuedWithdrawCancelledEvent",
+      "discriminator": [
+        253,
+        64,
+        207,
+        103,
+        96,
+        121,
+        35,
+        21
+      ]
+    },
+    {
+      "name": "QueuedWithdrawFinalizedEvent",
+      "discriminator": [
+        225,
+        25,
+        7,
+        247,
+        241,
+        151,
+        71,
+        93
       ]
     },
     {
@@ -10366,6 +11695,19 @@
         44,
         71,
         192
+      ]
+    },
+    {
+      "name": "WithdrawQueuedEvent",
+      "discriminator": [
+        232,
+        232,
+        209,
+        253,
+        246,
+        65,
+        93,
+        95
       ]
     },
     {
@@ -11070,6 +12412,16 @@
       "code": 6121,
       "name": "EvacuationRequiresPause",
       "msg": "batch_replenish_full is the paused-only evacuation lever — pause the bucket first (set_pause), then evacuate"
+    },
+    {
+      "code": 6122,
+      "name": "NoQueuedWithdraw",
+      "msg": "no queued-withdraw ticket for this owner (or zero queued shares)"
+    },
+    {
+      "code": 6123,
+      "name": "QueueBelowMinimum",
+      "msg": "queued exit below the bucket's min_deposit value floor (full-position exits are exempt)"
     }
   ],
   "types": [
@@ -12732,6 +14084,131 @@
       }
     },
     {
+      "name": "PendingWithdraw",
+      "docs": [
+        "Per-user queued-exit ticket. Created on `queue_withdraw[_zinc]` (escrows",
+        "SHARE TOKENS; the shares stay minted and keep earning until the finalize",
+        "burn), closed on `finalize_queued_withdraw[_zinc]` (executed exactly like a",
+        "live withdraw in that settled OPEN window: same frozen NPS, same legs) or",
+        "`cancel_queued_withdraw[_zinc]` (escrow returned; any phase, even paused).",
+        "Seed-SPLIT by flavor: [PENDING_WITHDRAW_ORE_SEED|PENDING_WITHDRAW_ZINC_SEED,",
+        "bucket_id, owner], so cross-flavor finalize is unrepresentable."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "docs": [
+              "Queued shares (accumulates across repeat queues). Escrow movements are",
+              "ALWAYS sized by this, never by the escrow balance."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "queued_at",
+            "docs": [
+              "Unix ts of the FIRST queue into this ticket (FIFO ordering + telemetry)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "exit_fee_bps_cap",
+            "docs": [
+              "Exit-fee CAP snapshotted at queue time (design review: finalize charges",
+              "min(fee(cap terms), fee(live terms)) — the snapshot protects the queuer",
+              "against raises but NEVER makes them pay more than a live withdraw. On",
+              "repeat queues the cap re-snapshots to the WORSE-for-user of (existing,",
+              "live), killing the dust-anchor fee-lock play."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "exit_fee_enabled_cap",
+            "type": "bool"
+          },
+          {
+            "name": "payout_ata",
+            "docs": [
+              "Payout token destination pinned at queue time (canonical ATA: stORE for",
+              "the ORE bucket, ZINC for the zinc bucket; created at queue, payer =",
+              "owner). Finalize pins by this address and NEVER creates user accounts;",
+              "if the owner closes it, finalize fail-closes and cancel is the recovery."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PendingWithdrawState",
+      "docs": [
+        "Per-bucket queued-exit buffer state (withdraw-while-cranking; the exit twin",
+        "of `PendingState`). Lives in its OWN account so enabling it on a deployed",
+        "bucket needs no realloc. Created once by `init_pending_withdraw`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "share_escrow_bump",
+            "docs": [
+              "Canonical bump of the `pending_shares` SPL escrow (mint = share_mint,",
+              "authority = bucket PDA) holding queued share tokens."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "queued_shares_total",
+            "docs": [
+              "Sum of shares across open tickets. Invariant: the escrow token balance",
+              "is >= this (donations make it >; a < reading is a real bug)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "queued_count",
+            "docs": [
+              "Number of currently-open `PendingWithdraw` tickets."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PendingWithdrawStateInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "PhaseChangedEvent",
       "type": {
         "kind": "struct",
@@ -12834,6 +14311,59 @@
               "Carried (rounded-down) GROSS refined-leg uORE grams owed but not yet paid."
             ],
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "QueuedWithdrawCancelledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "queued_shares_total",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "QueuedWithdrawFinalizedEvent",
+      "docs": [
+        "Emitted right AFTER the standard WithdrawEvent / WithdrawZincEvent when an",
+        "exit was executed from the queue (analytics decode queued exits through",
+        "the standard events unchanged; this is the queued marker)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "finalizer",
+            "type": "pubkey"
           }
         ]
       }
@@ -13437,6 +14967,38 @@
           {
             "name": "new_high_water_nps",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawQueuedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "bucket_id",
+            "type": "u8"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "ticket_shares",
+            "type": "u64"
+          },
+          {
+            "name": "queued_shares_total",
+            "type": "u64"
+          },
+          {
+            "name": "queued_at",
+            "type": "i64"
           }
         ]
       }
@@ -14131,6 +15693,18 @@
       "value": "[112, 101, 110, 100, 105, 110, 103]"
     },
     {
+      "name": "PENDING_SHARES_SEED",
+      "docs": [
+        "Per-bucket SPL escrow holding QUEUED share tokens (mint = bucket share_mint,",
+        "authority = bucket PDA): PDA([PENDING_SHARES_SEED, bucket_id]). Escrowed",
+        "shares stay minted + counted in total_shares (they keep earning every",
+        "accumulator leg) until the finalize burn. All movements are sized by",
+        "ticket.shares, NEVER by the escrow balance (donated tokens are inert)."
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 115, 104, 97, 114, 101, 115]"
+    },
+    {
       "name": "PENDING_STATE_SEED",
       "docs": [
         "Per-bucket pending-buffer state PDA: PDA([PENDING_STATE_SEED, bucket_id]).",
@@ -14150,6 +15724,33 @@
       ],
       "type": "bytes",
       "value": "[112, 101, 110, 100, 105, 110, 103, 95, 116, 114, 101, 97, 115, 117, 114, 121]"
+    },
+    {
+      "name": "PENDING_WITHDRAW_ORE_SEED",
+      "docs": [
+        "Per-user queued-exit tickets, seed-split BY BUCKET FLAVOR so a ticket can",
+        "never be pushed through the wrong finalize path by derivation (mirror of",
+        "the park twins' NotOreBucket lesson):",
+        "ORE bucket:  PDA([PENDING_WITHDRAW_ORE_SEED, bucket_id, owner])",
+        "ZINC bucket: PDA([PENDING_WITHDRAW_ZINC_SEED, bucket_id, owner])"
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 119, 105, 116, 104, 100, 114, 97, 119, 95, 111, 114, 101]"
+    },
+    {
+      "name": "PENDING_WITHDRAW_STATE_SEED",
+      "docs": [
+        "Per-bucket queued-exit buffer state: PDA([PENDING_WITHDRAW_STATE_SEED, bucket_id]).",
+        "The withdraw twin of PENDING_STATE_SEED (queue an exit any phase; the keeper",
+        "finalizes it in the next settled OPEN window)."
+      ],
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 119, 105, 116, 104, 100, 114, 97, 119, 95, 115, 116, 97, 116, 101]"
+    },
+    {
+      "name": "PENDING_WITHDRAW_ZINC_SEED",
+      "type": "bytes",
+      "value": "[112, 101, 110, 100, 105, 110, 103, 95, 119, 105, 116, 104, 100, 114, 97, 119, 95, 122, 105, 110, 99]"
     },
     {
       "name": "POSITION_SEED",
