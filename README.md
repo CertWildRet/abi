@@ -1,37 +1,37 @@
-# @cwr/abi
+# @diamond/abi
 
-Canonical IDL + TypeScript type definitions for CWR Solana programs. Single source of truth — every consumer (SDK, backend, frontend, dashboards, third-party integrators) imports from this package.
+Canonical IDL + TypeScript type definitions for the **Diamond Pools** Solana program (a non-custodial three-pool ORE vault — Mining / Staking / Protocol). Single source of truth — every consumer (SDK, backend, frontend, dashboards, keeper) imports from this package.
 
 ## Layout
 
 ```
-cwr-abi/
+abi/
 ├── src/
-│   ├── idl/cwr_vault.json    # Anchor IDL (program → byte schema)
-│   ├── types/cwr_vault.ts    # TS types matching the IDL
-│   └── index.ts              # exports + program IDs per cluster
-└── scripts/sync.sh           # pulls fresh artifacts from cwr-solana
+│   ├── idl/diamond_pools.json    # Anchor IDL (program → byte schema)
+│   ├── types/diamond_pools.ts    # TS types matching the IDL
+│   └── index.ts                  # exports + program IDs per cluster
+└── scripts/sync.sh               # pulls fresh artifacts from ../contracts
 ```
 
 ## Update flow
 
-1. Modify program code in [../cwr-solana/](../cwr-solana/)
-2. `cd ../cwr-solana && anchor build`
-3. `cd ../cwr-abi && npm run sync` — copies the fresh IDL + TS types
+1. Modify program code in [../contracts/](../contracts/)
+2. `cd ../contracts && anchor build`
+3. `cd ../abi && npm run sync` — copies the fresh IDL + TS types
 4. `npm run build` — compiles to `dist/`
-5. Bump version in [package.json](package.json), commit, publish
+5. Bump version in [package.json](package.json), commit, push
 
-Consumers update by bumping their dependency on `@cwr/abi`.
+Consumers update by bumping their dependency on `@diamond/abi`.
 
 ## Usage
 
 ```ts
-import { CWR_VAULT_IDL, CwrVault, getProgramId } from "@cwr/abi";
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import { DIAMOND_POOLS_IDL, DiamondPools, getDiamondPoolsProgramId } from "@diamond/abi";
+import { Program } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 
-const programId = new PublicKey(getProgramId("mainnet"));
-const program = new Program<CwrVault>(CWR_VAULT_IDL, provider);
+const programId = new PublicKey(getDiamondPoolsProgramId("mainnet"));
+const program = new Program<DiamondPools>(DIAMOND_POOLS_IDL, provider);
 ```
 
-Most consumers should not use this package directly — use [@cwr/sdk](../cwr-sdk/) for ergonomic typed methods, PDA derivation, and event subscriptions.
+Most consumers should not use this package directly — use [@diamond/sdk](../sdk/) for ergonomic typed instruction builders, PDA derivation, account/event decoding, and error mapping.

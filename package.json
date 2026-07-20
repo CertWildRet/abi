@@ -1,7 +1,7 @@
 {
-  "name": "@cwr/abi",
-  "version": "0.8.0",
-  "description": "Canonical IDL + TypeScript types for CWR Solana programs. Source of truth \u2014 never edit dist/ by hand; run `scripts/sync.sh` after a contract rebuild.",
+  "name": "@diamond/abi",
+  "version": "1.0.0",
+  "description": "Canonical IDL + TypeScript types for the Diamond Pools Solana program. Source of truth \u2014 never edit dist/ by hand; run `scripts/sync.sh` after a contract rebuild.",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

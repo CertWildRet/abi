@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
-# Copy fresh IDL + TS types from the contracts build output into cwr-abi/src.
+# Copy fresh IDL + TS types from the contracts build output into abi/src.
 # Run this after every `anchor build` in the contracts repo.
 #
 # Usage: bash scripts/sync.sh [path/to/contracts]
 # Defaults to ../contracts relative to this repo.
-#
-# Only diamond_pools is synced. cwr_vault (BLi7 predecessor) is a FROZEN artifact —
-# that program is CLOSED on mainnet and can never redeploy, so it is never re-synced.
 
 set -euo pipefail
 
@@ -38,4 +35,4 @@ for p in "${PROGRAMS[@]}"; do
   echo "synced $p"
 done
 
-echo "done. Now run: npm run build  (in cwr-abi/)"
+echo "done. Now run: npm run build  (in abi/)"
