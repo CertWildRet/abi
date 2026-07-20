@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
-# Copy fresh IDL + TS types from the cwr-solana build output into cwr-abi/src.
-# Run this after every `anchor build` in cwr-solana.
+# Copy fresh IDL + TS types from the contracts build output into cwr-abi/src.
+# Run this after every `anchor build` in the contracts repo.
 #
-# Usage: bash scripts/sync.sh [path/to/cwr-solana]
-# Defaults to ../cwr-solana relative to this repo.
+# Usage: bash scripts/sync.sh [path/to/contracts]
+# Defaults to ../contracts relative to this repo.
+#
+# Only diamond_pools is synced. cwr_vault (BLi7 predecessor) is a FROZEN artifact —
+# that program is CLOSED on mainnet and can never redeploy, so it is never re-synced.
 
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ABI_ROOT="$(dirname "$HERE")"
-CONTRACTS_ROOT="${1:-$ABI_ROOT/../cwr-solana}"
+CONTRACTS_ROOT="${1:-$ABI_ROOT/../contracts}"
 
 if [ ! -d "$CONTRACTS_ROOT/target/idl" ]; then
   echo "Error: no IDL output at $CONTRACTS_ROOT/target/idl"
@@ -17,7 +20,7 @@ if [ ! -d "$CONTRACTS_ROOT/target/idl" ]; then
   exit 1
 fi
 
-PROGRAMS=(cwr_vault)
+PROGRAMS=(diamond_pools)
 
 for p in "${PROGRAMS[@]}"; do
   src_idl="$CONTRACTS_ROOT/target/idl/$p.json"
