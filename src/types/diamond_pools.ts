@@ -6050,6 +6050,7 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -6111,6 +6112,66 @@ export type DiamondPools = {
                   111,
                   111,
                   108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "docs": [
+            "mut: supplies mining_authority / ore_miner / bump for the D2 B′ crystallize AND",
+            "takes the last_rewards_ore_watermark reconcile (the crystallize lowers the shared",
+            "miner's rewards_ore — the watermark must drop by the same amount, else the next",
+            "freeze under-credits mining depositors; mirrors pay_mining_exit's bug-#2 reconcile)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "phantomMember",
+          "docs": [
+            "§5.2 LITE buffer — absorbs the B′ crystallize's miner-mix vs book-mix residue. mut."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
                 ]
               }
             ]
@@ -10137,6 +10198,16 @@ export type DiamondPools = {
           },
           {
             "name": "defensiveMode",
+            "type": "bool"
+          },
+          {
+            "name": "defensiveAuto",
+            "docs": [
+              "TRUE ⇒ `defensive_mode` was raised by the CAPACITY monitor (I10 / cap-stress /",
+              "phantom-dust) and is AUTO-RECOVERABLE — freeze clears it once capacity recovers",
+              "with a 5% hysteresis band. FALSE when an admin raised it via set_emergency (a",
+              "conduct/incident trip stays MANUAL — the resume call is human, Koala split-by-cause)."
+            ],
             "type": "bool"
           },
           {
