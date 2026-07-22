@@ -184,6 +184,136 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "claimExternalFeeRebate",
+      "docs": [
+        "Claim the exact SOL rebate accrued while this mining wallet was exempt",
+        "from the external deploy-fee slice."
+      ],
+      "discriminator": [
+        49,
+        147,
+        143,
+        253,
+        43,
+        144,
+        166,
+        134
+      ],
+      "accounts": [
+        {
+          "name": "miningPool",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claimReferral",
       "docs": [
         "PULL claim: referrer signs + attests cumulative owed → payout."
@@ -298,6 +428,112 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "clearFeeExempt",
+      "docs": [
+        "Clear a wallet's external-fee exemption entry and reclaim rent (cosigned)."
+      ],
+      "discriminator": [
+        88,
+        213,
+        17,
+        123,
+        123,
+        187,
+        127,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPosition"
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "wallet",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "closeMiningPosition",
       "docs": [
         "§5.6b registry hygiene: permissionlessly close a fully-empty mining position PDA",
@@ -348,6 +584,36 @@ export type DiamondPools = {
             "(which include owner.key()), so rent can only be refunded to the true owner."
           ],
           "writable": true
+        },
+        {
+          "name": "feeExemptEntry",
+          "docs": [
+            "wallet are validated by the rebate adapter."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -1293,6 +1559,31 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "feeSchedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "miningVault",
           "writable": true
         },
@@ -1701,6 +1992,34 @@ export type DiamondPools = {
         {
           "name": "position",
           "writable": true
+        },
+        {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position.owner",
+                "account": "position"
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -2428,6 +2747,7 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "feeSchedule",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2502,6 +2822,7 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "feeSchedule",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3793,6 +4114,218 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "opsWithdraw",
+      "docs": [
+        "Cosigned Team Ops Treasury withdrawal from the retained external-fee balances."
+      ],
+      "discriminator": [
+        66,
+        153,
+        121,
+        46,
+        16,
+        198,
+        151,
+        98
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "feeStore",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "feeBucket"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "opsTreasury",
+          "writable": true
+        },
+        {
+          "name": "opsStoreAta",
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "payMiningExit",
       "docs": [
         "MINING_EXITS pass 2: deliver one exit (SOL + token leg) and allocate its",
@@ -4255,6 +4788,34 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "order.owner",
+                "account": "order"
+              }
+            ]
+          }
+        },
+        {
           "name": "cranker",
           "writable": true,
           "signer": true
@@ -4387,6 +4948,36 @@ export type DiamondPools = {
         {
           "name": "position",
           "writable": true
+        },
+        {
+          "name": "feeExemptEntry",
+          "docs": [
+            "wallet are validated by the rebate adapter."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "exiter"
+              }
+            ]
+          }
         },
         {
           "name": "miningVault",
@@ -5634,6 +6225,200 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "setFeeExempt",
+      "docs": [
+        "Set/update a wallet's scoped external-fee exemption flags (cosigned)."
+      ],
+      "discriminator": [
+        224,
+        228,
+        88,
+        87,
+        69,
+        164,
+        109,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "wallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPosition"
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "wallet",
+          "type": "pubkey"
+        },
+        {
+          "name": "flags",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "setFeePolicy",
+      "docs": [
+        "Immediate fee-pipe policy: retention ratio + Team Ops Treasury destination."
+      ],
+      "discriminator": [
+        91,
+        32,
+        224,
+        109,
+        147,
+        98,
+        71,
+        132
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "retainBps",
+          "type": "u16"
+        },
+        {
+          "name": "opsTreasury",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "setFeeSchedule",
       "docs": [
         "Replace the 3-way fee split and re-mirror the cosigner set (immediate)."
@@ -6016,6 +6801,34 @@ export type DiamondPools = {
                   101,
                   116
                 ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeExemptEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  101,
+                  120,
+                  101,
+                  109,
+                  112,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "order.owner",
+                "account": "order"
               }
             ]
           }
@@ -8963,6 +9776,224 @@ export type DiamondPools = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "topUpProtocolLiquidity",
+      "docs": [
+        "Add liquid stORE backing to the Protocol Pool without minting PP shares. Recovery /",
+        "sponsor-capital rail, restricted to PP whitelist mode."
+      ],
+      "discriminator": [
+        88,
+        68,
+        181,
+        186,
+        109,
+        80,
+        46,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolVaultAuthority"
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "protocolVaultAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "funderStoreAta",
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "funder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -8977,6 +10008,19 @@ export type DiamondPools = {
         250,
         204,
         130
+      ]
+    },
+    {
+      "name": "feeExemptEntry",
+      "discriminator": [
+        185,
+        67,
+        198,
+        0,
+        186,
+        140,
+        124,
+        204
       ]
     },
     {
@@ -9255,6 +10299,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "externalFeeRebateClaimed",
+      "discriminator": [
+        110,
+        204,
+        235,
+        225,
+        122,
+        79,
+        17,
+        234
+      ]
+    },
+    {
       "name": "feeDistributed",
       "discriminator": [
         6,
@@ -9265,6 +10322,45 @@ export type DiamondPools = {
         151,
         179,
         65
+      ]
+    },
+    {
+      "name": "feeExemptCleared",
+      "discriminator": [
+        189,
+        173,
+        129,
+        152,
+        188,
+        192,
+        78,
+        2
+      ]
+    },
+    {
+      "name": "feeExemptSet",
+      "discriminator": [
+        253,
+        67,
+        32,
+        130,
+        84,
+        68,
+        232,
+        59
+      ]
+    },
+    {
+      "name": "feePolicyChanged",
+      "discriminator": [
+        112,
+        219,
+        125,
+        195,
+        71,
+        65,
+        141,
+        191
       ]
     },
     {
@@ -9317,6 +10413,19 @@ export type DiamondPools = {
         221,
         97,
         242
+      ]
+    },
+    {
+      "name": "opsWithdrawn",
+      "discriminator": [
+        106,
+        100,
+        74,
+        180,
+        40,
+        53,
+        229,
+        189
       ]
     },
     {
@@ -9395,6 +10504,19 @@ export type DiamondPools = {
         5,
         252,
         51
+      ]
+    },
+    {
+      "name": "protocolLiquidityToppedUp",
+      "discriminator": [
+        119,
+        150,
+        142,
+        45,
+        105,
+        21,
+        24,
+        57
       ]
     },
     {
@@ -9619,246 +10741,301 @@ export type DiamondPools = {
     },
     {
       "code": 6028,
+      "name": "invalidFeeAsset",
+      "msg": "unknown fee asset discriminant"
+    },
+    {
+      "code": 6029,
+      "name": "insufficientRetainedBalance",
+      "msg": "requested amount exceeds the retained external-fee balance available for ops withdrawal"
+    },
+    {
+      "code": 6030,
+      "name": "invalidFeeExemptFlags",
+      "msg": "fee-exempt flags are empty or contain unsupported scope bits"
+    },
+    {
+      "code": 6031,
+      "name": "invalidFeeExemptAccount",
+      "msg": "fee-exempt registry PDA is missing, malformed, or not the expected wallet entry"
+    },
+    {
+      "code": 6032,
+      "name": "invalidFeeExemptPosition",
+      "msg": "mining position PDA is missing, malformed, or not the expected wallet position"
+    },
+    {
+      "code": 6033,
       "name": "emergencyRestrictOnly",
       "msg": "an emergency switch may only tighten (restrict), never loosen"
     },
     {
-      "code": 6029,
+      "code": 6034,
       "name": "windowNotReady",
       "msg": "window cutoff has not been reached yet"
     },
     {
-      "code": 6030,
+      "code": 6035,
       "name": "wrongPhase",
       "msg": "cascade is in the wrong phase for this instruction"
     },
     {
-      "code": 6031,
+      "code": 6036,
       "name": "orderAlreadySettled",
       "msg": "order already settled (single-settle guard)"
     },
     {
-      "code": 6032,
+      "code": 6037,
       "name": "orderWrongWindow",
       "msg": "order does not belong to the window being processed"
     },
     {
-      "code": 6033,
+      "code": 6038,
       "name": "poolClosed",
       "msg": "this pool is closed for the requested action"
     },
     {
-      "code": 6034,
+      "code": 6039,
       "name": "notWhitelisted",
       "msg": "wallet is not whitelisted for the Protocol Pool"
     },
     {
-      "code": 6035,
+      "code": 6040,
+      "name": "protocolTopUpPublicForbidden",
+      "msg": "Protocol Pool recovery top-ups without share minting are only allowed while pp_mode = WHITELIST"
+    },
+    {
+      "code": 6041,
+      "name": "protocolTopUpWindDownForbidden",
+      "msg": "Protocol Pool sponsor top-ups are forbidden once terminal wind-down is armed"
+    },
+    {
+      "code": 6042,
+      "name": "protocolTopUpMidPpExits",
+      "msg": "Protocol Pool sponsor top-ups cannot land after PP exits from the current cohort have started settling"
+    },
+    {
+      "code": 6043,
       "name": "zeroAmount",
       "msg": "amount or share count must be non-zero"
     },
     {
-      "code": 6036,
+      "code": 6044,
       "name": "belowMinDeposit",
       "msg": "deposit below the pool minimum"
     },
     {
-      "code": 6037,
+      "code": 6045,
       "name": "insufficientShares",
       "msg": "withdraw exceeds the position's share balance"
     },
     {
-      "code": 6038,
+      "code": 6046,
       "name": "ppExitNotEligible",
       "msg": "PP exit is only permitted at an epoch boundary after notice"
     },
     {
-      "code": 6039,
+      "code": 6047,
       "name": "roundNotSettled",
       "msg": "freeze requires the current ORE round to be settled (checkpoint_id == round_id)"
     },
     {
-      "code": 6040,
+      "code": 6048,
       "name": "guardBandViolation",
       "msg": "crank_mine is inside the guard band before cutoff"
     },
     {
-      "code": 6041,
+      "code": 6049,
       "name": "defensiveModeActive",
       "msg": "defensive mode active: mining deploys are suspended"
     },
     {
-      "code": 6042,
+      "code": 6050,
       "name": "reserveShortfall",
       "msg": "staking/PP reserve cannot cover the required funding (fail-closed)"
     },
     {
-      "code": 6043,
+      "code": 6051,
       "name": "protocolPoolIlliquid",
       "msg": "Protocol Pool is illiquid for the required backstop (fail-closed)"
     },
     {
-      "code": 6044,
+      "code": 6052,
       "name": "stakingDepositsFrozen",
       "msg": "new Staking-Pool deposits are frozen while a concentration-cap breach is being worked down (D1)"
     },
     {
-      "code": 6045,
+      "code": 6053,
       "name": "stakingTvlCapExceeded",
       "msg": "this deposit would push the Staking-Pool vault above st_tvl_cap (or the staking_pool account was omitted while the cap is set)"
     },
     {
-      "code": 6046,
+      "code": 6054,
       "name": "capExceeded",
       "msg": "concentration cap would be exceeded"
     },
     {
-      "code": 6047,
+      "code": 6055,
       "name": "nothingToProcess",
       "msg": "nothing to process in this phase"
     },
     {
-      "code": 6048,
+      "code": 6056,
       "name": "exitDeliveryModeUnavailable",
       "msg": "exit_delivery_asset is ORE but this exit's token leg is funded by ST/PP; ORE delivery is only for a fully self-claimed (standalone) exit — flip config back to STORE"
     },
     {
-      "code": 6049,
+      "code": 6057,
       "name": "oreClaimFeeMismatch",
       "msg": "exit_delivery_asset is ORE but claim_fee_bps does not match ORE's hardcoded claim fee (1000); the modeled and physical fee must agree — fix claim_fee_bps or flip config back to STORE"
     },
     {
-      "code": 6050,
+      "code": 6058,
       "name": "rung3AccountsMissing",
       "msg": "rung-3 self-claim required (claim residual > 0) but the ORE/ore-lst accounts were not provided"
     },
     {
-      "code": 6051,
+      "code": 6059,
       "name": "ppDepositsDisabled",
       "msg": "Protocol Pool deposits are disabled (pp_deposit_mode = DISABLED)"
     },
     {
-      "code": 6052,
+      "code": 6060,
       "name": "ppSolLegUnavailable",
       "msg": "PP has SOL-side backing (sleeve or accrued fees); the in-kind SOL leg is not built yet, so PP deposits require a pure-stORE pool for now"
     },
     {
-      "code": 6053,
+      "code": 6061,
       "name": "keeperOnly",
       "msg": "crank_mine is keeper-gated; signer is not the whitelisted keeper"
     },
     {
-      "code": 6054,
+      "code": 6062,
       "name": "deployBoundsExceeded",
       "msg": "deploy exceeds the configured mining bounds"
     },
     {
-      "code": 6055,
+      "code": 6063,
       "name": "tileMaskInvalid",
       "msg": "tile selection is invalid (empty, > 25, or out of the configured tile range)"
     },
     {
-      "code": 6056,
+      "code": 6064,
       "name": "monetizeStaged",
       "msg": "monetize SOL is staged awaiting fold; mining deploys/funding are paused until the fold clears it"
     },
     {
-      "code": 6057,
+      "code": 6065,
       "name": "monetizeSweepIncomplete",
       "msg": "a monetize SELL sweep is incomplete for this window; finish the sweep before advancing the phase"
     },
     {
-      "code": 6058,
+      "code": 6066,
       "name": "monetizeCycleOpen",
       "msg": "a monetize cycle is already open (pending proceeds or staged SOL); one cycle at a time"
     },
     {
-      "code": 6059,
+      "code": 6067,
       "name": "monetizeBelowMinOut",
       "msg": "the measured swap return is below the client min-out floor; abort and retain, never stage a bad swap"
     },
     {
-      "code": 6060,
+      "code": 6068,
       "name": "monetizeFoldPositionLocked",
       "msg": "cannot fold monetize proceeds into a position with a pending (locked) exit — its cached exit leg would over-commit uore_base; retry after the exit settles"
     },
     {
-      "code": 6061,
+      "code": 6069,
       "name": "positionNotEmpty",
       "msg": "position is not empty (shares / locked / uORE / rORE / pending must all be 0 to close)"
     },
     {
-      "code": 6062,
+      "code": 6070,
+      "name": "externalFeeRebateOutstanding",
+      "msg": "external-fee rebate remains claimable; claim it before clearing the exemption or closing the position"
+    },
+    {
+      "code": 6071,
+      "name": "externalFeeRebateReserveMismatch",
+      "msg": "external-fee rebate reserve is inconsistent with fee-bucket custody"
+    },
+    {
+      "code": 6072,
+      "name": "darkPathInterlock",
+      "msg": "dark money path is missing a required safety interlock"
+    },
+    {
+      "code": 6073,
       "name": "ppExitNoticeMissing",
       "msg": "no PP exit notice on file; submit_pp_exit_notice first and wait the notice period"
     },
     {
-      "code": 6063,
+      "code": 6074,
       "name": "ppExitNoticeNotAged",
       "msg": "PP exit notice has not aged the required pp_exit_notice_windows yet"
     },
     {
-      "code": 6064,
+      "code": 6075,
       "name": "ppExitNotAtEpochBoundary",
       "msg": "PP exits are only allowed at an epoch boundary (window_id % epoch_len_windows == 0)"
     },
     {
-      "code": 6065,
+      "code": 6076,
       "name": "ppExitIlliquid",
       "msg": "Protocol Pool is illiquid for this exit right now; re-notice and retry next epoch boundary"
     },
     {
-      "code": 6066,
+      "code": 6077,
       "name": "phantomConservationBreak",
       "msg": "LITE phantom per-leg conservation check failed"
     },
     {
-      "code": 6067,
+      "code": 6078,
       "name": "remarkNotDue",
       "msg": "phantom re-mark is not due yet (rate-limited to once per window)"
     },
     {
-      "code": 6068,
+      "code": 6079,
       "name": "alreadyEvacuated",
       "msg": "the mining miner has already been evacuated (single-shot terminal drain)"
     },
     {
-      "code": 6069,
+      "code": 6080,
       "name": "notEvacuated",
       "msg": "the pool has not been evacuated; this action is only valid after evacuate_claim_all"
     },
     {
-      "code": 6070,
+      "code": 6081,
       "name": "windDownRequired",
       "msg": "terminal wind-down is not armed; set the wind_down switch (cosigned) first"
     },
     {
-      "code": 6071,
+      "code": 6082,
       "name": "evacCycleBusy",
       "msg": "the cascade is not quiescent (wrong phase, staged monetize, or in-flight deploy) — cannot evacuate mid-cycle"
     },
     {
-      "code": 6072,
+      "code": 6083,
       "name": "notEvacAuthority",
       "msg": "signer is neither an admin cosigner nor the program upgrade authority"
     },
     {
-      "code": 6073,
+      "code": 6084,
       "name": "evacRedemptionsPending",
       "msg": "custody dust sweep blocked: not every pool has fully redeemed (holders still owed custody)"
     },
     {
-      "code": 6074,
+      "code": 6085,
       "name": "cosignerIsAdmin",
       "msg": "the admin key may not also be the fee-holder cosigner; the second factor must be a DISTINCT key (separation of duties)"
     },
     {
-      "code": 6075,
+      "code": 6086,
       "name": "feeCosignerSetCollapse",
       "msg": "set_fee_schedule may not evict a majority of the current fee-cosigner set in one cosigned tx"
     },
     {
-      "code": 6076,
+      "code": 6087,
       "name": "notUpgradeAuthority",
       "msg": "initialize is gated to the program's upgrade authority (the deployer); the signer is not it"
     }
@@ -10197,6 +11374,14 @@ export type DiamondPools = {
             "type": "bool"
           },
           {
+            "name": "ppShortfallCrystallizeEnabled",
+            "docs": [
+              "D2 B′: crystallize only an over-book PP exit's liquid shortfall. Separate",
+              "from LITE so enabling reconciliation infrastructure alone moves no money."
+            ],
+            "type": "bool"
+          },
+          {
             "name": "defensiveMode",
             "type": "bool"
           },
@@ -10475,6 +11660,26 @@ export type DiamondPools = {
       }
     },
     {
+      "name": "externalFeeRebateClaimed",
+      "docs": [
+        "An exempt mining holder reclaimed the external deploy-fee share that the",
+        "fungible SOL vault initially socialized onto their position."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "feeDistributed",
       "docs": [
         "Protocol-revenue fees distributed to the 3-way schedule."
@@ -10489,6 +11694,99 @@ export type DiamondPools = {
           {
             "name": "storeDistributed",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "feeExemptCleared",
+      "docs": [
+        "External-fee exemption registry entry removed for a wallet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "feeExemptEntry",
+      "docs": [
+        "External-fee exemption flags. PDA([FEE_EXEMPT_SEED, wallet]). Scoped bits so the same",
+        "registry can later govern the future performance-fee path without coupling it to the",
+        "current deploy-fee exemption semantics."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "flags",
+            "type": "u8"
+          },
+          {
+            "name": "externalFeeRebateAccCkpt",
+            "docs": [
+              "Checkpoint into MiningPool.external_fee_rebate_acc_per_share."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "externalFeeRebateAccrued",
+            "docs": [
+              "Materialized SOL rebate claim, paid permissionlessly to `wallet`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "feeExemptSet",
+      "docs": [
+        "External-fee exemption registry set/updated for a wallet. Flags are scoped bits",
+        "so deploy-fee exemption now and perf-fee exemption later can share one registry."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "flags",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "feePolicyChanged",
+      "docs": [
+        "Immediate fee-pipe policy (retain stage + team treasury destination) changed."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "retainBps",
+            "type": "u16"
+          },
+          {
+            "name": "opsTreasury",
+            "type": "pubkey"
           }
         ]
       }
@@ -10530,6 +11828,46 @@ export type DiamondPools = {
                 4
               ]
             }
+          },
+          {
+            "name": "retainBps",
+            "docs": [
+              "External-fee treasury retention (bps of the current bucket balance). The",
+              "permissionless distribute handlers classify newly-arrived fees by this split."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "retainedSol",
+            "docs": [
+              "Retained SOL already classified into the Team Ops Treasury stage and still",
+              "parked in fee_bucket (not yet ops-withdrawn)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "retainedStore",
+            "docs": [
+              "Retained stORE already classified into the Team Ops Treasury stage and still",
+              "parked in fee_store (not yet ops-withdrawn)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "externalFeeRebateReservedSol",
+            "docs": [
+              "SOL in fee_bucket owed back to external-fee-exempt mining holders. It is",
+              "excluded from both permissionless distribution and retained ops withdrawals."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "opsTreasury",
+            "docs": [
+              "Team Ops Treasury wallet — the explicit admin/cosign withdrawal destination",
+              "for retained balances. Distinct from the Protocol Pool / Diamond Treasury."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "bump",
@@ -10596,6 +11934,26 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
+            "name": "feeExemptExternalShares",
+            "docs": [
+              "User-owned mining shares currently exempt from the external deploy-fee slice",
+              "only. The internal PP/backstop slice still applies to everyone. Updated exactly at the",
+              "real mining-share mutation points (deposit settle, exit burn, monetize fold) and by the",
+              "admin fee-exempt registry toggles when a live position is reclassified."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "externalFeeRebateAccPerShare",
+            "docs": [
+              "Lazy SOL-rebate accumulator for the external deploy-fee slice. The shared",
+              "vault pays the full external fee, then exempt holders accrue their",
+              "pro-rata share here and claim it from the fee bucket. This preserves one",
+              "fungible mining share class while making the exemption wallet-exact."
+            ],
+            "type": "u128"
+          },
+          {
             "name": "uoreAccPerShare",
             "docs": [
               "Per-share accumulator for newly-mined uORE (1e18 scale). A Position",
@@ -10618,6 +11976,14 @@ export type DiamondPools = {
               "is what `uore_acc_per_share` advances by at each freeze (mirror of the",
               "reference's `last_rewards_ore_watermark`). The refined leg needs no watermark",
               "(the factor is absolute)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rewardsOreClaimCarry",
+            "docs": [
+              "Rewards-leg claims that exceeded the zero-bounded watermark. Added once",
+              "to the next freeze delta so claims can never erase uncredited new mining."
             ],
             "type": "u64"
           },
@@ -10747,6 +12113,16 @@ export type DiamondPools = {
             "type": "u32"
           },
           {
+            "name": "ppExitCohortsMidSettlement",
+            "docs": [
+              "Number of PP-exit cohorts with at least one, but not all, payouts completed.",
+              "Sponsor top-ups are blocked while nonzero so an older overlapping cohort",
+              "cannot be repriced between its members. Zero before the first and after the",
+              "final payout keeps the recovery rail available at fair cohort boundaries."
+            ],
+            "type": "u32"
+          },
+          {
             "name": "evacuated",
             "docs": [
               "Single-shot: the miner has been fully drained to custody. Guards re-entry and",
@@ -10869,6 +12245,29 @@ export type DiamondPools = {
           {
             "name": "storeReleased",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "opsWithdrawn",
+      "docs": [
+        "Explicit Team Ops Treasury withdrawal from the retained fee buckets."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "asset",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
           }
         ]
       }
@@ -11251,6 +12650,31 @@ export type DiamondPools = {
           },
           {
             "name": "solOut",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "protocolLiquidityToppedUp",
+      "docs": [
+        "A cosigned sponsor / recovery top-up added liquid stORE backing to the Protocol Pool",
+        "without minting PP shares. Restricted to PP whitelist mode so it cannot silently act",
+        "as a public-holder subsidy later."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "funder",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "newStoreInVault",
             "type": "u64"
           }
         ]

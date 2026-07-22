@@ -1,7 +1,7 @@
 import diamondPoolsIdlJson from "./idl/diamond_pools.json";
 import type { DiamondPools } from "./types/diamond_pools";
 
-// ─── diamond_pools v1.0.0 (the 3-pool ORE vault — Mining/Staking/Protocol) ───────
+// ─── diamond_pools v1.0.0 (55-instruction audited interface) ───────────────────
 // Synced from contracts/target/{idl,types}/diamond_pools.* via scripts/sync.sh.
 export { DiamondPools } from "./types/diamond_pools";
 export type DiamondPoolsIdl = typeof diamondPoolsIdlJson;
