@@ -2,8 +2,8 @@
 
 Canonical IDL + TypeScript type definitions for the **Diamond Pools** Solana program (a non-custodial three-pool ORE vault — Mining / Staking / Protocol). Single source of truth — every consumer (SDK, backend, frontend, dashboards, keeper) imports from this package.
 
-Current interface: **55 instructions, 14 accounts, 32 events, 88 errors, and
-49 shared types** at program ID
+Current interface: **56 instructions, 14 accounts, 33 events, 92 errors, and
+50 shared types** at program ID
 `FMecQfZ1qbt87GNGVU1xNDnsFnHH78Dwz74qaTumSRsB`.
 
 ## Layout

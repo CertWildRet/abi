@@ -846,6 +846,29 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "miningPool",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "stakingPool",
           "writable": true,
           "pda": {
@@ -1701,8 +1724,8 @@ export type DiamondPools = {
     {
       "name": "crankMonetizeAbort",
       "docs": [
-        "§5.6b ABORT — admin-gated recovery for a keeper-dead cycle (admin settles the SOL,",
-        "takes the custody stORE, unsticks so FOLD can complete). Conserving."
+        "§5.6b ABORT — cosigned-admin recovery for a keeper-dead cycle (admin settles the",
+        "SOL, takes the custody stORE, unsticks so FOLD can complete). Conserving."
       ],
       "discriminator": [
         154,
@@ -1717,6 +1740,7 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "config",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1892,6 +1916,10 @@ export type DiamondPools = {
           "signer": true
         },
         {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -1906,6 +1934,142 @@ export type DiamondPools = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "crankMonetizeClaimResidual",
+      "docs": [
+        "§5.6b residual rung — after all SELL pages, measure one partial claim from the",
+        "shared miner, reconcile the intended-vs-physical leg mix through LITE, wrap the",
+        "credited amount to stORE, and quarantine wrapper overage in the claim reserve."
+      ],
+      "discriminator": [
+        190,
+        213,
+        63,
+        51,
+        100,
+        113,
+        235,
+        65
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "window.id",
+                "account": "window"
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "phantomMember",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless liveness signer. Every value and CPI account is sealed or pinned."
+          ],
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "crankMonetizeFold",
@@ -2033,7 +2197,8 @@ export type DiamondPools = {
       "docs": [
         "§5.6b SELL — keeper-gated, paged (one position/call). Sells fraction f of each",
         "live position's ORE annex at the net mark: ST first up to cap headroom, then PP",
-        "above its I10 reserve. DORMANT (no-op) until monetize_share_bps > 0."
+        "above its I10 reserve, then an attributed residual claim. DORMANT (no-op)",
+        "until monetize_share_bps > 0."
       ],
       "discriminator": [
         82,
@@ -3321,6 +3486,33 @@ export type DiamondPools = {
                   111,
                   111,
                   108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "phantomMember",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
                 ]
               }
             ]
@@ -10510,6 +10702,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "monetizeResidualClaimed",
+      "discriminator": [
+        176,
+        150,
+        116,
+        13,
+        41,
+        204,
+        232,
+        183
+      ]
+    },
+    {
       "name": "monetizeSold",
       "discriminator": [
         96,
@@ -11051,121 +11256,131 @@ export type DiamondPools = {
     },
     {
       "code": 6066,
+      "name": "monetizeClaimPending",
+      "msg": "the attributed monetize residual must be claimed and LITE-reconciled before STAGE or ABORT"
+    },
+    {
+      "code": 6067,
+      "name": "claimReserveMismatch",
+      "msg": "mining-authority claim-reserve custody does not match its explicit reserve ledgers"
+    },
+    {
+      "code": 6068,
       "name": "monetizeCycleOpen",
       "msg": "a monetize cycle is already open (pending proceeds or staged SOL); one cycle at a time"
     },
     {
-      "code": 6067,
+      "code": 6069,
       "name": "monetizePositionPendingFold",
       "msg": "position has unsettled monetization proceeds; fold them before submitting a mining withdrawal"
     },
     {
-      "code": 6068,
+      "code": 6070,
       "name": "cascadeInFlight",
       "msg": "mining/checkpoint mutation is blocked while a settlement cascade is in flight"
     },
     {
-      "code": 6069,
+      "code": 6071,
       "name": "monetizeBelowMinOut",
       "msg": "the measured swap return is below the client min-out floor; abort and retain, never stage a bad swap"
     },
     {
-      "code": 6070,
+      "code": 6072,
       "name": "monetizeFoldPositionLocked",
       "msg": "cannot fold monetize proceeds into a position with a pending (locked) exit — its cached exit leg would over-commit uore_base; retry after the exit settles"
     },
     {
-      "code": 6071,
+      "code": 6073,
       "name": "positionNotEmpty",
       "msg": "position is not empty (shares / locked / uORE / rORE / pending must all be 0 to close)"
     },
     {
-      "code": 6072,
+      "code": 6074,
       "name": "externalFeeRebateOutstanding",
       "msg": "external-fee rebate remains claimable; claim it before clearing the exemption or closing the position"
     },
     {
-      "code": 6073,
+      "code": 6075,
       "name": "externalFeeRebateReserveMismatch",
       "msg": "external-fee rebate reserve is inconsistent with fee-bucket custody"
     },
     {
-      "code": 6074,
+      "code": 6076,
       "name": "darkPathInterlock",
       "msg": "dark money path is missing a required safety interlock"
     },
     {
-      "code": 6075,
+      "code": 6077,
       "name": "ppExitNoticeMissing",
       "msg": "no PP exit notice on file; submit_pp_exit_notice first and wait the notice period"
     },
     {
-      "code": 6076,
+      "code": 6078,
       "name": "ppExitNoticeNotAged",
       "msg": "PP exit notice has not aged the required pp_exit_notice_windows yet"
     },
     {
-      "code": 6077,
+      "code": 6079,
       "name": "ppExitNotAtEpochBoundary",
       "msg": "PP exits are only allowed at an epoch boundary (window_id % epoch_len_windows == 0)"
     },
     {
-      "code": 6078,
+      "code": 6080,
       "name": "ppExitIlliquid",
       "msg": "Protocol Pool is illiquid for this exit right now; re-notice and retry next epoch boundary"
     },
     {
-      "code": 6079,
+      "code": 6081,
       "name": "phantomConservationBreak",
       "msg": "LITE phantom per-leg conservation check failed"
     },
     {
-      "code": 6080,
+      "code": 6082,
       "name": "remarkNotDue",
       "msg": "phantom re-mark is not due yet (rate-limited to once per window)"
     },
     {
-      "code": 6081,
+      "code": 6083,
       "name": "alreadyEvacuated",
       "msg": "the mining miner has already been evacuated (single-shot terminal drain)"
     },
     {
-      "code": 6082,
+      "code": 6084,
       "name": "notEvacuated",
       "msg": "the pool has not been evacuated; this action is only valid after evacuate_claim_all"
     },
     {
-      "code": 6083,
+      "code": 6085,
       "name": "windDownRequired",
       "msg": "terminal wind-down is not armed; set the wind_down switch (cosigned) first"
     },
     {
-      "code": 6084,
+      "code": 6086,
       "name": "evacCycleBusy",
       "msg": "the cascade is not quiescent (wrong phase, staged monetize, or in-flight deploy) — cannot evacuate mid-cycle"
     },
     {
-      "code": 6085,
+      "code": 6087,
       "name": "notEvacAuthority",
       "msg": "signer is neither an admin cosigner nor the program upgrade authority"
     },
     {
-      "code": 6086,
+      "code": 6088,
       "name": "evacRedemptionsPending",
       "msg": "custody dust sweep blocked: not every pool has fully redeemed (holders still owed custody)"
     },
     {
-      "code": 6087,
+      "code": 6089,
       "name": "cosignerIsAdmin",
       "msg": "the admin key may not also be the fee-holder cosigner; the second factor must be a DISTINCT key (separation of duties)"
     },
     {
-      "code": 6088,
+      "code": 6090,
       "name": "feeCosignerSetCollapse",
       "msg": "set_fee_schedule may not evict a majority of the current fee-cosigner set in one cosigned tx"
     },
     {
-      "code": 6089,
+      "code": 6091,
       "name": "notUpgradeAuthority",
       "msg": "initialize is gated to the program's upgrade authority (the deployer); the signer is not it"
     }
@@ -12171,8 +12386,24 @@ export type DiamondPools = {
           {
             "name": "storeHolding",
             "docs": [
-              "§5.6b: stORE the pool HOLDS after SELL, before the off-chain swap (ST/PP paid it in)."
+              "§5.6b: stORE the pool HOLDS after SELL / residual CLAIM, before the",
+              "off-chain swap. Internal buyers pay into this custody account directly;",
+              "the attributed residual claim wraps only its exact credited amount here."
             ],
+            "type": "u64"
+          },
+          {
+            "name": "claimReserveOre",
+            "docs": [
+              "Claim headroom and integer rounding can leave value in the mining-authority",
+              "token accounts after an attributed claim pays its exact target. These",
+              "reserves are system backing, not ST/PP revenue and not part of any normal",
+              "pool NAV. Emergency evacuation consumes both balances into common custody."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "claimReserveStore",
             "type": "u64"
           },
           {
@@ -12196,6 +12427,32 @@ export type DiamondPools = {
           },
           {
             "name": "monetizeStPaid",
+            "type": "u64"
+          },
+          {
+            "name": "monetizePpBudget",
+            "type": "u64"
+          },
+          {
+            "name": "monetizePpPaid",
+            "type": "u64"
+          },
+          {
+            "name": "monetizeClaimStore",
+            "docs": [
+              "Residual legs debited from positions but not bought into ST/PP books.",
+              "Once every SELL page completes, `crank_monetize_claim_residual` claims this",
+              "attributed slice from the shared miner, reconciles the measured pool-mix",
+              "claim through LITE, wraps it, and clears all three fields atomically."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "monetizeClaimU",
+            "type": "u64"
+          },
+          {
+            "name": "monetizeClaimR",
             "type": "u64"
           },
           {
@@ -12353,6 +12610,42 @@ export type DiamondPools = {
       }
     },
     {
+      "name": "monetizeResidualClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cycleId",
+            "type": "u32"
+          },
+          {
+            "name": "intendedU",
+            "type": "u64"
+          },
+          {
+            "name": "intendedR",
+            "type": "u64"
+          },
+          {
+            "name": "claimedRewards",
+            "type": "u64"
+          },
+          {
+            "name": "claimedRefined",
+            "type": "u64"
+          },
+          {
+            "name": "storeCredited",
+            "type": "u64"
+          },
+          {
+            "name": "storeReserveAdded",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "monetizeSold",
       "docs": [
         "§5.6b monetization telemetry (dormant at launch). MonetizeStaged carries the",
@@ -12383,6 +12676,10 @@ export type DiamondPools = {
           },
           {
             "name": "ppPaid",
+            "type": "u64"
+          },
+          {
+            "name": "claimPending",
             "type": "u64"
           }
         ]
