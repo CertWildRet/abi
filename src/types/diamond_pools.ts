@@ -11056,106 +11056,116 @@ export type DiamondPools = {
     },
     {
       "code": 6067,
+      "name": "monetizePositionPendingFold",
+      "msg": "position has unsettled monetization proceeds; fold them before submitting a mining withdrawal"
+    },
+    {
+      "code": 6068,
+      "name": "cascadeInFlight",
+      "msg": "mining/checkpoint mutation is blocked while a settlement cascade is in flight"
+    },
+    {
+      "code": 6069,
       "name": "monetizeBelowMinOut",
       "msg": "the measured swap return is below the client min-out floor; abort and retain, never stage a bad swap"
     },
     {
-      "code": 6068,
+      "code": 6070,
       "name": "monetizeFoldPositionLocked",
       "msg": "cannot fold monetize proceeds into a position with a pending (locked) exit — its cached exit leg would over-commit uore_base; retry after the exit settles"
     },
     {
-      "code": 6069,
+      "code": 6071,
       "name": "positionNotEmpty",
       "msg": "position is not empty (shares / locked / uORE / rORE / pending must all be 0 to close)"
     },
     {
-      "code": 6070,
+      "code": 6072,
       "name": "externalFeeRebateOutstanding",
       "msg": "external-fee rebate remains claimable; claim it before clearing the exemption or closing the position"
     },
     {
-      "code": 6071,
+      "code": 6073,
       "name": "externalFeeRebateReserveMismatch",
       "msg": "external-fee rebate reserve is inconsistent with fee-bucket custody"
     },
     {
-      "code": 6072,
+      "code": 6074,
       "name": "darkPathInterlock",
       "msg": "dark money path is missing a required safety interlock"
     },
     {
-      "code": 6073,
+      "code": 6075,
       "name": "ppExitNoticeMissing",
       "msg": "no PP exit notice on file; submit_pp_exit_notice first and wait the notice period"
     },
     {
-      "code": 6074,
+      "code": 6076,
       "name": "ppExitNoticeNotAged",
       "msg": "PP exit notice has not aged the required pp_exit_notice_windows yet"
     },
     {
-      "code": 6075,
+      "code": 6077,
       "name": "ppExitNotAtEpochBoundary",
       "msg": "PP exits are only allowed at an epoch boundary (window_id % epoch_len_windows == 0)"
     },
     {
-      "code": 6076,
+      "code": 6078,
       "name": "ppExitIlliquid",
       "msg": "Protocol Pool is illiquid for this exit right now; re-notice and retry next epoch boundary"
     },
     {
-      "code": 6077,
+      "code": 6079,
       "name": "phantomConservationBreak",
       "msg": "LITE phantom per-leg conservation check failed"
     },
     {
-      "code": 6078,
+      "code": 6080,
       "name": "remarkNotDue",
       "msg": "phantom re-mark is not due yet (rate-limited to once per window)"
     },
     {
-      "code": 6079,
+      "code": 6081,
       "name": "alreadyEvacuated",
       "msg": "the mining miner has already been evacuated (single-shot terminal drain)"
     },
     {
-      "code": 6080,
+      "code": 6082,
       "name": "notEvacuated",
       "msg": "the pool has not been evacuated; this action is only valid after evacuate_claim_all"
     },
     {
-      "code": 6081,
+      "code": 6083,
       "name": "windDownRequired",
       "msg": "terminal wind-down is not armed; set the wind_down switch (cosigned) first"
     },
     {
-      "code": 6082,
+      "code": 6084,
       "name": "evacCycleBusy",
       "msg": "the cascade is not quiescent (wrong phase, staged monetize, or in-flight deploy) — cannot evacuate mid-cycle"
     },
     {
-      "code": 6083,
+      "code": 6085,
       "name": "notEvacAuthority",
       "msg": "signer is neither an admin cosigner nor the program upgrade authority"
     },
     {
-      "code": 6084,
+      "code": 6086,
       "name": "evacRedemptionsPending",
       "msg": "custody dust sweep blocked: not every pool has fully redeemed (holders still owed custody)"
     },
     {
-      "code": 6085,
+      "code": 6087,
       "name": "cosignerIsAdmin",
       "msg": "the admin key may not also be the fee-holder cosigner; the second factor must be a DISTINCT key (separation of duties)"
     },
     {
-      "code": 6086,
+      "code": 6088,
       "name": "feeCosignerSetCollapse",
       "msg": "set_fee_schedule may not evict a majority of the current fee-cosigner set in one cosigned tx"
     },
     {
-      "code": 6087,
+      "code": 6089,
       "name": "notUpgradeAuthority",
       "msg": "initialize is gated to the program's upgrade authority (the deployer); the signer is not it"
     }
