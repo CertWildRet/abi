@@ -2032,8 +2032,8 @@ export type DiamondPools = {
       "name": "crankMonetizeSell",
       "docs": [
         "§5.6b SELL — keeper-gated, paged (one position/call). Sells fraction f of each",
-        "live position's ORE annex to the Staking Pool at the net mark. DORMANT (no-op)",
-        "until monetize_share_bps > 0."
+        "live position's ORE annex at the net mark: ST first up to cap headroom, then PP",
+        "above its I10 reserve. DORMANT (no-op) until monetize_share_bps > 0."
       ],
       "discriminator": [
         82,
@@ -2138,6 +2138,7 @@ export type DiamondPools = {
         },
         {
           "name": "protocolPool",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2156,6 +2157,32 @@ export type DiamondPools = {
                   111,
                   111,
                   108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "phantomMember",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
                 ]
               }
             ]
@@ -2185,6 +2212,99 @@ export type DiamondPools = {
               {
                 "kind": "account",
                 "path": "stakingVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "protocolVaultAuthority"
+        },
+        {
+          "name": "protocolVaultAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
               },
               {
                 "kind": "const",
@@ -12041,7 +12161,7 @@ export type DiamondPools = {
           {
             "name": "storeHolding",
             "docs": [
-              "§5.6b: stORE the pool HOLDS after SELL, before the off-chain swap (ST paid it in)."
+              "§5.6b: stORE the pool HOLDS after SELL, before the off-chain swap (ST/PP paid it in)."
             ],
             "type": "u64"
           },
@@ -12061,6 +12181,14 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
+            "name": "monetizeStBudget",
+            "type": "u64"
+          },
+          {
+            "name": "monetizeStPaid",
+            "type": "u64"
+          },
+          {
             "name": "monetizeRegistered",
             "type": "u32"
           },
@@ -12075,6 +12203,15 @@ export type DiamondPools = {
           {
             "name": "monetizeCycleId",
             "type": "u32"
+          },
+          {
+            "name": "monetizeWindowId",
+            "docs": [
+              "Window whose frozen accumulator/factor/ratio sealed the open SELL cycle.",
+              "Every SELL page must use this same window; otherwise a delayed page could",
+              "mix accounting marks from overlapping cascades."
+            ],
+            "type": "u64"
           },
           {
             "name": "currentRoundId",
@@ -12228,6 +12365,14 @@ export type DiamondPools = {
           },
           {
             "name": "paid",
+            "type": "u64"
+          },
+          {
+            "name": "stPaid",
+            "type": "u64"
+          },
+          {
+            "name": "ppPaid",
             "type": "u64"
           }
         ]
