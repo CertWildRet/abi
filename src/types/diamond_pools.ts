@@ -10495,6 +10495,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "exitTokenLegForfeited",
+      "discriminator": [
+        20,
+        178,
+        83,
+        217,
+        84,
+        60,
+        224,
+        29
+      ]
+    },
+    {
       "name": "externalFeeRebateClaimed",
       "discriminator": [
         110,
@@ -12078,6 +12091,40 @@ export type DiamondPools = {
           },
           {
             "name": "sharesReturned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "exitTokenLegForfeited",
+      "docs": [
+        "An exit COMPLETED (SOL paid, shares burned, book absorbed by ST/PP as usual) but its stORE/ORE",
+        "token leg could not be delivered, because the beneficiary's own canonical ATA exists and is",
+        "unusable. The undelivered stORE stays with the pools that would have paid it — the ratified",
+        "§5.4 branch-(A) shape, NAV-favourable to survivors — rather than being routed to the fee bucket",
+        "or stranding the exiter in an indefinite retry queue.",
+        "",
+        "TRANSITIONAL AND INTERNAL. Pre-TGE this must become a preserved claim right (the B′ upgrade),",
+        "per contracts_guide D2§3: silent forfeiture is not an investor-facing term."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "storeForfeited",
             "type": "u64"
           }
         ]
