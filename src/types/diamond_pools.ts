@@ -13930,6 +13930,11 @@ export type DiamondPools = {
       "code": 6099,
       "name": "swapOverspent",
       "msg": "the swap spent more than was wrapped for it, or moved authority lamports"
+    },
+    {
+      "code": 6100,
+      "name": "adminTransferTimelockActive",
+      "msg": "the admin-transfer timelock has not elapsed yet"
     }
   ],
   "types": [
