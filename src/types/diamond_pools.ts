@@ -12454,7 +12454,7 @@ export type DiamondPools = {
           {
             "name": "factorMirror",
             "docs": [
-              "Mirror of ORE `treasury.miner_rewards_factor` (2^64 frac). Re-read AFTER",
+              "Mirror of ORE `treasury.miner_rewards_factor` (2^48 frac, steel Numeric = I80F48). Re-read AFTER",
               "every claim's fee bump (critic 2). Positions accrue rORE off this."
             ],
             "type": "u128"
