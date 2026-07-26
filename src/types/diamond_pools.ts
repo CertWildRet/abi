@@ -3808,6 +3808,11 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "config",
+          "docs": [
+            "MUT (rev-14 Option B): the observer raises `defensive_mode` on a breach. Without `mut` that",
+            "write is silently DROPPED — the rev-11 F1 class — and the monitor would look green forever."
+          ],
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3827,7 +3832,8 @@ export type DiamondPools = {
         {
           "name": "miningPool",
           "docs": [
-            "Read-only: supplies the current ORE factor mirror for the phantom + book roll."
+            "Read-only: supplies the current ORE factor mirror for the phantom + book roll, plus the",
+            "pinned miner key and the post-evacuation flag."
           ],
           "pda": {
             "seeds": [
@@ -3878,6 +3884,65 @@ export type DiamondPools = {
               }
             ]
           }
+        },
+        {
+          "name": "stakingPool",
+          "docs": [
+            "Read-only (rev-14 Option B): the ST book is half of the enumerable claims."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "docs": [
+            "Read-only (rev-14 Option B): the unclaimed pot is a REAL fourth claimant on the shared",
+            "miner (`state.rs`: \"Sum(all book entries + unclaimed) == miner physical\"). Omitting it",
+            "would understate the claims and hide exactly the breaches this exists to catch."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "oreMiner",
+          "docs": [
+            "Read-only, never a CPI — which is why this observer is testable in bankrun at all."
+          ]
         },
         {
           "name": "phantomMember",
@@ -12175,6 +12240,32 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "miningPool",
+          "docs": [
+            "Read-only: supplies the current ORE factor mirror for the book roll below."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "unclaimed",
           "writable": true,
           "pda": {
@@ -13052,19 +13143,6 @@ export type DiamondPools = {
       ]
     },
     {
-      "name": "batchCrystallized",
-      "discriminator": [
-        91,
-        0,
-        110,
-        197,
-        181,
-        191,
-        100,
-        14
-      ]
-    },
-    {
       "name": "capOverflow",
       "discriminator": [
         85,
@@ -13101,6 +13179,32 @@ export type DiamondPools = {
         77,
         78,
         192
+      ]
+    },
+    {
+      "name": "conservationGateArmed",
+      "discriminator": [
+        205,
+        14,
+        127,
+        238,
+        93,
+        158,
+        154,
+        69
+      ]
+    },
+    {
+      "name": "conservationObserved",
+      "discriminator": [
+        54,
+        195,
+        108,
+        3,
+        164,
+        148,
+        97,
+        184
       ]
     },
     {
@@ -13179,19 +13283,6 @@ export type DiamondPools = {
         15,
         185,
         249
-      ]
-    },
-    {
-      "name": "evacStoreLegSkippedUnusableAta",
-      "discriminator": [
-        182,
-        84,
-        68,
-        100,
-        66,
-        36,
-        183,
-        3
       ]
     },
     {
@@ -13582,19 +13673,6 @@ export type DiamondPools = {
         250,
         33,
         231
-      ]
-    },
-    {
-      "name": "treasuryAdvance",
-      "discriminator": [
-        149,
-        129,
-        85,
-        229,
-        154,
-        74,
-        94,
-        125
       ]
     },
     {
@@ -14256,41 +14334,6 @@ export type DiamondPools = {
       }
     },
     {
-      "name": "batchCrystallized",
-      "docs": [
-        "Crystallization (batch): a fractional whole-miner claim + wrap into a pool vault."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "windowId",
-            "type": "u64"
-          },
-          {
-            "name": "claimBps",
-            "type": "u64"
-          },
-          {
-            "name": "claimedRewards",
-            "type": "u64"
-          },
-          {
-            "name": "claimedRefined",
-            "type": "u64"
-          },
-          {
-            "name": "fee",
-            "type": "u64"
-          },
-          {
-            "name": "wrappedStore",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
       "name": "book",
       "docs": [
         "A frozen IOU book: ORE-denominated entitlement transferred at the net mark.",
@@ -14662,6 +14705,54 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
+            "name": "conservationToleranceGrams",
+            "docs": [
+              "Grams of slack before a NEGATIVE conservation residual counts as a breach. Matches the",
+              "keeper's existing 100-gram allowance so on-chain and off-chain agree on the threshold."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "conservationBreachMaxWindows",
+            "docs": [
+              "Consecutive breached WINDOWS before the deposit gate bites. Mirrors",
+              "`cap_breach_max_windows` — the ratified D1 escalation shape (observe, then shut intake)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "conservationGateArmed",
+            "docs": [
+              "ARMED? False at init. When false the observer still measures and emits; only the deposit",
+              "gate is inert. Toggled by `set_emergency(4)` — NOT a ConfigField, deliberately: config",
+              "changes apply at freeze, so a config-gated brake could not be released if freeze were the",
+              "thing that broke. Disarming also clears the counter, so it is a real release."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "conservationBreachWindows",
+            "docs": [
+              "CONSECUTIVE windows whose observation came back breached. Reset to 0 by any clean",
+              "observation and by disarming. Counted per WINDOW, not per call: `crank_remark_phantom` is",
+              "permissionless, so counting calls would let anyone inflate this at rent-only cost.",
+              "",
+              "Lives on Config, NOT MiningPool, for a concrete reason: the deposit gate must read it, and",
+              "`submit_store_deposit` has no `mining_pool` in its frame. Putting it here keeps the gate a",
+              "pure read of an account every deposit path already holds — no new account on the hottest",
+              "instruction in the program."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "conservationLastWindow",
+            "docs": [
+              "Window of the most recent observation, so repeated calls in one window cannot double-count.",
+              "0 = never observed."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "currentWindowId",
             "type": "u64"
           },
@@ -14723,6 +14814,79 @@ export type DiamondPools = {
           {
             "name": "nonce",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "conservationGateArmed",
+      "docs": [
+        "The conservation deposit gate was armed or disarmed by `set_emergency(4)`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "armed",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "conservationObserved",
+      "docs": [
+        "rev-14 Option B. Every conservation observation, breached or not.",
+        "",
+        "Emitted unconditionally so the clean case is on the record too: \"no event\" must never be",
+        "ambiguous between \"observed and fine\" and \"the observer never ran\". The residuals are SIGNED —",
+        "negative means the enumerable claims exceed miner physical, which is the insolvent direction and",
+        "the only one this test can prove (see `math::conservation_residual` for why the live-positions",
+        "term is not computable on-chain)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "residualU",
+            "type": "i128"
+          },
+          {
+            "name": "residualR",
+            "type": "i128"
+          },
+          {
+            "name": "toleranceGrams",
+            "type": "u64"
+          },
+          {
+            "name": "breached",
+            "type": "bool"
+          },
+          {
+            "name": "consecutiveWindows",
+            "docs": [
+              "Consecutive breached windows AFTER this observation."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "armed",
+            "docs": [
+              "Whether the deposit gate is armed. A breach with `armed == false` is observation only."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "depositGateEngaged",
+            "docs": [
+              "True on the observation that first pushes the counter to/past the threshold."
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -14883,29 +15047,6 @@ export type DiamondPools = {
           },
           {
             "name": "custodyOut",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "evacStoreLegSkippedUnusableAta",
-      "docs": [
-        "A terminal redemption could not deliver its custody stORE leg because the redeemer's own",
-        "canonical stORE ATA exists but is unusable (re-owned via `SetAuthority(AccountOwner)`, frozen,",
-        "or wrong mint). The SOL leg and the share bookkeeping still completed, so the redeemer is not",
-        "denied their liquid payout and `sweep_evac_custody` is not hostage to them. The stORE remains",
-        "in custody and is swept with the residue."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "beneficiary",
-            "type": "pubkey"
-          },
-          {
-            "name": "amount",
             "type": "u64"
           }
         ]
@@ -16653,33 +16794,6 @@ export type DiamondPools = {
           {
             "name": "bump",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "treasuryAdvance",
-      "docs": [
-        "A treasury advance (§5.6) routed the pool's own book to ST (dormant at launch)."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "windowId",
-            "type": "u64"
-          },
-          {
-            "name": "advancedU",
-            "type": "u64"
-          },
-          {
-            "name": "advancedR",
-            "type": "u64"
-          },
-          {
-            "name": "storeCredited",
-            "type": "u64"
           }
         ]
       }
