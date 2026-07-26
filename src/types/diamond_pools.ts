@@ -428,6 +428,236 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "claimUnclaimed",
+      "docs": [
+        "rev-13. Pay a claimant the operators verified OFF-CHAIN out of the segregated unclaimed pot.",
+        "One of exactly two ways value ever leaves that pot. Cosigned. `asset`: 0 = SOL, 1 = stORE."
+      ],
+      "discriminator": [
+        83,
+        180,
+        69,
+        217,
+        176,
+        246,
+        35,
+        175
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "debit it (rev-11 F1: a transfer source declared without `mut` aborts with a bare",
+            "PrivilegeEscalation and no program error code)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "claimant",
+          "docs": [
+            "owed what from `UnclaimedRecorded` events and satisfy themselves before cosigning) — the",
+            "program deliberately holds no per-beneficiary ledger, so it cannot and does not re-check it."
+          ],
+          "writable": true
+        },
+        {
+          "name": "claimantStoreAta",
+          "docs": [
+            "`payout_target_ready`. NOT `init_if_needed`: creating a user-authority account here at the",
+            "admin's expense is the rent-pump shape invariant V1a removed. The claimant provides a working",
+            "account or the operators retry — this rail is not phase-advancing, so refusing is safe."
+          ],
+          "writable": true
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "ixSysvar"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "clearFeeExempt",
       "docs": [
         "Clear a wallet's external-fee exemption entry and reclaim rent (cosigned)."
@@ -4494,9 +4724,172 @@ export type DiamondPools = {
           ]
         },
         {
+          "name": "unclaimed",
+          "docs": [
+            "The unclaimed ledger. Created ONCE here, so no permissionless rail ever needs to fund it",
+            "(invariant V1a: the cranker is non-writable on the payout rails and could not)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "SOL. Rent-seeded below for the same reason the vaults are."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA that physically holds undeliverable stORE. A",
+            "PROGRAM-PDA-AUTHORITY ATA, so it is uncloseable by anyone and creatable at most once ever —",
+            "the bounded pattern invariant V1a sanctions, which is why funding it here (admin-paid, one",
+            "time) is not a rent pump."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "admin",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -5289,6 +5682,154 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "cranker",
           "docs": [
             "non-writable signer is structurally incapable of funding an account, so no future",
@@ -5592,6 +6133,154 @@ export type DiamondPools = {
             "custody stORE leg. See `common::store_ata_is_payable`."
           ],
           "writable": true
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -5936,6 +6625,154 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "cranker",
           "docs": [
             "non-writable signer is structurally incapable of funding an account, so no future",
@@ -6270,6 +7107,154 @@ export type DiamondPools = {
             "custody stORE leg. See `common::store_ata_is_payable`."
           ],
           "writable": true
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -7368,6 +8353,154 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "cranker",
           "docs": [
             "non-writable signer is structurally incapable of funding an account, so no future",
@@ -7713,6 +8846,154 @@ export type DiamondPools = {
             "state-checked in the handler. See `common::store_ata_is_payable`."
           ],
           "writable": true
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -8184,6 +9465,154 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "cranker",
           "docs": [
             "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
@@ -8562,6 +9991,154 @@ export type DiamondPools = {
             "rather than reverting."
           ],
           "writable": true
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "docs": [
+            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
+            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "docs": [
+            "the pot, and the token transfer is signed by the SOURCE vault authority, not by this."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "cranker",
@@ -9857,6 +11434,357 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "sweepUnclaimedToPool",
+      "docs": [
+        "rev-13. THE SAFETY HATCH: claw an explicit amount of unclaimed stORE back into a pool,",
+        "distributed to all its holders by raising per-share backing. The other of the two exits.",
+        "Cosigned. Mining is excluded — its shares price off SOL only."
+      ],
+      "discriminator": [
+        77,
+        199,
+        159,
+        170,
+        163,
+        253,
+        25,
+        44
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  45,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimedCustodyAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "unclaimedCustodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "stakingPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "destVaultAuthority",
+          "docs": [
+            "against `pool_id`, because the seed depends on a runtime argument."
+          ]
+        },
+        {
+          "name": "destVaultAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "destVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "poolId",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "topUpProtocolLiquidity",
       "docs": [
         "Add liquid stORE backing to the Protocol Pool without minting PP shares. Recovery /",
@@ -10230,6 +12158,19 @@ export type DiamondPools = {
         154,
         24,
         102
+      ]
+    },
+    {
+      "name": "unclaimed",
+      "discriminator": [
+        207,
+        197,
+        248,
+        238,
+        244,
+        218,
+        119,
+        44
       ]
     },
     {
@@ -10794,6 +12735,45 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "unclaimedClawedBack",
+      "discriminator": [
+        137,
+        74,
+        31,
+        47,
+        179,
+        36,
+        227,
+        199
+      ]
+    },
+    {
+      "name": "unclaimedPaidOut",
+      "discriminator": [
+        127,
+        9,
+        68,
+        90,
+        109,
+        13,
+        14,
+        73
+      ]
+    },
+    {
+      "name": "unclaimedRecorded",
+      "discriminator": [
+        54,
+        145,
+        148,
+        254,
+        149,
+        9,
+        223,
+        245
+      ]
+    },
+    {
       "name": "windowClosed",
       "discriminator": [
         121,
@@ -11313,6 +13293,16 @@ export type DiamondPools = {
       "code": 6095,
       "name": "monetizeSkipDebtOpen",
       "msg": "this position owes a deferred monetization slice from a skipped SELL page; it must be swept once before a new mining withdrawal can be locked"
+    },
+    {
+      "code": 6096,
+      "name": "unclaimedInsufficient",
+      "msg": "the unclaimed pot does not hold that much of the requested asset"
+    },
+    {
+      "code": 6097,
+      "name": "unclaimedNothingOwed",
+      "msg": "nothing is owed in the unclaimed pot"
     }
   ],
   "types": [
@@ -13684,6 +15674,175 @@ export type DiamondPools = {
           },
           {
             "name": "storeCredited",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimed",
+      "docs": [
+        "rev-13. The single destination for every undeliverable payout, across all rails.",
+        "",
+        "WHY THIS EXISTS. Before this, seven rails did five different things with the same situation",
+        "(credit survivors / route to the fee bucket / forfeit to the funding pools / cancel and return",
+        "shares / refuse and retry), and the two deposit-refund siblings disagreed with each other. That",
+        "divergence is the single most-churned defect in the project's history. `contracts_guide/` is",
+        "SILENT on the question, which is why it kept being re-decided ad hoc.",
+        "",
+        "The ratified policy: HOLD the value, on its own ledger, in its own custody account. Two cosigned",
+        "admin rails are the only way out — `claim_unclaimed` pays a verified claimant, and",
+        "`sweep_unclaimed_to_pool` claws an explicit amount back into a pool for all holders.",
+        "",
+        "These balances are NOT part of any pool's NAV and must never be. The assets backing them live in",
+        "a separate custody account precisely so that no share-pricing path can reach them."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "storeOwed",
+            "docs": [
+              "stORE grams held for beneficiaries we could not pay. Backed 1:1 by the unclaimed custody ATA."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "solOwed",
+            "docs": [
+              "Lamports held for beneficiaries we could not pay. Backed by the custody authority PDA."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "recordedCount",
+            "docs": [
+              "Telemetry: how many times value has been recorded, paid out, and clawed back. Lets an",
+              "indexer reconcile the off-chain per-beneficiary picture against on-chain totals."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "paidCount",
+            "type": "u64"
+          },
+          {
+            "name": "clawedCount",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedClawedBack",
+      "docs": [
+        "rev-13. A cosigned clawback of unclaimed value into a pool, distributed to all its holders by",
+        "raising that pool's per-share backing. The safety hatch for value nobody ever claims."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "asset",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingOwed",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedPaidOut",
+      "docs": [
+        "rev-13. A cosigned payout from the unclaimed pot to a claimant the operators verified off-chain."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "claimant",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingOwed",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedRecorded",
+      "docs": [
+        "rev-13. Value could not be delivered to its beneficiary and has been moved into the segregated",
+        "unclaimed pot. This event is the ONLY on-chain record of WHO is owed WHAT — the pot itself keeps",
+        "totals only — so the indexer reconstructs the per-beneficiary picture from these, and",
+        "`claim_unclaimed` verification is done against that reconstruction off-chain."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "asset",
+            "docs": [
+              "0 = SOL, 1 = stORE."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "rail",
+            "docs": [
+              "Which rail could not deliver, so an operator can tell a broken ATA from an absent one."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "newTotalOwed",
             "type": "u64"
           }
         ]
