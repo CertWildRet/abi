@@ -3199,6 +3199,316 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "crankPpConvertSolToOre",
+      "docs": [
+        "rev-13 #5. Convert PP's accrued fee SOL into ORE through Jupiter v6 — the first hop of the",
+        "SOL -> ORE -> stORE convert rail, and the ONLY drain PP's accumulating SOL has.",
+        "",
+        "The Jupiter route is supplied OPAQUELY: its accounts come in `remaining_accounts` and its",
+        "data in `swap_data`, exactly as ORE's own buyback does it. A route cannot be validated",
+        "on-chain; the OUTCOME can, and is — measured deltas, a client min-out, and an assertion that",
+        "the authority's lamports did not move."
+      ],
+      "discriminator": [
+        87,
+        89,
+        27,
+        162,
+        158,
+        119,
+        16,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolVaultAuthority",
+          "docs": [
+            "it (rev-11 F1: a transfer source without `mut` aborts with a bare PrivilegeEscalation)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "ppWsolAta",
+          "docs": [
+            "PP's wSOL ATA — the swap's INPUT account.",
+            "",
+            "`init_if_needed` at the KEEPER's expense is legitimate here and is NOT the rent pump",
+            "invariant V1a removed: the authority is a PROGRAM PDA, so nobody holds a key that can sign",
+            "`CloseAccount` for it and the program never closes it. That makes the account uncloseable",
+            "and therefore creatable AT MOST ONCE EVER — bounded, unlike a user-authority ATA which the",
+            "owner can close and reopen to drain the keeper repeatedly."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "wsolMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "ppOreAta",
+          "docs": [
+            "PP's ORE ATA — the swap OUTPUT, and the input to the wrap hop. Same bounded reasoning."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "wsolMint",
+          "address": "So11111111111111111111111111111111111111112"
+        },
+        {
+          "name": "oreMint",
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "swapProgram"
+        },
+        {
+          "name": "keeper",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        },
+        {
+          "name": "minOreOut",
+          "type": "u64"
+        },
+        {
+          "name": "swapData",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
       "name": "crankRemarkPhantom",
       "docs": [
         "§5.2 LITE: refine the pool-mix phantom + fold a pure surplus into the PP book",
@@ -12670,6 +12980,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "ppSolConverted",
+      "discriminator": [
+        43,
+        80,
+        144,
+        18,
+        0,
+        121,
+        122,
+        162
+      ]
+    },
+    {
       "name": "protocolLiquidityToppedUp",
       "discriminator": [
         119,
@@ -13303,6 +13626,16 @@ export type DiamondPools = {
       "code": 6097,
       "name": "unclaimedNothingOwed",
       "msg": "nothing is owed in the unclaimed pot"
+    },
+    {
+      "code": 6098,
+      "name": "swapBelowMinOut",
+      "msg": "the swap returned less than the caller's min-out bound"
+    },
+    {
+      "code": 6099,
+      "name": "swapOverspent",
+      "msg": "the swap spent more than was wrapped for it, or moved authority lamports"
     }
   ],
   "types": [
@@ -15419,6 +15752,39 @@ export type DiamondPools = {
           {
             "name": "solOut",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ppSolConverted",
+      "docs": [
+        "rev-13 #5. PP's accrued fee SOL converted to ORE through Jupiter v6, reported as MEASURED",
+        "deltas rather than route-claimed amounts. `lamports_in` is what the route actually spent, so an",
+        "under-spending route is visible rather than silently absorbed."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lamportsIn",
+            "type": "u64"
+          },
+          {
+            "name": "oreOut",
+            "type": "u64"
+          },
+          {
+            "name": "minOreOut",
+            "type": "u64"
+          },
+          {
+            "name": "feeSolRemaining",
+            "type": "u64"
+          },
+          {
+            "name": "keeper",
+            "type": "pubkey"
           }
         ]
       }
