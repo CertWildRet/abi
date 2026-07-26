@@ -14238,6 +14238,20 @@ export type DiamondPools = {
           },
           {
             "name": "ppSolSleeveMaxBps",
+            "docs": [
+              "PP treasury diversification sleeve cap.",
+              "",
+              "⚠ SUPERSEDED AND UNREAD, deliberately. This bounded a \"hold some SOL for diversification\"",
+              "sleeve that was never built — `sol_sleeve` is only ever written as 0. The founder decision of",
+              "2026-07-26 went the other way: PP's SOL is CONVERTED to stORE via the rev-13 convert rail",
+              "(`crank_pp_convert_sol_to_ore` + `crank_pp_wrap_ore_to_store`), so PP stays single-asset and",
+              "there is no sleeve to cap.",
+              "",
+              "Kept rather than deleted so the field ordering of a not-yet-deployed account is not churned",
+              "for a rename, and so the intent is recorded where someone would look for it. Do NOT wire a",
+              "half-sleeve to \"use\" it: reintroducing SOL as PP backing would re-break share pricing, which",
+              "is the whole reason `PpSolLegUnavailable` exists."
+            ],
             "type": "u16"
           },
           {
