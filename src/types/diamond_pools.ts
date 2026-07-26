@@ -5576,93 +5576,15 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — this is the TERMINAL payout rail and a re-owned ATA reverted the whole",
+            "instruction in ACCOUNT VALIDATION, taking the SOL leg down with it even though that leg",
+            "needs no token account at all. It also hostaged `sweep_evac_custody`, whose",
+            "`total_shares <= MIN_LIQUIDITY_SHARES` predicate can never be met while one holder is",
+            "unredeemable. Resolved in-handler instead: vacant is created, unusable skips ONLY the",
+            "custody stORE leg. See `common::store_ata_is_payable`."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -5992,93 +5914,15 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — this is the TERMINAL payout rail and a re-owned ATA reverted the whole",
+            "instruction in ACCOUNT VALIDATION, taking the SOL leg down with it even though that leg",
+            "needs no token account at all. It also hostaged `sweep_evac_custody`, whose",
+            "`total_shares <= MIN_LIQUIDITY_SHARES` predicate can never be met while one holder is",
+            "unredeemable. Resolved in-handler instead: vacant is created, unusable skips ONLY the",
+            "custody stORE leg. See `common::store_ata_is_payable`."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -6402,93 +6246,15 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — this is the TERMINAL payout rail and a re-owned ATA reverted the whole",
+            "instruction in ACCOUNT VALIDATION, taking the SOL leg down with it even though that leg",
+            "needs no token account at all. It also hostaged `sweep_evac_custody`, whose",
+            "`total_shares <= MIN_LIQUIDITY_SHARES` predicate can never be met while one holder is",
+            "unredeemable. Resolved in-handler instead: vacant is created, unusable skips ONLY the",
+            "custody stORE leg. See `common::store_ata_is_payable`."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -10690,6 +10456,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "evacStoreLegSkippedUnusableAta",
+      "discriminator": [
+        182,
+        84,
+        68,
+        100,
+        66,
+        36,
+        183,
+        3
+      ]
+    },
+    {
       "name": "evacuationExecuted",
       "discriminator": [
         30,
@@ -12204,6 +11983,29 @@ export type DiamondPools = {
           },
           {
             "name": "custodyOut",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evacStoreLegSkippedUnusableAta",
+      "docs": [
+        "A terminal redemption could not deliver its custody stORE leg because the redeemer's own",
+        "canonical stORE ATA exists but is unusable (re-owned via `SetAuthority(AccountOwner)`, frozen,",
+        "or wrong mint). The SOL leg and the share bookkeeping still completed, so the redeemer is not",
+        "denied their liquid payout and `sweep_evac_custody` is not hostage to them. The stORE remains",
+        "in custody and is swept with the residue."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
             "type": "u64"
           }
         ]
