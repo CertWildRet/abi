@@ -661,7 +661,7 @@ export type DiamondPools = {
         {
           "name": "window",
           "docs": [
-            "The spent window. Closed here; its rent goes to the protocol fee bucket."
+            "The spent window. Closed here; its rent goes back to whoever FUNDED it."
           ],
           "writable": true,
           "pda": {
@@ -686,27 +686,12 @@ export type DiamondPools = {
           }
         },
         {
-          "name": "feeBucket",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  95,
-                  98,
-                  117,
-                  99,
-                  107,
-                  101,
-                  116
-                ]
-              }
-            ]
-          }
+          "name": "rentPayer",
+          "docs": [
+            "it cannot be redirected, and the CLOSER still receives nothing — housekeeping must never",
+            "become a race prize (that property is why this is not simply `close = cranker`)."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -9018,6 +9003,21 @@ export type DiamondPools = {
         },
         {
           "name": "ownerStoreAta",
+          "docs": [
+            "target at settle. It used to be any `token::authority = owner` account, which meant a",
+            "depositor could fund from an auxiliary account and never own a canonical ATA at all; the",
+            "settle-side refund resolves strictly against the canonical address, so that mismatch was",
+            "the root of the deposit-refund defects (rev-7 C-1) AND of a repeatable rent pump — the",
+            "cranker paid to create it at settle and the depositor could close it and pocket the rent,",
+            "~400x their transaction cost, repeatable.",
+            "",
+            "Creating it HERE at the depositor's own signature (`payer = owner`) makes the funding",
+            "source and the refund target the same account and moves the rent onto the party that",
+            "causes it. `UncheckedAccount` + `create_store_ata_if_vacant` rather than `init_if_needed`,",
+            "for the same reason as the exit-side submits: `init_if_needed` raises",
+            "`ConstraintTokenOwner` on a re-owned ATA, which would lock a self-hijacked wallet out of",
+            "depositing entirely. The SPL transfer below still validates mint and authority."
+          ],
           "writable": true
         },
         {
@@ -11181,6 +11181,11 @@ export type DiamondPools = {
       "code": 6094,
       "name": "invalidBeneficiaryAta",
       "msg": "the supplied account is not the beneficiary's canonical stORE associated-token account; pass the derived ATA address"
+    },
+    {
+      "code": 6095,
+      "name": "monetizeSkipDebtOpen",
+      "msg": "this position owes a deferred monetization slice from a skipped SELL page; it must be swept once before a new mining withdrawal can be locked"
     }
   ],
   "types": [
@@ -13108,6 +13113,16 @@ export type DiamondPools = {
             "type": "u32"
           },
           {
+            "name": "monetizeSkips",
+            "docs": [
+              "§5.6b: consecutive SELL cycles this position was SKIPPED in for a pending locked exit.",
+              "A skip is a DEFERRAL, not an exemption — the next sweep that CAN touch this position",
+              "applies the compounded make-up fraction `1-(1-f)^(skips+1)`, capped by",
+              "MONETIZE_SKIP_CATCHUP_MAX. Always 0 while monetization is dormant."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "pendingDepositOrders",
             "docs": [
               "Unsettled DEPOSIT orders that require this Position account to still exist.",
@@ -13631,6 +13646,17 @@ export type DiamondPools = {
           {
             "name": "processedPpExits",
             "type": "u32"
+          },
+          {
+            "name": "rentPayer",
+            "docs": [
+              "The key that FUNDED this Window's rent (`crank_freeze`'s cranker; `admin` for window 0).",
+              "`close_window` returns the rent HERE — not to the closer, which would turn housekeeping",
+              "into a race prize, and not to the fee bucket, which made every single window a permanent,",
+              "uncompensated transfer from whoever is keeping the protocol alive to the treasury",
+              "(~20.9 SOL/yr at the 1h cadence). Finding #9, site 1."
+            ],
+            "type": "pubkey"
           },
           {
             "name": "bump",
