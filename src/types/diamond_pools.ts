@@ -623,6 +623,99 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "closeWindow",
+      "docs": [
+        "Reclaim the rent of a fully-cascaded (OPEN, strictly older than the live window) Window",
+        "PDA to the fee bucket. Permissionless housekeeping — see `instructions::batch::close_window`",
+        "for why the rent goes to the protocol rather than the caller."
+      ],
+      "discriminator": [
+        254,
+        46,
+        169,
+        88,
+        40,
+        214,
+        216,
+        17
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "docs": [
+            "The spent window. Closed here; its rent goes to the protocol fee bucket."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "window.id",
+                "account": "window"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "cranker",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "confirmAdminTransfer",
       "docs": [
         "Admin handover step 2: the confirmer role approves."
@@ -3583,6 +3676,126 @@ export type DiamondPools = {
           "name": "storeMint"
         },
         {
+          "name": "protocolVaultAuthority",
+          "docs": [
+            "terminal snapshot can sweep an UNOWNED Protocol-Pool stORE balance into custody (see the",
+            "share-less PP drain in `evacuate_assets`); signs that transfer."
+          ]
+        },
+        {
+          "name": "protocolVaultAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "feeBucket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "custodyAuthority",
           "pda": {
             "seeds": [
@@ -4235,6 +4448,32 @@ export type DiamondPools = {
             "Mirrors mining_vault. (Same PDA that also authorities the PP stORE vault ATA.)"
           ],
           "writable": true
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "the two vaults are (audit fix — it was the one SOL-holding PDA left unfunded)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "storeMint",
@@ -5011,93 +5250,12 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — resolving it in Anchor validation let any exiter permanently wedge",
+            "MINING_EXITS by re-owning their own ATA. Address- and state-checked in the handler,",
+            "where an unusable one CANCELS the exit. See `common::store_ata_is_payable`."
+          ],
+          "writable": true
         },
         {
           "name": "feeExemptEntry",
@@ -7413,93 +7571,12 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — resolving it in Anchor validation let any exiter permanently wedge",
+            "PP_EXITS by re-owning their own ATA. Address- and state-checked in the handler, where",
+            "an unusable one CANCELS the exit. See `common::store_ata_is_payable`."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -7836,95 +7913,13 @@ export type DiamondPools = {
           "docs": [
             "The depositor's stORE ATA — receives the escrow REFUND when the PP SOL-leg is",
             "unavailable at settle (audit H1): an admitted-but-unsettleable order is refunded",
-            "rather than left to wedge the DEPOSITS phase forever."
+            "rather than left to wedge the DEPOSITS phase forever.",
+            "`UncheckedAccount`, NOT `init_if_needed` — resolving it in Anchor validation meant a",
+            "depositor who re-owned their own ATA reverted the settle EVEN ON THE MINT PATH that",
+            "never touches it, permanently wedging the irrevocable DEPOSITS phase. Address- and",
+            "state-checked in the handler. See `common::store_ata_is_payable`."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "writable": true
         },
         {
           "name": "cranker",
@@ -8380,95 +8375,13 @@ export type DiamondPools = {
           "docs": [
             "The depositor's stORE ATA — receives the escrow REFUND on a 0-share / below-min settle",
             "(refund-not-revert, so an unsettleable dust order can't wedge the DEPOSITS phase; mirrors",
-            "the PP H1 refund). init_if_needed so a first-time depositor is still refundable."
+            "the PP H1 refund).",
+            "`UncheckedAccount`, NOT `init_if_needed` — resolving it in Anchor validation meant a",
+            "depositor who re-owned their own ATA reverted the settle EVEN ON THE MINT PATH that",
+            "never touches it, permanently wedging the irrevocable DEPOSITS phase. Address- and",
+            "state-checked in the handler. See `common::store_ata_is_payable`."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "writable": true
         },
         {
           "name": "cranker",
@@ -8802,93 +8715,14 @@ export type DiamondPools = {
         },
         {
           "name": "exiterStoreAta",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "exiter"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "docs": [
+            "`init_if_needed` — see `common::store_ata_is_payable`. Resolving it in Anchor",
+            "validation let any exiter permanently wedge STAKING_EXITS (and with it the whole",
+            "cascade and the evacuation hatch) by re-owning their own ATA. It is address-checked",
+            "and state-checked in the handler instead, where an unusable one CANCELS the exit",
+            "rather than reverting."
+          ],
+          "writable": true
         },
         {
           "name": "cranker",
@@ -9144,9 +8978,117 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "storeMint"
+        },
+        {
+          "name": "ownerStoreAta",
+          "docs": [
+            "The exiter's canonical stORE ATA, created HERE at their own signature and",
+            "**`payer = owner`** (finding #9). Without it a PP holder who has never held stORE would",
+            "age a notice for a full `pp_exit_notice_windows`, submit at the epoch boundary — which",
+            "CONSUMES the notice — and then be silently cancelled at settle by the rev-6 fail-soft,",
+            "costing them another whole notice period. Mirrors `SubmitWithdraw`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -9588,9 +9530,120 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "storeMint"
+        },
+        {
+          "name": "ownerStoreAta",
+          "docs": [
+            "The exiter's canonical stORE ATA, created HERE at the exiter's own signature and",
+            "**`payer = owner`** (finding #9 — rent incidence). Settlement is permissionless and",
+            "the beneficiary does not sign it, so this is the only moment the protocol can charge",
+            "the party that actually causes the cost; previously the keeper paid, unbounded and",
+            "attacker-triggerable. It also guarantees the account EXISTS by settle time, which is",
+            "what keeps the rev-6 hijack fail-soft (`store_ata_is_payable`) from cancelling honest",
+            "first-time exits. The rent stays the user's own and is reclaimable by closing the ATA",
+            "after a full exit."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "systemProgram",
@@ -10572,6 +10625,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "depositRefundUndeliverable",
+      "discriminator": [
+        251,
+        188,
+        251,
+        229,
+        108,
+        45,
+        96,
+        193
+      ]
+    },
+    {
       "name": "depositSettled",
       "discriminator": [
         154,
@@ -10582,6 +10648,32 @@ export type DiamondPools = {
         147,
         84,
         58
+      ]
+    },
+    {
+      "name": "evacOrphanProtocolSolSwept",
+      "discriminator": [
+        129,
+        162,
+        62,
+        177,
+        137,
+        48,
+        62,
+        184
+      ]
+    },
+    {
+      "name": "evacOrphanProtocolStoreSwept",
+      "discriminator": [
+        2,
+        245,
+        106,
+        211,
+        58,
+        237,
+        80,
+        149
       ]
     },
     {
@@ -10608,6 +10700,19 @@ export type DiamondPools = {
         189,
         159,
         16
+      ]
+    },
+    {
+      "name": "exitCancelledUnusableAta",
+      "discriminator": [
+        225,
+        188,
+        233,
+        248,
+        205,
+        216,
+        172,
+        176
       ]
     },
     {
@@ -10689,6 +10794,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "monetizeFoldPricedAtPar",
+      "discriminator": [
+        114,
+        16,
+        242,
+        183,
+        66,
+        54,
+        114,
+        227
+      ]
+    },
+    {
       "name": "monetizeFolded",
       "discriminator": [
         239,
@@ -10699,6 +10817,19 @@ export type DiamondPools = {
         146,
         248,
         175
+      ]
+    },
+    {
+      "name": "monetizePageSkipped",
+      "discriminator": [
+        234,
+        109,
+        225,
+        204,
+        43,
+        118,
+        59,
+        141
       ]
     },
     {
@@ -10738,6 +10869,19 @@ export type DiamondPools = {
         221,
         97,
         242
+      ]
+    },
+    {
+      "name": "navPerShareClamped",
+      "discriminator": [
+        46,
+        26,
+        32,
+        42,
+        226,
+        129,
+        126,
+        38
       ]
     },
     {
@@ -10894,6 +11038,19 @@ export type DiamondPools = {
         74,
         94,
         125
+      ]
+    },
+    {
+      "name": "windowClosed",
+      "discriminator": [
+        121,
+        79,
+        118,
+        86,
+        121,
+        66,
+        96,
+        11
       ]
     },
     {
@@ -11127,12 +11284,12 @@ export type DiamondPools = {
     {
       "code": 6040,
       "name": "protocolTopUpPublicForbidden",
-      "msg": "Protocol Pool recovery top-ups without share minting are only allowed while pp_mode = WHITELIST"
+      "msg": "no-share Protocol Pool top-ups require pp_mode = WHITELIST AND pp_deposit_mode != OPEN (a public-open pool would be subsidised by the sponsor)"
     },
     {
       "code": 6041,
       "name": "protocolTopUpWindDownForbidden",
-      "msg": "Protocol Pool sponsor top-ups are forbidden once terminal wind-down is armed"
+      "msg": "RESERVED — no longer raised; the PP sponsor top-up rail is now bounded by mining_pool.evacuated (AlreadyEvacuated) so the terminal hatch stays reachable"
     },
     {
       "code": 6042,
@@ -11383,6 +11540,21 @@ export type DiamondPools = {
       "code": 6091,
       "name": "notUpgradeAuthority",
       "msg": "initialize is gated to the program's upgrade authority (the deployer); the signer is not it"
+    },
+    {
+      "code": 6092,
+      "name": "positionDepositPending",
+      "msg": "this position still has an unsettled deposit order; settling it needs the position account, so it may not be closed yet"
+    },
+    {
+      "code": 6093,
+      "name": "windowStillLive",
+      "msg": "that window is still live (>= config.current_window_id); only a strictly older, fully-cascaded window may be closed"
+    },
+    {
+      "code": 6094,
+      "name": "invalidBeneficiaryAta",
+      "msg": "the supplied account is not the beneficiary's canonical stORE associated-token account; pass the derived ATA address"
     }
   ],
   "types": [
@@ -11900,6 +12072,38 @@ export type DiamondPools = {
       }
     },
     {
+      "name": "depositRefundUndeliverable",
+      "docs": [
+        "A deposit REFUND could not be delivered for the same reason. The escrowed stORE is REROUTED",
+        "TO THE FEE BUCKET — it is deliberately NOT left in the vault ATA, because every stORE outflow",
+        "from those vaults is ledger-bounded and this escrow was never credited to `store_in_vault`,",
+        "so an above-ledger surplus there would be unreachable forever. The order is closed and the",
+        "phase counter advanced. Note \"undeliverable\" includes a simply ABSENT canonical ATA, which is",
+        "reachable with no adversary at all, so this is not purely a self-inflicted path."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "depositSettled",
       "docs": [
         "A deposit order minted shares at the frozen mark (cascade step 1)."
@@ -11929,6 +12133,46 @@ export type DiamondPools = {
           },
           {
             "name": "sharesMinted",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evacOrphanProtocolSolSwept",
+      "docs": [
+        "Terminal evacuation recovered a holder-less Protocol Pool's SOL income to the fee bucket.",
+        "Companion to `EvacOrphanProtocolStoreSwept` for the SOL leg (spec §5.4 PP income)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "evacOrphanProtocolStoreSwept",
+      "docs": [
+        "Terminal evacuation swept an UNOWNED Protocol-Pool stORE balance into the redemption custody",
+        "because PP had no redeemable holders (`total_shares <= MIN_LIQUIDITY_SHARES`).",
+        "",
+        "Audit fix (permanent fund-lock class): `redeem_evacuated_protocol` needs `shares > 0`,",
+        "`settle_pp_exit` needs a PP Order, and `sweep_evac_custody` only touches the custody ATA — so",
+        "accrued PP stORE and cosigned sponsor top-ups would otherwise be destroyed on the terminal path."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "custodyTotalAfter",
             "type": "u64"
           }
         ]
@@ -11999,6 +12243,39 @@ export type DiamondPools = {
           },
           {
             "name": "harvestedSol",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "exitCancelledUnusableAta",
+      "docs": [
+        "A settlement could not deliver its stORE leg because the beneficiary's own canonical",
+        "stORE ATA is UNUSABLE (re-owned via `SetAuthority(AccountOwner)`, frozen, wrong mint, or",
+        "simply absent). Rather than revert — which would permanently wedge an irrevocable phase,",
+        "see `store_ata_is_payable` — the settlement is CANCELLED: no ledger is debited, no stORE",
+        "moves, the position's shares are left INTACT and its lock released, the phase counter is",
+        "still advanced and the order still closed. The beneficiary loses nothing; they repair the",
+        "ATA and submit again. A non-zero rate of these is an alertable operational signal."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "sharesReturned",
             "type": "u64"
           }
         ]
@@ -12527,6 +12804,28 @@ export type DiamondPools = {
             "type": "u32"
           },
           {
+            "name": "stExitPromised",
+            "docs": [
+              "stORE this pool has already PROMISED to sealed-but-unpaid mining exits, per funding leg.",
+              "",
+              "AUDIT FIX (stall class): `seal_mining_waterfall_r3` sizes `st_pay`/`pp_pay` against the LIVE",
+              "ST/PP balances but deliberately debits nothing (PAY debits per-exit). `crank_freeze` imposes",
+              "no ordering on prior windows, so when the keeper falls behind, two windows cascade at once",
+              "and each seals against the SAME undebited balance — then whichever pays second reverts with",
+              "its sealed need fixed forever, stalling an irrevocable MINING_EXITS phase until someone",
+              "refills the pool (at launch PP is refillable only through the cosigned top-up rail).",
+              "state.rs' own docstring below claims \"no per-exit debit can overshoot the sealed",
+              "reservation\" — true only within ONE cascade. These counters make the reservation real:",
+              "bumped at seal, released as each exit pays, and subtracted from the balance the next seal",
+              "(and cap-rebalance) is allowed to see."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "ppExitPromised",
+            "type": "u64"
+          },
+          {
             "name": "evacuated",
             "docs": [
               "Single-shot: the miner has been fully drained to custody. Guards re-entry and",
@@ -12590,6 +12889,40 @@ export type DiamondPools = {
       }
     },
     {
+      "name": "monetizeFoldPricedAtPar",
+      "docs": [
+        "A FOLD page whose PRICED share mint was unrepresentable in u64 (a degenerate, tiny-but-non-zero",
+        "frozen mining NAV), so it was minted at PAR instead.",
+        "",
+        "Emitted by the audit fix that removed a hard `MathOverflow` here: reverting the page latched the",
+        "cycle open forever (`monetize_in_flight`/`monetize_registered` never clear), which blocks mining,",
+        "blocks `evacuate_claim_all`, and traps the holder (submit_withdraw rejects a position with",
+        "pending proceeds). Par is pool-favor — the folder is UNDER-credited and other holders gain — but",
+        "it signals a degenerate pool state the operator should investigate. Dormant while monetize is dark."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cycleId",
+            "type": "u32"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "sI",
+            "type": "u64"
+          },
+          {
+            "name": "foldNav",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
       "name": "monetizeFolded",
       "type": {
         "kind": "struct",
@@ -12605,6 +12938,48 @@ export type DiamondPools = {
           {
             "name": "sharesMinted",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "monetizePageSkipped",
+      "docs": [
+        "A SELL page that was COUNTED but not sold, because the position had a pending locked exit",
+        "(selling would reduce `uore_base` under a measured exit's cached leg and underflow at PAY).",
+        "",
+        "Emitted by the audit fix that replaced a fatal `require!` with skip-and-count: reverting the",
+        "page made `processed == registered` unreachable and permanently bricked the protocol. The",
+        "position is monetized in a later cycle; the keeper should treat this as normal progress, not",
+        "an error. Dormant until `monetize_share_bps > 0`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cycleId",
+            "type": "u32"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "lockedShares",
+            "type": "u64"
+          },
+          {
+            "name": "processed",
+            "docs": [
+              "Page accounting, identical in meaning to `MonetizeSold`'s — a skipped page still COUNTS",
+              "against the sealed `monetize_registered` snapshot, so `processed/registered` stays",
+              "reconstructible off-chain from the two events together."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "registered",
+            "type": "u32"
           }
         ]
       }
@@ -12696,6 +13071,35 @@ export type DiamondPools = {
           },
           {
             "name": "storeReleased",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "navPerShareClamped",
+      "docs": [
+        "A pool's NAV-per-share hit the runaway ceiling at freeze and was CLAMPED.",
+        "",
+        "Audit fix (permanent-brick class): `nav_per_share` used to hard-error here, which made",
+        "`crank_freeze` — and therefore the entire cascade — revert forever. Reachable with no attacker",
+        "once every real holder has exited and only the unowned MIN_LIQUIDITY shares remain. Clamping",
+        "keeps the protocol alive; this event is the operator's signal that a pool is in that degenerate",
+        "state and needs attention (typically: re-seed it, or wind down)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "totalNav",
+            "type": "u64"
+          },
+          {
+            "name": "totalShares",
             "type": "u64"
           }
         ]
@@ -13017,6 +13421,29 @@ export type DiamondPools = {
             "docs": [
               "§5.6b: the last SELL cycle this position was swept in (double-sell guard — a",
               "position sells at most once per cycle). 0 while dormant."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "pendingDepositOrders",
+            "docs": [
+              "Unsettled DEPOSIT orders that require this Position account to still exist.",
+              "Bumped at `submit_mining_deposit`, dropped on BOTH exits of",
+              "`settle_mining_deposit` (mint AND refund), and required to be 0 by",
+              "`close_mining_position`.",
+              "",
+              "WHY (audit fix, permanent-wedge class): a deposit order lives on its own Order",
+              "PDA and leaves NO trace on the Position, while a brand-new Position is all-zero",
+              "— so it satisfied every emptiness check `close_mining_position` makes. Any",
+              "third party could reap a first-time depositor's Position while their order was",
+              "still queued; `settle_mining_deposit` then failed Anchor account resolution",
+              "FOREVER, so `processed_deposits` could never reach `registered_deposits`, the",
+              "irrevocable DEPOSITS phase never advanced, `cascades_in_flight` stayed pinned",
+              ">= 1, and (via `require_accounting_idle` / the evacuate gate) mining AND the",
+              "terminal evacuation hatch were bricked permanently for ~0.0008 SOL.",
+              "`locked_shares` already covers the WITHDRAW side of the same hazard; this is",
+              "its deposit-side twin. Window-scoped counters cannot substitute: an order may",
+              "sit in an OLDER still-cascading window that this instruction never sees."
             ],
             "type": "u32"
           },
@@ -13525,6 +13952,25 @@ export type DiamondPools = {
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "windowClosed",
+      "docs": [
+        "A fully-cascaded window was closed and its rent reclaimed to the fee bucket.",
+        "",
+        "Audit fix (fund-lock class): `crank_batch` documented a `close_window` that was never built, so",
+        "every window's ~0.0024 SOL of cranker rent was permanently unrecoverable (~20.7 SOL/year at the",
+        "1h launch cadence, monotonically growing, unreachable even by terminal evacuation)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "windowId",
+            "type": "u64"
           }
         ]
       }
