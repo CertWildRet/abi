@@ -3910,6 +3910,13 @@
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -5266,7 +5273,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -5567,7 +5578,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -5905,7 +5920,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -6237,7 +6256,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -7054,7 +7077,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         }
       ],
@@ -7325,7 +7352,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -7668,6 +7699,13 @@
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -8130,6 +8168,13 @@
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -8471,7 +8516,11 @@
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
