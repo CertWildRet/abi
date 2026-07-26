@@ -3664,8 +3664,19 @@ export type DiamondPools = {
           "name": "protocolVaultAuthority",
           "docs": [
             "terminal snapshot can sweep an UNOWNED Protocol-Pool stORE balance into custody (see the",
-            "share-less PP drain in `evacuate_assets`); signs that transfer."
-          ]
+            "share-less PP drain in `evacuate_assets`); signs that transfer.",
+            "",
+            "rev-11 F1: `mut` is LOAD-BEARING. Step 9c does `invoke_signed(system_instruction::transfer(",
+            "from = this PDA, ..))` for `orphan_sol`, and a system transfer builds its source as",
+            "writable+signer. Without `mut` the CPI aborted with a bare runtime PrivilegeEscalation --",
+            "no program error code -- and since that fires before `mp.evacuated = true` latches, the",
+            "TERMINAL ESCAPE HATCH was dead for every config where PP had accrued any fee SOL (i.e. after",
+            "the first `crank_mine`: trip-wire is ONE lamport, at `deploy_total >= 800`). Both sibling",
+            "rails that debit this same PDA already carry `mut` (`pp_exit.rs`, `evacuate.rs:1122`).",
+            "The bankrun harness loads no ORE program, so 9b/9c are unreachable in tests and this",
+            "shipped green -- see `scripts/gate-transfer-source-mut.mjs`, which now enforces the rule."
+          ],
+          "writable": true
         },
         {
           "name": "protocolVaultAta",
@@ -3916,6 +3927,13 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -5272,7 +5290,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -5573,7 +5595,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -5911,7 +5937,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -6243,7 +6273,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -7060,7 +7094,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         }
       ],
@@ -7331,7 +7369,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -7674,6 +7716,13 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -8136,6 +8185,13 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
+          "docs": [
+            "may fund `init_if_needed` ATAs whose authority is a PROGRAM PDA. A PDA cannot sign",
+            "`CloseAccount`, and this program never closes them, so they are creatable at most",
+            "ONCE EVER (bounded, ~0.002 SOL lifetime) -- unlike a user-authority ATA, which the",
+            "user can close and reclaim repeatedly to pump the keeper. Do NOT add a `payer =",
+            "cranker` here for any account with a user-controlled authority."
+          ],
           "writable": true,
           "signer": true
         },
@@ -8253,6 +8309,38 @@ export type DiamondPools = {
                   99,
                   111,
                   108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "docs": [
+            "rev-11 F2: READ-ONLY, and required. This rail drains BOTH the ST and PP stORE vaults and was",
+            "the only drain in the program honouring NEITHER exit reservation — `st_exit_promised` was in",
+            "fact read at ZERO drain sites. Without this account the rail is *structurally* incapable of",
+            "seeing what a sealed `measure_mining_exit` already promised, which is how an ordinary staker",
+            "exit could spend a mining exiter's sealed slice and hard-revert the irrevocable MINING_EXITS",
+            "phase. Never `mut`: this rail only READS the counters; they are bumped at the seal and",
+            "released by `pay_mining_exit`."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
                   95,
                   112,
                   111,
@@ -8477,7 +8565,11 @@ export type DiamondPools = {
         },
         {
           "name": "cranker",
-          "writable": true,
+          "docs": [
+            "non-writable signer is structurally incapable of funding an account, so no future",
+            "edit can reintroduce a keeper-paid rent pump on this rail. Account creation belongs",
+            "at the owner-signed submit rails, at `payer = owner`."
+          ],
           "signer": true
         },
         {
@@ -10329,6 +10421,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "exitDeferredReservedLiquidity",
+      "discriminator": [
+        50,
+        252,
+        83,
+        69,
+        255,
+        195,
+        8,
+        10
+      ]
+    },
+    {
       "name": "exitTokenLegForfeited",
       "discriminator": [
         20,
@@ -11930,6 +12035,59 @@ export type DiamondPools = {
           },
           {
             "name": "sharesReturned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "exitDeferredReservedLiquidity",
+      "docs": [
+        "rev-11 F2. A staking exit was DEFERRED (not forfeited, not reverted) because paying it would",
+        "have spent stORE already SEALED to a mining exit by `measure_mining_exit`. No ledger is debited,",
+        "no stORE moves, and the shares stay on the position — only the lock is released and the phase",
+        "counter advances, so the holder re-queues next window and the sealed exit can still pay.",
+        "",
+        "Carries both sides of the comparison so an indexer can tell a genuine ST/PP illiquidity from a",
+        "mere ENCUMBRANCE, which the old hard `require!(ProtocolPoolIlliquid)` could not distinguish."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "sharesReturned",
+            "type": "u64"
+          },
+          {
+            "name": "due",
+            "type": "u64"
+          },
+          {
+            "name": "stNeeded",
+            "type": "u64"
+          },
+          {
+            "name": "stLiquid",
+            "type": "u64"
+          },
+          {
+            "name": "ppNeeded",
+            "type": "u64"
+          },
+          {
+            "name": "ppLiquid",
             "type": "u64"
           }
         ]

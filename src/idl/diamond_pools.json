@@ -8314,6 +8314,38 @@
           }
         },
         {
+          "name": "mining_pool",
+          "docs": [
+            "rev-11 F2: READ-ONLY, and required. This rail drains BOTH the ST and PP stORE vaults and was",
+            "the only drain in the program honouring NEITHER exit reservation — `st_exit_promised` was in",
+            "fact read at ZERO drain sites. Without this account the rail is *structurally* incapable of",
+            "seeing what a sealed `measure_mining_exit` already promised, which is how an ordinary staker",
+            "exit could spend a mining exiter's sealed slice and hard-revert the irrevocable MINING_EXITS",
+            "phase. Never `mut`: this rail only READS the counters; they are bumped at the seal and",
+            "released by `pay_mining_exit`."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "position",
           "writable": true
         },
@@ -10383,6 +10415,19 @@
       ]
     },
     {
+      "name": "ExitDeferredReservedLiquidity",
+      "discriminator": [
+        50,
+        252,
+        83,
+        69,
+        255,
+        195,
+        8,
+        10
+      ]
+    },
+    {
       "name": "ExitTokenLegForfeited",
       "discriminator": [
         20,
@@ -11984,6 +12029,59 @@
           },
           {
             "name": "shares_returned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExitDeferredReservedLiquidity",
+      "docs": [
+        "rev-11 F2. A staking exit was DEFERRED (not forfeited, not reverted) because paying it would",
+        "have spent stORE already SEALED to a mining exit by `measure_mining_exit`. No ledger is debited,",
+        "no stORE moves, and the shares stay on the position — only the lock is released and the phase",
+        "counter advances, so the holder re-queues next window and the sealed exit can still pay.",
+        "",
+        "Carries both sides of the comparison so an indexer can tell a genuine ST/PP illiquidity from a",
+        "mere ENCUMBRANCE, which the old hard `require!(ProtocolPoolIlliquid)` could not distinguish."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_id",
+            "type": "u8"
+          },
+          {
+            "name": "window_id",
+            "type": "u64"
+          },
+          {
+            "name": "shares_returned",
+            "type": "u64"
+          },
+          {
+            "name": "due",
+            "type": "u64"
+          },
+          {
+            "name": "st_needed",
+            "type": "u64"
+          },
+          {
+            "name": "st_liquid",
+            "type": "u64"
+          },
+          {
+            "name": "pp_needed",
+            "type": "u64"
+          },
+          {
+            "name": "pp_liquid",
             "type": "u64"
           }
         ]
