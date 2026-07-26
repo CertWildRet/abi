@@ -9319,6 +9319,28 @@
           "writable": true
         },
         {
+          "name": "ore_mint",
+          "docs": [
+            "default) this account is unused, and requiring a live `Account<Mint>` would force every",
+            "caller to supply an initialized ORE mint just to queue an ordinary withdrawal."
+          ],
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "owner_ore_ata",
+          "docs": [
+            "",
+            "rev-11 F5: PROVISIONED HERE, at `payer = owner`, exactly as `owner_store_ata` is. Nothing in",
+            "the program used to create it, so a merely ABSENT ORE ATA at PAY forfeited the exiter's whole",
+            "(u,r) annex to the PP book at a purchase price of zero — imposed, not self-inflicted, since",
+            "absence is the NORMAL state for a SOL depositor who has never held ORE. Created only when",
+            "the order is stamped for ORE delivery, so stORE-mode exits are not charged rent for an",
+            "account they will never use. `UncheckedAccount` + in-handler creation for the same reason as",
+            "`owner_store_ata`: resolving a payout target in Anchor validation is what made #17 a wedge."
+          ],
+          "writable": true
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
@@ -13020,6 +13042,27 @@
           {
             "name": "computed_r_out",
             "type": "u64"
+          },
+          {
+            "name": "deliver_ore",
+            "docs": [
+              "MINING EXIT only: the exit-delivery mode STAMPED AT SUBMIT from",
+              "`config.exit_delivery_asset`, not read live at PAY.",
+              "",
+              "rev-11 F5. The ORE leg is delivered to the exiter's canonical ORE ATA, and nothing used to",
+              "create that account — so absence (the normal state for a SOL depositor who has never held",
+              "ORE) forfeited the whole token leg. `submit_withdraw` now provisions it at `payer = owner`,",
+              "which only works if PAY honours the SAME mode SUBMIT provisioned for: a config flip landing",
+              "between the two would otherwise ask PAY to deliver into an account that was never created.",
+              "Stamping makes the order self-describing, so a flip affects only orders queued after it —",
+              "consistent with every other quantity on an irrevocable order.",
+              "",
+              "This is a REQUEST, not a guarantee. `pay_mining_exit` degrades it to stORE delivery when ORE",
+              "delivery is not serviceable (LITE disabled, or ST/PP funded part of the leg). Degrading",
+              "rather than reverting is required because PAY advances `mining_paid` on an irrevocable",
+              "phase; both ATAs are provisioned at submit, so stORE is always deliverable."
+            ],
+            "type": "bool"
           },
           {
             "name": "settled",
