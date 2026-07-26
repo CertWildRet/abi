@@ -3509,6 +3509,287 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "crankPpWrapOreToStore",
+      "docs": [
+        "rev-13 #5 hop 2. Wrap PP's ORE into stORE natively (`storeD7`, the mainnet-drilled path) and",
+        "credit the MEASURED delta as PP backing. Completes SOL -> ORE -> stORE."
+      ],
+      "discriminator": [
+        110,
+        30,
+        228,
+        10,
+        11,
+        101,
+        39,
+        63
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolVaultAuthority"
+        },
+        {
+          "name": "ppOreAta",
+          "docs": [
+            "PP's ORE ATA — the wrap INPUT (filled by `crank_pp_convert_sol_to_ore`)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "oreMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "protocolVaultAta",
+          "docs": [
+            "PP's stORE vault ATA — the wrap OUTPUT, and PP's actual backing."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "protocolVaultAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "oreMint",
+          "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "keeper",
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amountOre",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "crankRemarkPhantom",
       "docs": [
         "§5.2 LITE: refine the pool-mix phantom + fold a pure surplus into the PP book",
@@ -12980,6 +13261,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "ppOreWrapped",
+      "discriminator": [
+        57,
+        64,
+        185,
+        97,
+        251,
+        102,
+        169,
+        117
+      ]
+    },
+    {
       "name": "ppSolConverted",
       "discriminator": [
         43,
@@ -15752,6 +16046,34 @@ export type DiamondPools = {
           {
             "name": "solOut",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ppOreWrapped",
+      "docs": [
+        "rev-13 #5 hop 2. PP's ORE wrapped into stORE natively (storeD7). `store_credited` is the",
+        "MEASURED delta, not a modelled conversion — the live wrap lands slightly below the model."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "oreIn",
+            "type": "u64"
+          },
+          {
+            "name": "storeCredited",
+            "type": "u64"
+          },
+          {
+            "name": "newStoreInVault",
+            "type": "u64"
+          },
+          {
+            "name": "keeper",
+            "type": "pubkey"
           }
         ]
       }
