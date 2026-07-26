@@ -7950,6 +7950,119 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "restoreUnclaimedOre",
+      "docs": [
+        "rev-13 (ORE leg). Restore an owed ORE annex to a verified claimant's Position. Cosigned.",
+        "A RESTORE, not a payout: the entitlement was always an annex, so putting `(u, r)` back",
+        "returns the holder to their pre-failure state and they exit through the ordinary rail."
+      ],
+      "discriminator": [
+        239,
+        13,
+        230,
+        140,
+        208,
+        142,
+        168,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "docs": [
+            "The claimant's mining Position. Must already exist — this rail restores an entitlement to a",
+            "holder, it does not open a position for one."
+          ],
+          "writable": true
+        },
+        {
+          "name": "claimant"
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar"
+        }
+      ],
+      "args": [
+        {
+          "name": "uAmount",
+          "type": "u64"
+        },
+        {
+          "name": "rAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "setAdminTransferConfirmer",
       "docs": [
         "Rotate the admin-transfer confirmer role (immediate; audit hardening)."
@@ -12025,6 +12138,139 @@ export type DiamondPools = {
       "args": []
     },
     {
+      "name": "sweepUnclaimedOreToPool",
+      "docs": [
+        "rev-13 (ORE leg). THE ORE SAFETY HATCH: move an explicit owed annex into a pool's book for",
+        "all its holders. Cosigned. The deliberate, auditable version of what the old code did",
+        "silently on every ORE forfeit."
+      ],
+      "discriminator": [
+        0,
+        146,
+        90,
+        119,
+        118,
+        158,
+        175,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakingPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar"
+        }
+      ],
+      "args": [
+        {
+          "name": "poolId",
+          "type": "u8"
+        },
+        {
+          "name": "uAmount",
+          "type": "u64"
+        },
+        {
+          "name": "rAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "sweepUnclaimedToPool",
       "docs": [
         "rev-13. THE SAFETY HATCH: claw an explicit amount of unclaimed stORE back into a pool,",
@@ -13362,6 +13608,45 @@ export type DiamondPools = {
         36,
         227,
         199
+      ]
+    },
+    {
+      "name": "unclaimedOreClawedBack",
+      "discriminator": [
+        175,
+        34,
+        147,
+        88,
+        235,
+        228,
+        240,
+        86
+      ]
+    },
+    {
+      "name": "unclaimedOreRecorded",
+      "discriminator": [
+        206,
+        77,
+        48,
+        139,
+        168,
+        16,
+        182,
+        61
+      ]
+    },
+    {
+      "name": "unclaimedOreRestored",
+      "discriminator": [
+        116,
+        113,
+        123,
+        67,
+        190,
+        236,
+        85,
+        185
       ]
     },
     {
@@ -16428,6 +16713,24 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
+            "name": "oreOwedU",
+            "docs": [
+              "ORE annex held for a beneficiary whose ORE-delivery target was unusable.",
+              "",
+              "NOT a token balance — no ORE moves. On the ORE-delivery path the exiter is paid raw ORE",
+              "claimed off the SHARED MINER, so an undeliverable leg means the claim simply never fires and",
+              "the ORE stays in the miner exactly where it already was. What must be preserved is the",
+              "ENTITLEMENT, so the position's `(u, r)` legs are moved here instead of being handed to the",
+              "PP book. Conservation is exact and unchanged: the annex leaves the Position and lands here,",
+              "so `Sum(all book entries + unclaimed) == miner physical` holds identically to before."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "oreOwedR",
+            "type": "u64"
+          },
+          {
             "name": "solOwed",
             "docs": [
               "Lamports held for beneficiaries we could not pay. Backed by the custody authority PDA."
@@ -16480,6 +16783,109 @@ export type DiamondPools = {
           },
           {
             "name": "remainingOwed",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedOreClawedBack",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u8"
+          },
+          {
+            "name": "uAmount",
+            "type": "u64"
+          },
+          {
+            "name": "rAmount",
+            "type": "u64"
+          },
+          {
+            "name": "remainingU",
+            "type": "u64"
+          },
+          {
+            "name": "remainingR",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedOreRecorded",
+      "docs": [
+        "rev-13. An ORE-delivery exit could not reach its beneficiary, so the (u, r) ANNEX — not a token",
+        "— is held for them on the unclaimed ledger. No ORE moves: on this path the exiter would have",
+        "been paid raw ORE claimed off the shared miner, so an undelivered leg simply means the claim",
+        "never fired and the ORE is still in the miner. `restore_unclaimed_ore` puts it back on a",
+        "Position; `sweep_unclaimed_ore_to_pool` is the safety hatch."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "beneficiary",
+            "type": "pubkey"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "uOwed",
+            "type": "u64"
+          },
+          {
+            "name": "rOwed",
+            "type": "u64"
+          },
+          {
+            "name": "newTotalU",
+            "type": "u64"
+          },
+          {
+            "name": "newTotalR",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unclaimedOreRestored",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "claimant",
+            "type": "pubkey"
+          },
+          {
+            "name": "uRestored",
+            "type": "u64"
+          },
+          {
+            "name": "rRestored",
+            "type": "u64"
+          },
+          {
+            "name": "remainingU",
+            "type": "u64"
+          },
+          {
+            "name": "remainingR",
             "type": "u64"
           },
           {
