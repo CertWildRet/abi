@@ -3658,8 +3658,19 @@
           "name": "protocol_vault_authority",
           "docs": [
             "terminal snapshot can sweep an UNOWNED Protocol-Pool stORE balance into custody (see the",
-            "share-less PP drain in `evacuate_assets`); signs that transfer."
-          ]
+            "share-less PP drain in `evacuate_assets`); signs that transfer.",
+            "",
+            "rev-11 F1: `mut` is LOAD-BEARING. Step 9c does `invoke_signed(system_instruction::transfer(",
+            "from = this PDA, ..))` for `orphan_sol`, and a system transfer builds its source as",
+            "writable+signer. Without `mut` the CPI aborted with a bare runtime PrivilegeEscalation --",
+            "no program error code -- and since that fires before `mp.evacuated = true` latches, the",
+            "TERMINAL ESCAPE HATCH was dead for every config where PP had accrued any fee SOL (i.e. after",
+            "the first `crank_mine`: trip-wire is ONE lamport, at `deploy_total >= 800`). Both sibling",
+            "rails that debit this same PDA already carry `mut` (`pp_exit.rs`, `evacuate.rs:1122`).",
+            "The bankrun harness loads no ORE program, so 9b/9c are unreachable in tests and this",
+            "shipped green -- see `scripts/gate-transfer-source-mut.mjs`, which now enforces the rule."
+          ],
+          "writable": true
         },
         {
           "name": "protocol_vault_ata",
