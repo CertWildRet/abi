@@ -16051,6 +16051,19 @@ export type DiamondPools = {
           {
             "name": "solOut",
             "type": "u64"
+          },
+          {
+            "name": "due",
+            "docs": [
+              "rev-13: the FULL entitlement before any branch-(A) haircut.",
+              "",
+              "Without this, a haircut exit was byte-identical on the wire to a full payment: `store_out`",
+              "already reports the clamped figure and `ExitTokenLegForfeited` fires only on the ATA arm, so",
+              "an indexer could not tell \"paid in full\" from \"paid less because PP was illiquid\". Anyone",
+              "reconciling holder statements would have silently under-counted what was owed.",
+              "`due > store_out` is exactly the haircut."
+            ],
+            "type": "u64"
           }
         ]
       }
