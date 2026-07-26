@@ -8749,99 +8749,16 @@ export type DiamondPools = {
         {
           "name": "ownerStoreAta",
           "docs": [
-            "The exiter's canonical stORE ATA, created HERE at their own signature and",
-            "**`payer = owner`** (finding #9). Without it a PP holder who has never held stORE would",
-            "age a notice for a full `pp_exit_notice_windows`, submit at the epoch boundary — which",
-            "CONSUMES the notice — and then be silently cancelled at settle by the rev-6 fail-soft,",
-            "costing them another whole notice period. Mirrors `SubmitWithdraw`."
+            "(finding #9). Without it a PP holder who has never held stORE would age a notice for a",
+            "full `pp_exit_notice_windows`, submit at the epoch boundary — which CONSUMES the notice —",
+            "and then hit the settle-side fail-soft, costing them another whole notice period.",
+            "",
+            "DELIBERATELY `UncheckedAccount` + in-handler creation, NOT `init_if_needed` — see the",
+            "identical note on `SubmitWithdraw`. `init_if_needed` raises `ConstraintTokenOwner` on a",
+            "re-owned ATA, which would stop a PP holder queueing an exit at all and strand their shares",
+            "and SOL leg permanently. Mirrors `SubmitWithdraw`."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "writable": true
         },
         {
           "name": "owner",
@@ -9301,102 +9218,19 @@ export type DiamondPools = {
         {
           "name": "ownerStoreAta",
           "docs": [
-            "The exiter's canonical stORE ATA, created HERE at the exiter's own signature and",
-            "**`payer = owner`** (finding #9 — rent incidence). Settlement is permissionless and",
-            "the beneficiary does not sign it, so this is the only moment the protocol can charge",
-            "the party that actually causes the cost; previously the keeper paid, unbounded and",
-            "attacker-triggerable. It also guarantees the account EXISTS by settle time, which is",
-            "what keeps the rev-6 hijack fail-soft (`store_ata_is_payable`) from cancelling honest",
-            "first-time exits. The rent stays the user's own and is reclaimable by closing the ATA",
-            "after a full exit."
+            "own expense (finding #9 — settlement is permissionless and the beneficiary does not sign",
+            "it, so this is the only moment the protocol can charge the party that causes the cost).",
+            "",
+            "DELIBERATELY `UncheckedAccount` + in-handler creation, NOT `init_if_needed`. Anchor's",
+            "already-exists branch checks `pa.owner != owner` and raises `ConstraintTokenOwner`, so a",
+            "wallet that had re-owned its own canonical ATA could not even QUEUE an exit — and since",
+            "only the NEW owner can undo `SetAuthority(AccountOwner)`, that locked their shares AND the",
+            "SOL leg they were owed, permanently. Verified in bankrun. See",
+            "`common::create_store_ata_if_vacant`: it creates only a genuinely vacant address and never",
+            "touches an account that exists in any other state, so it cannot revert on holder-controlled",
+            "state. The settle-side fail-soft handles the rest."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "storeMint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "writable": true
         },
         {
           "name": "owner",
