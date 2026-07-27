@@ -1022,7 +1022,11 @@ export type DiamondPools = {
     {
       "name": "crankBatch",
       "docs": [
-        "BATCH: finalize the window (BATCH → OPEN). Crystallization hooks here."
+        "BATCH: finalize the window (BATCH → OPEN). Crystallization hooks here.",
+        "",
+        "Deliberately does NOT wait for the weekly perf pass (`crank_perf_charge`) to finish. BATCH",
+        "is irrevocable; gating it on a paged pass that a stalled keeper may never complete would be",
+        "a permanent wedge. An unfinished pass merges into the next cycle instead — see perf_fee.rs."
       ],
       "discriminator": [
         245,
@@ -3197,6 +3201,194 @@ export type DiamondPools = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "crankPerfCharge",
+      "docs": [
+        "The WEEKLY PERFORMANCE PASS, one position per call. Permissionless, idempotent per",
+        "(position, cycle), and free of any revert a caller cannot fix by waiting."
+      ],
+      "discriminator": [
+        177,
+        170,
+        254,
+        91,
+        198,
+        185,
+        162,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "docs": [
+            "The window whose BATCH phase this pass runs in. Read for `frozen_mining_nps` at pass open",
+            "only; later pages price against the sealed `mining_pool.perf_pass_nps`."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "window.id",
+                "account": "window"
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "docs": [
+            "The position being charged this call (mining pool)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "miningVault",
+          "writable": true
+        },
+        {
+          "name": "protocolVaultAuthority",
+          "writable": true
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "the cosigned `distribute_fees`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "crankPpConvertSolToOre",
@@ -6204,7 +6396,13 @@ export type DiamondPools = {
           }
         },
         {
-          "name": "protocolVaultAuthority"
+          "name": "protocolVaultAuthority",
+          "docs": [
+            "landed here it is ALSO a lamport destination — hence `mut`. Without it the SOL leg pays,",
+            "the fee transfer aborts with a bare PrivilegeEscalation, and the whole exit reverts: the",
+            "rev-11 F1 class, which I re-created one field above the comment warning about it."
+          ],
+          "writable": true
         },
         {
           "name": "protocolVaultAta",
@@ -6294,6 +6492,34 @@ export type DiamondPools = {
                 89
               ]
             }
+          }
+        },
+        {
+          "name": "feeBucket",
+          "docs": [
+            "transfer target without `mut` aborts with a bare PrivilegeEscalation (rev-11 F1 class).",
+            "A fixed bump-derived PDA, never an admin-settable key: value leaves it only through the",
+            "cosigned `distribute_fees` on a schedule summing to 10000."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
           }
         },
         {
@@ -10910,6 +11136,130 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "feeBucket",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeStoreAta",
+          "docs": [
+            "The staking EXIT fee's team leg lands here, in stORE.",
+            "",
+            "Deliberately NOT `init_if_needed`: `cranker` on this rail is non-writable by design (V1a),",
+            "so there is no payer available and creating it here is structurally impossible. It does not",
+            "need to be created: `settle_staking_deposit` resolves the same ATA with `init_if_needed` on",
+            "EVERY staking deposit, and shares cannot exist to exit without a settled deposit. So by the",
+            "time any exit can run, this account exists.",
+            "",
+            "Mandatory rather than `Option`: this rail is permissionless, and an optional fee destination",
+            "would let anyone settle an exit with it omitted and skip the fee entirely."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "feeBucket"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "cranker",
           "docs": [
             "non-writable signer is structurally incapable of funding an account, so no future",
@@ -13533,6 +13883,45 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "perfFeeCharged",
+      "discriminator": [
+        249,
+        1,
+        120,
+        220,
+        66,
+        214,
+        79,
+        197
+      ]
+    },
+    {
+      "name": "perfPassOpened",
+      "discriminator": [
+        237,
+        4,
+        189,
+        129,
+        86,
+        3,
+        116,
+        152
+      ]
+    },
+    {
+      "name": "perfPositionSkipped",
+      "discriminator": [
+        243,
+        104,
+        212,
+        47,
+        182,
+        116,
+        24,
+        167
+      ]
+    },
+    {
       "name": "phantomDustCeilingBreached",
       "discriminator": [
         214,
@@ -13660,6 +14049,19 @@ export type DiamondPools = {
         109,
         103,
         48
+      ]
+    },
+    {
+      "name": "stakingExitFeeCharged",
+      "discriminator": [
+        8,
+        42,
+        186,
+        79,
+        48,
+        109,
+        235,
+        47
       ]
     },
     {
@@ -14753,6 +15155,49 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
+            "name": "exitFeeStakingBps",
+            "docs": [
+              "Staking-pool EXIT fee, charged on `due` AFTER the subentry split so the ST/PP funding ratio",
+              "(`f2 = from_pp / book_net`) is unaffected. PP leg stays in stORE -- no conversion, no oracle,",
+              "and notably it never touches `fee_sol_accrued`."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "ppShareStakingExitBps",
+            "type": "u16"
+          },
+          {
+            "name": "perfFeeBps",
+            "docs": [
+              "Performance fee on Mining-Pool gains above each position's own high-water mark. Charged on",
+              "the SOL leg ONLY: an HWM over a combined NAV would need an ORE/SOL price and would",
+              "reintroduce the oracle this design removes by construction."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "ppSharePerfBps",
+            "type": "u16"
+          },
+          {
+            "name": "perfPeriodSecs",
+            "docs": [
+              "Crystallization cadence. 0 = charge ONLY on the exit MEASURE pass (the fallback posture,",
+              "reachable by cosigned set_param with no upgrade); otherwise the weekly BATCH pass also fires",
+              "on a FIXED EPOCH measured from `FeeSchedule.genesis_ts`."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "perfFeeEnabled",
+            "docs": [
+              "Master switch. `apply_due` collapses `perf_fee_bps` and `perf_period_secs` to 0 whenever this",
+              "is false, so an unsafe partial bundle can never leave a live charge armed."
+            ],
+            "type": "bool"
+          },
+          {
             "name": "currentWindowId",
             "type": "u64"
           },
@@ -15679,6 +16124,36 @@ export type DiamondPools = {
             "type": "u32"
           },
           {
+            "name": "perfCycleId",
+            "docs": [
+              "FROZEN perf cycle id for the open weekly pass. Derived as",
+              "`floor((now - genesis_ts) / perf_period_secs)` and STAMPED when the pass opens -- never",
+              "recomputed per page. A paged pass can straddle an epoch boundary, and a drifting `k` would",
+              "break idempotence exactly where it matters. Same discipline as `monetize_window_id`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "perfPassNps",
+            "docs": [
+              "The NPS the open pass prices against, SEALED with `perf_cycle_id` at pass open.",
+              "",
+              "Without it every page would read `window.frozen_mining_nps` live, and several windows can",
+              "sit in BATCH at once (`cascades_in_flight`): a cranker who also holds a position could then",
+              "route their own page through whichever in-flight window carries the LOWEST mark and pay",
+              "less. Sealing removes the choice — the mark is whatever the window that OPENED the pass",
+              "carried, for every position in it."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "perfCharged",
+            "docs": [
+              "Positions charged in the open perf cycle (paging cursor, mirrors `monetize_processed`)."
+            ],
+            "type": "u32"
+          },
+          {
             "name": "monetizeWindowId",
             "docs": [
               "Window whose frozen accumulator/factor/ratio sealed the open SELL cycle.",
@@ -16133,6 +16608,29 @@ export type DiamondPools = {
             "type": "bool"
           },
           {
+            "name": "computedPerfFee",
+            "docs": [
+              "PERF FEE sealed at MEASURE, consumed at PAY. Same seal-then-consume discipline as",
+              "`computed_need` / `computed_u_out`: a recompute at PAY could price against live,",
+              "possibly deposit-mutated, position state."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "feeBpsSnapshot",
+            "docs": [
+              "Fee rate SNAPSHOT taken when the order was submitted, for the `min(snapshot, live)` cap.",
+              "",
+              "Orders are irrevocable and forward-priced: a user commits before the applicable fee is",
+              "knowable, and a cosigned raise landing between submission and settlement would otherwise",
+              "charge a fee they never agreed to and cannot withdraw from. Prospective-only params narrow",
+              "that window but do not close it. Comparing computed FEES (not bps) is what makes the",
+              "enable-flags compose. Meaning by order kind: mining withdraw -> perf bps; staking entry ->",
+              "entry bps; staking exit -> exit bps."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "settled",
             "type": "bool"
           },
@@ -16195,6 +16693,127 @@ export type DiamondPools = {
           },
           {
             "name": "etaWindow",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "perfFeeCharged",
+      "docs": [
+        "A performance-fee charge, on either trigger point. One event shape for both so the off-chain",
+        "P&L/HWM tracker reconciles against EVENTS, never against inferred state.",
+        "",
+        "`shares_burned` is 0 on the exit trigger (the shares are being redeemed anyway) and non-zero on",
+        "the weekly pass, which is what distinguishes the two without a second event type."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stream",
+            "type": "u8"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "base",
+            "docs": [
+              "The quantity the rate was applied to: `s * frozen_nps` for an exit, the position's SOL-leg",
+              "value for the weekly pass."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bps",
+            "type": "u16"
+          },
+          {
+            "name": "feeAmount",
+            "type": "u64"
+          },
+          {
+            "name": "teamLeg",
+            "type": "u64"
+          },
+          {
+            "name": "ppLeg",
+            "type": "u64"
+          },
+          {
+            "name": "cycleId",
+            "type": "u64"
+          },
+          {
+            "name": "sharesBurned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "perfPassOpened",
+      "docs": [
+        "A weekly perf pass opened: `k` and the mark are now SEALED for every page of this cycle.",
+        "`positions` is the size of the work list the keeper has to page through."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cycleId",
+            "type": "u64"
+          },
+          {
+            "name": "windowId",
+            "type": "u64"
+          },
+          {
+            "name": "nps",
+            "type": "u128"
+          },
+          {
+            "name": "positions",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "perfPositionSkipped",
+      "docs": [
+        "A position the pass could NOT collect from this cycle — all-or-nothing, no ratchet, merges into",
+        "the next one. Distinctly labelled because the three causes need different operator responses:",
+        "`vault_lamports` near `bankroll_floor` is a liquidity signal, while `free_shares < shares_needed`",
+        "just means the holder has a sealed exit in flight and will pay at that exit instead."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "cycleId",
+            "type": "u64"
+          },
+          {
+            "name": "feeOwed",
+            "type": "u64"
+          },
+          {
+            "name": "sharesNeeded",
+            "type": "u64"
+          },
+          {
+            "name": "freeShares",
+            "type": "u64"
+          },
+          {
+            "name": "vaultLamports",
             "type": "u64"
           }
         ]
@@ -16374,6 +16993,36 @@ export type DiamondPools = {
               "position sells at most once per cycle). 0 while dormant."
             ],
             "type": "u32"
+          },
+          {
+            "name": "perfHwmNps",
+            "docs": [
+              "PERFORMANCE-FEE HIGH-WATER MARK, same 1e18 scale as `NAV_SCALE`.",
+              "",
+              "THREE MINTING PATHS, THREE RULES -- and they are not interchangeable:",
+              "mint    := the settlement NPS of the minting window",
+              "top-up  := (s_old*hwm_old + s_new*nps_now) / (s_old + s_new)   -- deposits are BASIS",
+              "fold    := hwm * s_old / s_new                                 -- folds are GAIN",
+              "",
+              "The fold rule is what makes this fee collect anything at all. The strategy's SOL leg LOSES",
+              "on average (-0.58% of budget) and the entire profit arrives through the ORE leg, i.e.",
+              "through fold mints (+1.04%). So NPS DECLINES between folds and gain arrives as share COUNT,",
+              "not as price. Under the top-up weighting a fold-NAV watermark tracks NPS from above and the",
+              "excess never turns positive: measured over a 26-week path, that rule collects 0.0% of the",
+              "ground-truth fee -- the entire revenue line, silently gone. Dilution conserves the watermark",
+              "VALUE (`s * hwm`) through the mint, which is what converts a value-watermark into a",
+              "per-share one, and it reproduces the backtested ground truth exactly, including on paths",
+              "that mix real deposits in."
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "perfCycleCkpt",
+            "docs": [
+              "Last perf cycle id this position was charged in -- paging idempotence, exactly like",
+              "`monetize_cycle_ckpt`. A position is charged at most once per cycle."
+            ],
+            "type": "u64"
           },
           {
             "name": "monetizeSkips",
@@ -16719,6 +17368,46 @@ export type DiamondPools = {
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "stakingExitFeeCharged",
+      "docs": [
+        "A staking-pool EXIT fee charge. stORE-denominated: the PP leg stays in stORE with PP (no",
+        "conversion, no oracle) and the team leg goes to the fee store."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "due",
+            "type": "u64"
+          },
+          {
+            "name": "bps",
+            "type": "u16"
+          },
+          {
+            "name": "feeAmount",
+            "type": "u64"
+          },
+          {
+            "name": "teamLeg",
+            "type": "u64"
+          },
+          {
+            "name": "ppLeg",
+            "type": "u64"
+          },
+          {
+            "name": "dust",
+            "type": "u64"
           }
         ]
       }
