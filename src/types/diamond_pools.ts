@@ -3380,6 +3380,14 @@ export type DiamondPools = {
           }
         },
         {
+          "name": "feeExemptEntry",
+          "docs": [
+            "none. Address/owner/wallet validated inside `fee_exempt_flags_for_wallet`; deliberately not",
+            "`Account<..>`, because most holders have no entry and Anchor would reject the absent",
+            "account outright. Read-only — the pass has no business mutating an exemption."
+          ]
+        },
+        {
           "name": "cranker",
           "signer": true
         },
