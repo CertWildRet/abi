@@ -14702,6 +14702,11 @@
       "code": 6100,
       "name": "AdminTransferTimelockActive",
       "msg": "the admin-transfer timelock has not elapsed yet"
+    },
+    {
+      "code": 6101,
+      "name": "BankrollFloorUnset",
+      "msg": "mining cannot be opened until bankroll_floor is set (see deploy/GENESIS_CONFIG.md)"
     }
   ],
   "types": [

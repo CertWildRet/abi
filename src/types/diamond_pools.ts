@@ -14708,6 +14708,11 @@ export type DiamondPools = {
       "code": 6100,
       "name": "adminTransferTimelockActive",
       "msg": "the admin-transfer timelock has not elapsed yet"
+    },
+    {
+      "code": 6101,
+      "name": "bankrollFloorUnset",
+      "msg": "mining cannot be opened until bankroll_floor is set (see deploy/GENESIS_CONFIG.md)"
     }
   ],
   "types": [
