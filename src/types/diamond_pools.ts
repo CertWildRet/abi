@@ -14711,8 +14711,8 @@ export type DiamondPools = {
     },
     {
       "code": 6101,
-      "name": "bankrollFloorUnset",
-      "msg": "mining cannot be opened until bankroll_floor is set (see deploy/GENESIS_CONFIG.md)"
+      "name": "genesisBoundsUnset",
+      "msg": "mining cannot be opened until bankroll_floor, max_deploy_per_round and max_deploy_per_window are all set (see the genesis runbook)"
     }
   ],
   "types": [
