@@ -15068,11 +15068,27 @@ export type DiamondPools = {
             "type": "bool"
           },
           {
-            "name": "maxDeployPerRound",
+            "name": "maxDeployPerRoundBps",
+            "docs": [
+              "Per-round deploy ceiling as **bps of the mining pool**, where the pool is",
+              "`sol_in_vault + in_flight_sol`. A ratio rather than an absolute so it auto-scales with",
+              "deposits and never goes stale as the pool grows. `0` = UNSET and blocks `mining_open`.",
+              "",
+              "THE BASE INCLUDES `in_flight_sol` ON PURPOSE. `crank_mine` debits `sol_in_vault` as it",
+              "deploys, so a ratio against the vault alone would tighten underneath the running total: at",
+              "200 bps the effective ceiling becomes 1.96%, and worse it would depend on how many",
+              "`crank_mine` calls the keeper splits a grid across (grid-flatten uses several). The sum is",
+              "conserved across a deploy — the vault falls by exactly what goes in flight — so this base",
+              "holds still for the whole round and moves only on deposits, withdrawals and wins."
+            ],
             "type": "u64"
           },
           {
-            "name": "maxDeployPerWindow",
+            "name": "maxDeployPerWindowBps",
+            "docs": [
+              "Per-window deploy ceiling, same base and units. `0` = UNSET and blocks `mining_open`.",
+              "Scales linearly with `window_period_secs`: 0.433x per 1h window = 4330 bps."
+            ],
             "type": "u64"
           },
           {
