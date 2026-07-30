@@ -14713,6 +14713,11 @@ export type DiamondPools = {
       "code": 6101,
       "name": "genesisBoundsUnset",
       "msg": "mining cannot be opened until bankroll_floor, max_deploy_per_round and max_deploy_per_window are all set (see the genesis runbook)"
+    },
+    {
+      "code": 6102,
+      "name": "ppPublicDepositBeforeSeed",
+      "msg": "the Protocol Pool must hold shares before it can take a public deposit — seed it in WHITELIST mode first"
     }
   ],
   "types": [

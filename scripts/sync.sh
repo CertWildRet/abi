@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# Copy fresh IDL + TS types from the contracts build output into abi/src.
-# Run this after every `anchor build` in the contracts repo.
+# Copy fresh IDL + TS types from the contracts build output into abi/src, plus the committed
+# deploy manifests. Run this after every `anchor build` in the contracts repo.
+#
+# This script exists because `contracts` is PRIVATE while `abi` is public, and every downstream
+# consumer (sdk, crank, frontend) pins its dependencies by git commit hash. Anything a consumer
+# needs to talk to the deployed program therefore has to be republished HERE to be reachable at
+# all — a consumer reaching sideways into ../contracts resolves only in a local sibling checkout
+# and breaks the moment CI checks that repo out alone.
 #
 # Usage: bash scripts/sync.sh [path/to/contracts]
 # Defaults to ../contracts relative to this repo.
@@ -33,6 +39,21 @@ for p in "${PROGRAMS[@]}"; do
   cp "$src_idl" "$dst_idl"
   cp "$src_ty" "$dst_ty"
   echo "synced $p"
+done
+
+# ── Deploy manifests ────────────────────────────────────────────────────────────────────────────
+# Not build output: these are committed artifacts describing what is live on chain. They are
+# published through abi for the same reason the IDL is — they describe the deployed program, and
+# consumers cannot read the private contracts repo.
+mkdir -p "$ABI_ROOT/src/deploy"
+for m in address-lookup-table.json; do
+  src_m="$CONTRACTS_ROOT/deploy/$m"
+  if [ ! -f "$src_m" ]; then
+    echo "Skipping $m: missing $src_m"
+    continue
+  fi
+  cp "$src_m" "$ABI_ROOT/src/deploy/$m"
+  echo "synced $m"
 done
 
 echo "done. Now run: npm run build  (in abi/)"

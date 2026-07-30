@@ -1,6 +1,6 @@
 {
   "name": "@diamond/abi",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Canonical IDL + TypeScript types for the Diamond Pools Solana program. Source of truth — never edit dist/ by hand; run `scripts/sync.sh` after a contract rebuild.",
   "license": "MIT",
   "main": "dist/index.js",
