@@ -1998,6 +1998,10 @@ export type DiamondPools = {
           "writable": true
         },
         {
+          "name": "oreTreasury",
+          "writable": true
+        },
+        {
           "name": "oreProgram",
           "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
         },

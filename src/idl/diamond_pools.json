@@ -1992,6 +1992,10 @@
           "writable": true
         },
         {
+          "name": "ore_treasury",
+          "writable": true
+        },
+        {
           "name": "ore_program",
           "address": "oreV3EG1i9BEgiAJ8b177Z2S2rMarzak4NMv1kULvWv"
         },
