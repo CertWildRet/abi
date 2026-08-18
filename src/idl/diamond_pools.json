@@ -1773,6 +1773,41 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "fee_bucket",
+          "docs": [
+            "mining authority at harvest (w3 increment). Foreign lamports must never book as",
+            "winnings: they would inflate `sol_in_vault` (mining NAV) with value the strategy",
+            "never won, polluting the perf-fee HWM and the win telemetry. Seeds-validated.",
+            "",
+            "DELIBERATELY THE LAST ACCOUNT (adversarial-review refutation 2): a NEW account",
+            "appended at the END keeps the frame PREFIX-STABLE for tooling and indexers —",
+            "inserting it mid-frame shifted every later index. The old keeper still",
+            "fail-stops on account count until it ships the new frame; the deploy runbook",
+            "(CHANGELOG, w3 entry) bounds that outage to one coordinated window:",
+            "contract deploy → migrate_account_space → keeper/SDK redeploy → verify freeze."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  98,
+                  117,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              }
+            ]
+          }
         }
       ],
       "args": []
@@ -2124,7 +2159,8 @@
           }
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "monetize_store_ata",
@@ -2357,7 +2393,8 @@
           }
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "cranker",
@@ -2674,7 +2711,8 @@
           "writable": true
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "staking_vault_authority"
@@ -3083,7 +3121,8 @@
           }
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "monetize_store_ata",
@@ -3768,7 +3807,13 @@
           }
         },
         {
-          "name": "protocol_vault_authority"
+          "name": "protocol_vault_authority",
+          "docs": [
+            "increment): the wrap CPI's signer/payer leg moves lamports over this account, so it",
+            "must be writable in the outer frame — proven by the 16 Aug mainnet simulation (the",
+            "SDK's forceWritable workaround e726faa is retired by this)."
+          ],
+          "writable": true
         },
         {
           "name": "pp_ore_ata",
@@ -3958,10 +4003,12 @@
         },
         {
           "name": "ore_mint",
+          "writable": true,
           "address": "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp"
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "keeper",
@@ -4742,7 +4789,8 @@
           "writable": true
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "protocol_vault_authority",
@@ -5915,6 +5963,89 @@
       "args": []
     },
     {
+      "name": "migrate_account_space",
+      "docs": [
+        "Immediate safety switch: mining/staking open, or defensive mode.",
+        "w3 increment: append-only layout growth for the live Config/MiningPool PDAs.",
+        "Admin-signature gated (raw-offset check — see the chicken-and-egg note in",
+        "admin.rs); idempotent; zero-fills the appended tail (correct dormant defaults).",
+        "MUST run first after the w3 upgrade deploys, before anything touches Config."
+      ],
+      "discriminator": [
+        98,
+        232,
+        219,
+        113,
+        27,
+        139,
+        50,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "deserialize as `Account<Config>`, which is the condition being repaired.",
+            "Seeds-validated; ownership is implied (only this program can own the PDA and",
+            "realloc requires program ownership); admin is checked against the raw bytes."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mining_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "docs": [
+            "Pays the rent-exemption delta for the grown accounts."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "ops_withdraw",
       "docs": [
         "Cosigned Team Ops Treasury withdrawal from the retained external-fee balances."
@@ -6306,7 +6437,8 @@
           "writable": true
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "staking_vault_authority"
@@ -8412,9 +8544,6 @@
     },
     {
       "name": "set_emergency",
-      "docs": [
-        "Immediate safety switch: mining/staking open, or defensive mode."
-      ],
       "discriminator": [
         179,
         20,
@@ -9244,7 +9373,8 @@
           "writable": true
         },
         {
-          "name": "store_mint"
+          "name": "store_mint",
+          "writable": true
         },
         {
           "name": "protocol_vault_authority",
@@ -13486,6 +13616,19 @@
   ],
   "events": [
     {
+      "name": "AccountSpaceMigrated",
+      "discriminator": [
+        118,
+        186,
+        188,
+        129,
+        88,
+        79,
+        92,
+        57
+      ]
+    },
+    {
       "name": "AdminCosignEvent",
       "discriminator": [
         104,
@@ -13759,6 +13902,19 @@
       ]
     },
     {
+      "name": "HarvestDustQuarantined",
+      "discriminator": [
+        62,
+        248,
+        189,
+        242,
+        127,
+        227,
+        69,
+        242
+      ]
+    },
+    {
       "name": "MiningExitSettled",
       "discriminator": [
         58,
@@ -13769,6 +13925,19 @@
         145,
         227,
         20
+      ]
+    },
+    {
+      "name": "MonetizeDustSkipped",
+      "discriminator": [
+        105,
+        178,
+        38,
+        15,
+        9,
+        58,
+        211,
+        157
       ]
     },
     {
@@ -14720,6 +14889,27 @@
   ],
   "types": [
     {
+      "name": "AccountSpaceMigrated",
+      "docs": [
+        "w3 increment: `migrate_account_space` grew Config/MiningPool to the current",
+        "build's layout (append-only tail, zero-filled). Emitted every run, including",
+        "idempotent no-ops — the lens are the proof of the post-state."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config_len",
+            "type": "u64"
+          },
+          {
+            "name": "mining_pool_len",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "AdminCosignEvent",
       "docs": [
         "A fee-holder cosign authorized an admin instruction."
@@ -15255,6 +15445,16 @@
           },
           {
             "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "settlement_mode",
+            "docs": [
+              "ORE settlement-law mode the keeper/quant stack keys off (upstream ore #167):",
+              "0 = parimutuel (legacy), 1 = flat_fee (additive refund law). RESERVATION ONLY —",
+              "no handler reads it yet (settled register #22: do not build the path before the",
+              "upstream merge + quant v3 vectors). Cosign-settable via ConfigField::SettlementMode."
+            ],
             "type": "u8"
           }
         ]
@@ -15906,6 +16106,28 @@
       }
     },
     {
+      "name": "HarvestDustQuarantined",
+      "docs": [
+        "w3 increment: FOREIGN lamports (donations / strays parked on the mining authority)",
+        "were quarantined into the fee bucket at harvest instead of booking as winnings.",
+        "`WindowFrozen.harvested_sol` carries ONLY the true ClaimSOL winnings; this line is",
+        "the audit trail for the split."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "window_id",
+            "type": "u64"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "MiningExitSettled",
       "docs": [
         "A miner exit settled (cascade step 2): SOL leg + token leg (delivered in ORE),",
@@ -16321,6 +16543,81 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "monetize_intended_store",
+            "docs": [
+              "Σ need_claim across SELL pages — the residual stORE value (at the frozen",
+              "ratio) whose crediting is DEFERRED to the post-claim measurement."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "monetize_intended_u",
+            "docs": [
+              "Σ residual (u, r) legs debited from positions but not bought into ST/PP",
+              "books — the claim-sizing basis (at the seal window's frozen factor)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "monetize_intended_r",
+            "type": "u64"
+          },
+          {
+            "name": "monetize_delivered_store",
+            "docs": [
+              "The MEASURED stORE the residual claim actually credited to sellers (the",
+              "pro-rata carve of the wrap output). STAGE/ABORT's custody identity is",
+              "`store_holding == monetize_st_paid + monetize_pp_paid + this`. Reset at",
+              "cycle close."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "authority_expected_lamports",
+            "docs": [
+              "w3 refutation fix: the lamports OUR OWN flows left on the mining authority —",
+              "the harvest quarantine's exemption watermark. The keeper deliberately maintains",
+              "an operational float there (`fund_mining_authority`, which DEBITS `sol_in_vault`",
+              "— the float is relocated depositor principal, NOT foreign), so \"pre-claim",
+              "balance above the rent floor\" alone cannot identify a donation. Bumped by",
+              "`fund_mining_authority`, re-snapshotted to the authority's post-sweep balance at",
+              "every harvest (self-correcting against untracked outflows like checkpoint",
+              "fees). 0 == UNARMED (post-sweep balances are always ≥ rent, so 0 is",
+              "unambiguous): the first armed-less freeze quarantines nothing — the pre-w3",
+              "posture — then arms. While armed, the funded float STAYS on the authority",
+              "(never swept) and only lamports above `max(floor, this)` that were already",
+              "present before ClaimSOL book as foreign."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MonetizeDustSkipped",
+      "docs": [
+        "w3 increment: a sub-`MONETIZE_DUST_FLOOR_GRAMS` monetize leg was skipped-and-counted",
+        "instead of forcing its route (the window-349 wedge class). surface: 1 = the residual",
+        "claim was consumed pool-favor into the LITE phantom credit without a CPI; 2 = the",
+        "custody was reclassified to the system reserve without a keeper swap (zero-value",
+        "FOLD clears the weights)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "cycle_id",
+            "type": "u32"
+          },
+          {
+            "name": "surface",
+            "type": "u8"
+          },
+          {
+            "name": "grams",
+            "type": "u64"
           }
         ]
       }
