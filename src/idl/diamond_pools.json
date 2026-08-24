@@ -1777,9 +1777,11 @@
         {
           "name": "fee_bucket",
           "docs": [
-            "mining authority at harvest (w3 increment). Foreign lamports must never book as",
-            "winnings: they would inflate `sol_in_vault` (mining NAV) with value the strategy",
-            "never won, polluting the perf-fee HWM and the win telemetry. Seeds-validated.",
+            "this account is RETIRED — the ClaimSOL-delta channel it split against is structurally",
+            "dead under ORE's `auto_return = 1` (see `classify_harvest_sweep`), so nothing routes",
+            "here from the harvest anymore. The account stays in the frame (ABI stability) and the",
+            "dead branch below stays compiled; per-source provenance returns at genesis-2.",
+            "Seeds-validated.",
             "",
             "DELIBERATELY THE LAST ACCOUNT (adversarial-review refutation 2): a NEW account",
             "appended at the END keeps the frame PREFIX-STABLE for tooling and indexers —",
@@ -2286,7 +2288,17 @@
       "docs": [
         "§5.6b residual rung — after all SELL pages, measure one partial claim from the",
         "shared miner, reconcile the intended-vs-physical leg mix through LITE, wrap the",
-        "credited amount to stORE, and quarantine wrapper overage in the claim reserve."
+        "credited amount to stORE, and quarantine wrapper overage in the claim reserve.",
+        "",
+        "F34 (desk Option A, genesis-2): `executor_cap_grams` bounds the physical claim so",
+        "the downstream STAGE front stays affordable to the keeper. `u64::MAX` = uncapped",
+        "(byte-identical to the pre-cap law). A cap below MIN_CRYSTALLIZE_TARGET_GRAMS",
+        "reverts clean — phase unchanged, nothing claimed, no dust consumption. The",
+        "uncapped remainder stays physically in the miner and is carried by the existing",
+        "LITE tripwire entry (intended − claimed books as a phantom credit), the same",
+        "conservation law the dust path already rides. NOTE: the desk signature named",
+        "lamports; grams is deliberate — the program has no SOL↔ORE oracle by design, and",
+        "the keeper (which already quotes for the A1 impact cap) converts at its own quote."
       ],
       "discriminator": [
         190,
@@ -2416,7 +2428,12 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "executor_cap_grams",
+          "type": "u64"
+        }
+      ]
     },
     {
       "name": "crank_monetize_fold",
@@ -14885,6 +14902,16 @@
       "code": 6102,
       "name": "PpPublicDepositBeforeSeed",
       "msg": "the Protocol Pool must hold shares before it can take a public deposit — seed it in WHITELIST mode first"
+    },
+    {
+      "code": 6103,
+      "name": "ExecutorCapBelowFloor",
+      "msg": "executor cap is below the crystallize floor — fund the keeper or raise the cap; nothing was claimed and the cycle is unchanged"
+    },
+    {
+      "code": 6104,
+      "name": "CappedClaimKeeperOnly",
+      "msg": "a binding executor cap may only be passed by the keeper — a permissionless crank must pass u64::MAX (uncapped)"
     }
   ],
   "types": [
@@ -16577,18 +16604,17 @@
           {
             "name": "authority_expected_lamports",
             "docs": [
-              "w3 refutation fix: the lamports OUR OWN flows left on the mining authority —",
-              "the harvest quarantine's exemption watermark. The keeper deliberately maintains",
-              "an operational float there (`fund_mining_authority`, which DEBITS `sol_in_vault`",
-              "— the float is relocated depositor principal, NOT foreign), so \"pre-claim",
-              "balance above the rent floor\" alone cannot identify a donation. Bumped by",
-              "`fund_mining_authority`, re-snapshotted to the authority's post-sweep balance at",
-              "every harvest (self-correcting against untracked outflows like checkpoint",
-              "fees). 0 == UNARMED (post-sweep balances are always ≥ rent, so 0 is",
-              "unambiguous): the first armed-less freeze quarantines nothing — the pre-w3",
-              "posture — then arms. While armed, the funded float STAYS on the authority",
-              "(never swept) and only lamports above `max(floor, this)` that were already",
-              "present before ClaimSOL book as foreign."
+              "The lamports OUR OWN flows left on the mining authority — the harvest sweep's",
+              "exemption watermark. The keeper maintains an operational float there",
+              "(`fund_mining_authority`, which DEBITS `sol_in_vault` — relocated depositor",
+              "principal), and `keep = max(rent + cushion, this)` keeps it on the authority:",
+              "never swept, never booked anywhere. Bumped by `fund_mining_authority`,",
+              "re-snapshotted to the post-sweep balance at every harvest (self-correcting",
+              "against untracked outflows like checkpoint fees). F20 (23 Aug 2026): the",
+              "quarantine split this once fed is retired — everything ABOVE `keep` books as",
+              "winnings (see `classify_harvest_sweep` in freeze.rs for why timing carries no",
+              "provenance under ORE's `auto_return` push) — but the float exemption is",
+              "unchanged and load-bearing."
             ],
             "type": "u64"
           }
