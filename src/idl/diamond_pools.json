@@ -758,6 +758,203 @@
       ]
     },
     {
+      "name": "clear_phantom_at_boundary",
+      "docs": [
+        "C1 — re-anchor the LITE phantom to `physical - books` at a drained state. Cosigned,",
+        "admin-only. The only clearing path that exists: `crank_remark_phantom` folds a pure surplus",
+        "only, and `initialize` cannot run twice (F42), so without this a campaign inherits its",
+        "predecessor's phantom permanently."
+      ],
+      "discriminator": [
+        37,
+        4,
+        177,
+        218,
+        100,
+        203,
+        206,
+        126
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "MUT: the cosign gate consumes the nonce, and D3's latch may write `defensive_mode`."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mining_pool",
+          "docs": [
+            "Read-only: supplies `factor_mirror`, the pinned miner key, the drained-share and",
+            "live-position counts, and the post-evacuation flag."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "staking_pool",
+          "docs": [
+            "MUT — its book is ROLLED to `factor` before being read. `evacuate.rs:670-671` does the same",
+            "thing for the same reason: physical, books and the new checkpoint must all be expressed at",
+            "ONE factor or the re-anchor bakes in a refining mismatch."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocol_pool",
+          "docs": [
+            "MUT — same reason."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "docs": [
+            "Read-only, and NOT optional: the unclaimed pot is a real fourth claimant on the shared",
+            "miner. `enumerable_books_legs` takes it as a separate argument precisely so this account",
+            "cannot be quietly dropped from the frame."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ore_miner",
+          "docs": [
+            "Read-only, never a CPI."
+          ]
+        },
+        {
+          "name": "phantom_member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ix_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "close_mining_position",
       "docs": [
         "§5.6b registry hygiene: permissionlessly close a fully-empty mining position PDA",
@@ -6743,96 +6940,28 @@
         {
           "name": "unclaimed_custody_ata",
           "docs": [
-            "The segregated custody ATA. Never `init_if_needed` on a permissionless rail — it is created",
-            "once at `initialize` (program-PDA authority, uncloseable, bounded), so it always exists."
+            "created once at `initialize` (program-PDA authority, uncloseable, bounded), so it always",
+            "exists. ADDRESS-CHECKED IN THE HANDLER, exactly as `exiter_store_ata` two fields up is, and",
+            "for a reason that is about the BPF stack rather than about validation:",
+            "",
+            "⛔ F47. `Box<Account<T>>` does NOT keep the account off the stack — Anchor's generated",
+            "`try_accounts` deserializes it into a stack temporary and only then moves it to the heap. All",
+            "13 boxed accounts in this struct therefore cost their full size transiently, and the frame",
+            "sat at EXACTLY 4096 bytes, the SBF hard limit, with zero headroom. C2's 2-byte append to",
+            "`Config` pushed `PayMiningExit::try_accounts` to 4104 and mainnet would have answered with an",
+            "AccessViolation during account validation — on the IRREVOCABLE `MINING_EXITS` phase, which",
+            "closes `evacuate_claim_all` behind the entire TVL.",
+            "",
+            "This account is the cheapest possible reclaim: its typed data is NEVER read (it appears only",
+            "as `.to_account_info()`, a transfer destination in `record_unclaimed_store`), and nothing",
+            "else in the struct references it, so demoting it removes a ~165-byte temporary and generates",
+            "no extra validation code. Demoting `store_mint` instead makes the frame WORSE (4104 → 4128),",
+            "because three `associated_token::mint = store_mint` constraints then have to be re-derived.",
+            "",
+            "The check below is behaviourally identical to the `associated_token::` constraint it",
+            "replaces: same derivation, still evaluated unconditionally before any use."
           ],
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "unclaimed_custody_authority"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "store_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "writable": true
         },
         {
           "name": "unclaimed_custody_authority",
@@ -13932,6 +14061,19 @@
       ]
     },
     {
+      "name": "MiningExitFeeCharged",
+      "discriminator": [
+        53,
+        17,
+        111,
+        6,
+        23,
+        221,
+        57,
+        97
+      ]
+    },
+    {
       "name": "MiningExitSettled",
       "discriminator": [
         58,
@@ -14124,6 +14266,19 @@
         16,
         154,
         29
+      ]
+    },
+    {
+      "name": "PhantomReanchored",
+      "discriminator": [
+        142,
+        175,
+        227,
+        160,
+        116,
+        167,
+        241,
+        124
       ]
     },
     {
@@ -14912,6 +15067,26 @@
       "code": 6104,
       "name": "CappedClaimKeeperOnly",
       "msg": "a binding executor cap may only be passed by the keeper — a permissionless crank must pass u64::MAX (uncapped)"
+    },
+    {
+      "code": 6105,
+      "name": "PhantomClearNotDrained",
+      "msg": "a pool still has redeemable shares outstanding — every holder must be out before the phantom may be re-anchored"
+    },
+    {
+      "code": 6106,
+      "name": "PhantomClearPositionsLive",
+      "msg": "a mining position still exists — its uore_base/rore_stock annex is NOT visible in total_shares, and re-anchoring over it would fold that holder's entitlement into a pricing-excluded counter"
+    },
+    {
+      "code": 6107,
+      "name": "PhantomClearFactorRegressed",
+      "msg": "the pool's factor mirror sits BELOW the phantom's own checkpoint — run a freeze first; writing the anchor backwards would make the next roll double-accrue"
+    },
+    {
+      "code": 6108,
+      "name": "InvalidCustodyAta",
+      "msg": "the supplied unclaimed-custody account is not the canonical ATA for the custody authority and the stORE mint"
     }
   ],
   "types": [
@@ -15483,6 +15658,32 @@
               "upstream merge + quant v3 vectors). Cosign-settable via ConfigField::SettlementMode."
             ],
             "type": "u8"
+          },
+          {
+            "name": "exit_fee_mining_bps",
+            "docs": [
+              "Mining-exit fee in bps, charged on the SOL leg at `pay_mining_exit`, bounded by",
+              "`MAX_EXIT_FEE_BPS`. The mining sibling of `exit_fee_staking_bps`; mining exits were free",
+              "before this.",
+              "",
+              "READ LIVE AT PAY — there is deliberately NO `Order` rate snapshot, and that is not an",
+              "oversight. `order.fee_bps_snapshot` is ALREADY occupied on the mining rail: intake writes",
+              "`config.perf_fee_bps` into it and `mining_exit.rs` consumes it as the perf rate, so the",
+              "`min(live, snapshot)` exiter protection `settle_staking_exit` uses is not available here —",
+              "it would compare a 50 bps fee against a 3000 bps perf rate, never bind, and let a future",
+              "perf cut silently clamp the exit fee. Adding a SECOND `u16` to `Order` is worse than",
+              "unavailable, it is unsafe: `Order` is `init`ed at `8 + Order::INIT_SPACE`, Borsh fails on a",
+              "SHORT account, and there is no migration rail for per-user PDAs — so every Order created",
+              "before the upgrade would become permanently undeserializable on the irrevocable",
+              "`MINING_EXITS` phase, wedging the cascade behind the entire TVL.",
+              "",
+              "Exposure from reading live is bounded by `MAX_EXIT_FEE_BPS` and one window, and it is real",
+              "rather than theoretical: `crank_freeze` sets `phase = FROZEN` and THEN calls `apply_due`, so",
+              "a window enters its own cascade under the config that same freeze applied. It is closed",
+              "OPERATIONALLY — the ops script must refuse to queue this field while",
+              "`window.registered_mining_exits > 0`."
+            ],
+            "type": "u16"
           }
         ]
       }
@@ -16150,6 +16351,59 @@
           {
             "name": "lamports",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MiningExitFeeCharged",
+      "docs": [
+        "genesis-2: the mining-exit fee, charged on the SOL leg at `pay_mining_exit`.",
+        "",
+        "`clamped` is the field an operator actually needs. The fee is bounded by",
+        "`sol_out - perf_fee`, and that bound BINDS in a real case — `perf_fee` can equal `sol_out`",
+        "outright — so a charge that came back short is not an anomaly to investigate but the underflow",
+        "guard doing its job. Without this flag the only way to tell the two apart is to re-derive the",
+        "perf fee off-chain."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "sol_out",
+            "docs": [
+              "The gross SOL leg the rate was applied to (`shares * frozen_nps`)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bps",
+            "type": "u16"
+          },
+          {
+            "name": "fee_amount",
+            "docs": [
+              "What was actually taken, AFTER the clamp."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "perf_fee",
+            "docs": [
+              "The perf fee taken from the same leg, for reconciling `sol_out` in one place."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "clamped",
+            "docs": [
+              "True ⇒ the rate's own figure exceeded `sol_out - perf_fee` and was cut to fit."
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -17236,6 +17490,108 @@
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PhantomReanchored",
+      "docs": [
+        "C1: the campaign-boundary phantom re-anchor. Emitted by `clear_phantom_at_boundary`.",
+        "",
+        "DELIBERATELY WIDE, and the width is the point. This instruction permanently rewrites the",
+        "conservation counter and, by construction, makes the residual read zero afterwards — so the",
+        "event is the ONLY surviving evidence of what the books actually said at the moment of the",
+        "write. Carrying only the new legs would leave an auditor unable to distinguish a re-anchor that",
+        "tidied dust from one that absorbed a real over-claim, which is precisely the distinction D3",
+        "exists to preserve. Every input to the arithmetic is therefore stamped alongside its output."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "window_id",
+            "type": "u64"
+          },
+          {
+            "name": "prev_u_mag",
+            "docs": [
+              "The legs as they stood BEFORE the write."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "prev_u_is_debit",
+            "type": "bool"
+          },
+          {
+            "name": "prev_r_mag",
+            "type": "u64"
+          },
+          {
+            "name": "prev_r_is_debit",
+            "type": "bool"
+          },
+          {
+            "name": "u_mag",
+            "docs": [
+              "The legs written."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "u_is_debit",
+            "type": "bool"
+          },
+          {
+            "name": "r_mag",
+            "type": "u64"
+          },
+          {
+            "name": "r_is_debit",
+            "type": "bool"
+          },
+          {
+            "name": "physical_u",
+            "docs": [
+              "The inputs the write was derived from, at `factor_checkpoint`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "physical_r",
+            "type": "u64"
+          },
+          {
+            "name": "books_u",
+            "type": "u64"
+          },
+          {
+            "name": "books_r",
+            "type": "u64"
+          },
+          {
+            "name": "residual_u",
+            "docs": [
+              "The residual MEASURED BEFORE the write — after it, both legs are zero by construction."
+            ],
+            "type": "i128"
+          },
+          {
+            "name": "residual_r",
+            "type": "i128"
+          },
+          {
+            "name": "absorbed_over_claim",
+            "docs": [
+              "True ⇒ this re-anchor absorbed a provable over-claim and latched `defensive_mode`",
+              "MANUAL-class. False ⇒ it tidied pool-favor dust and escalated nothing."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "factor_checkpoint",
+            "type": "u128"
           }
         ]
       }
