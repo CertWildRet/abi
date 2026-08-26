@@ -6496,6 +6496,27 @@ export type DiamondPools = {
       "accounts": [
         {
           "name": "config",
+          "docs": [
+            "⛔ F48 (gate-7 audit, 26 Aug 2026) — NO `mut`, AND THE HANDLER WRITES TO IT.",
+            "The dust-ceiling tripwire far below sets `config.defensive_mode = true`, and because this",
+            "field carries no `mut` constraint Anchor never calls `try_serialize` on it, so that write",
+            "lands on the in-memory copy and is SILENTLY DROPPED. The rev-11 F1 class; every other site",
+            "in the program that writes `defensive_mode` has `mut` here (remark.rs names this exact",
+            "hazard, plus freeze.rs, monetize.rs, pp_exit.rs, staking_exit.rs). PRE-EXISTING — not",
+            "introduced by the genesis-2 increment.",
+            "",
+            "⚠ IT IS NOT A ONE-WORD FIX, WHICH IS WHY IT IS STILL HERE. Adding `mut` makes Anchor require",
+            "`is_writable` on the passed account; the deployed keeper builds this instruction from the",
+            "OLD IDL, which marks `config` read-only, so EVERY `pay_mining_exit` would fail",
+            "`ConstraintMut` — on the irrevocable `MINING_EXITS` phase, which is the permanent-wedge",
+            "pattern this codebase has shipped and repaired five times. It needs a COORDINATED contract +",
+            "keeper release, not a night-before edit.",
+            "",
+            "Bounded meanwhile: `crank_freeze` re-checks the same ceiling and ITS Config carries `mut`,",
+            "so the trip still lands — deferred by at most one window. The observable cost is that window",
+            "plus a `PhantomDustCeilingBreached` event not yet backed by on-chain state, so log-watchers",
+            "must not read that event as the latch itself."
+          ],
           "pda": {
             "seeds": [
               {
@@ -8451,6 +8472,379 @@ export type DiamondPools = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "reinitForCampaign",
+      "docs": [
+        "F49 — re-establish the deployment for the NEXT campaign after a concluded evacuation.",
+        "Clears both monotonic latches (`evacuated`, `wind_down`) and re-runs the SAME campaign-state",
+        "routine `initialize` uses, so the reset side cannot forget a field. One-shot per version,",
+        "and armed separately via `set_emergency(5)`."
+      ],
+      "discriminator": [
+        144,
+        166,
+        21,
+        83,
+        229,
+        165,
+        11,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "docs": [
+            "MUT: cosign nonce, both latches, the arm, the version, and ~90 campaign fields."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "miningPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stakingPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  105,
+                  110,
+                  103,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "protocolPool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "unclaimed",
+          "docs": [
+            "MUT — the pot's COUNTERS (`recorded/paid/clawed_count`) are campaign state and are",
+            "re-established. Its LEDGERS are not: `store_owed`, `sol_owed` and both ORE legs are a named",
+            "beneficiary's claim, and `store_owed` is backed 1:1 by the unclaimed custody ATA. Gate 8",
+            "requires ALL FOUR to be zero.",
+            "⚠ An earlier version of this comment called the whole account \"COUNTERS … campaign state\",",
+            "and that phrasing is what let the asset-backed leg get zeroed. Counters are counters;",
+            "ledgers are claims."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "phantomMember",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  104,
+                  97,
+                  110,
+                  116,
+                  111,
+                  109,
+                  95,
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "feeSchedule",
+          "docs": [
+            "MUT — `genesis_ts` restarts here so the next campaign's perf-fee epoch begins at ITS",
+            "genesis. `recipients` and `ops_treasury` are survivors and are not touched."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  115,
+                  99,
+                  104,
+                  101,
+                  100,
+                  117,
+                  108,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custodyAuthority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  97,
+                  99,
+                  95,
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custodyAta",
+          "docs": [
+            "Read-only, TYPED because its `amount` is gate 6."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "custodyAuthority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "storeMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "storeMint"
+        },
+        {
+          "name": "oreMiner"
+        },
+        {
+          "name": "window",
+          "docs": [
+            "The live window. In the frame for two reasons the other gates make plain: to ASSERT its",
+            "quiescence here rather than inherit it, and to RE-STAMP its cutoff. `evacuate_claim_all`",
+            "accepts INTAKE **or OPEN** (evacuate.rs:543) while `crank_freeze` requires INTAKE — so if",
+            "the OPEN branch is ever reachable, campaign 2 could never freeze and there is no on-chain",
+            "recovery. Gate 7's own note is the law here: rest on a fact of THIS instruction, not on an",
+            "assumption a future edit to another handler could relax."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "config.current_window_id",
+                "account": "config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "ixSysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nextVersion",
+          "type": "u8"
+        }
+      ]
     },
     {
       "name": "removeWhitelist",
@@ -13794,6 +14188,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "campaignReinitialised",
+      "discriminator": [
+        197,
+        137,
+        197,
+        142,
+        55,
+        5,
+        179,
+        172
+      ]
+    },
+    {
       "name": "capOverflow",
       "discriminator": [
         85,
@@ -13895,6 +14302,19 @@ export type DiamondPools = {
         147,
         84,
         58
+      ]
+    },
+    {
+      "name": "endOfCampaignArmed",
+      "discriminator": [
+        1,
+        137,
+        102,
+        137,
+        169,
+        226,
+        71,
+        143
       ]
     },
     {
@@ -15093,6 +15513,41 @@ export type DiamondPools = {
       "code": 6108,
       "name": "invalidCustodyAta",
       "msg": "the supplied unclaimed-custody account is not the canonical ATA for the custody authority and the stORE mint"
+    },
+    {
+      "code": 6109,
+      "name": "reopenCustodyNotEmpty",
+      "msg": "evacuation custody still holds stORE — sweep it before reopening, or the remainder is stranded with no instruction able to reach it"
+    },
+    {
+      "code": 6110,
+      "name": "reopenNotEvacuated",
+      "msg": "this deployment is not evacuated — there is nothing to reopen, and clearing wind_down here would bypass its monotonic law"
+    },
+    {
+      "code": 6111,
+      "name": "reopenMinerNotDrained",
+      "msg": "the shared ORE miner still holds rewards or refined ORE — retiring the books and the phantom is only legal against a provably drained miner"
+    },
+    {
+      "code": 6112,
+      "name": "reopenUnclaimedOreOutstanding",
+      "msg": "the unclaimed pot still owes value (stORE, SOL or ORE) — discharge it via claim_unclaimed / sweep_unclaimed_to_pool first; it is a named beneficiary's claim, and store_owed is backed 1:1 by a custody ATA this instruction cannot reach"
+    },
+    {
+      "code": 6113,
+      "name": "reinitNotArmed",
+      "msg": "the campaign re-init is not armed — run set_emergency(5, true) first so the decision is on chain and reviewable before anything irreversible happens"
+    },
+    {
+      "code": 6114,
+      "name": "reinitVersionMismatch",
+      "msg": "campaign version mismatch — a re-init advances by exactly one and can never revisit a version"
+    },
+    {
+      "code": 6115,
+      "name": "unclaimedSweepPoolHasNoHolders",
+      "msg": "this pool has no holders — sweeping the unclaimed pot into it would delete the claim rather than discharge it; discharge to the beneficiary instead"
     }
   ],
   "types": [
@@ -15169,6 +15624,53 @@ export type DiamondPools = {
           {
             "name": "factorCheckpoint",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "campaignReinitialised",
+      "docs": [
+        "F49: the deployment was re-established for a NEW CAMPAIGN — both terminal latches cleared and",
+        "every campaign field re-established from the same routine `initialize` uses.",
+        "",
+        "The `prev_evac_*` values are carried because the re-establishment zeroes them: afterwards this",
+        "event is the only on-chain record that the closed campaign's evacuation snapshot existed."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "campaignVersion",
+            "type": "u8"
+          },
+          {
+            "name": "genesisTs",
+            "type": "i64"
+          },
+          {
+            "name": "prevEvacBasisTotal",
+            "type": "u64"
+          },
+          {
+            "name": "prevEvacStoreCustody",
+            "type": "u64"
+          },
+          {
+            "name": "prevEvacFactor",
+            "type": "u128"
+          },
+          {
+            "name": "miningShares",
+            "type": "u64"
+          },
+          {
+            "name": "stakingShares",
+            "type": "u64"
+          },
+          {
+            "name": "protocolShares",
+            "type": "u64"
           }
         ]
       }
@@ -15690,6 +16192,33 @@ export type DiamondPools = {
               "`window.registered_mining_exits > 0`."
             ],
             "type": "u16"
+          },
+          {
+            "name": "campaignVersion",
+            "docs": [
+              "F49 — which CAMPAIGN this deployment is running. Bumped ONLY by",
+              "`reinit_for_campaign`, which accepts exactly `current + 1`, so a re-init is one-shot per",
+              "transition and can never be replayed.",
+              "",
+              "Zero-fill makes the LIVE account read **0**, and campaign 1 is the deployment that is",
+              "running now — so 0 IS campaign 1. A fresh `initialize` sets 1 explicitly, and the two agree",
+              "on everything that matters: the first re-init accepts `current + 1` from either base."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "endOfCampaign",
+            "docs": [
+              "F49 — the ARMING flag for `reinit_for_campaign`, set by `set_emergency(5, true)`.",
+              "",
+              "⚑ WHY A SEPARATE ARM AT ALL, rather than gating the re-init on its own preconditions.",
+              "The re-init rewrites ~141 fields across seven accounts. Making it a SINGLE cosigned call",
+              "means the first irreversible action is also the only one — nothing is visible on chain",
+              "beforehand, and nothing can be reviewed between deciding and doing. Arming is cheap,",
+              "reversible, destroys nothing, and puts a reviewable marker on chain before the write. It is",
+              "the same discipline as `PpExitNotice`: announce, then act."
+            ],
+            "type": "bool"
           }
         ]
       }
@@ -15888,6 +16417,26 @@ export type DiamondPools = {
           {
             "name": "sharesMinted",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "endOfCampaignArmed",
+      "docs": [
+        "F49 §5.5b: the campaign re-init was armed or stood down. Emitted on BOTH edges so the on-chain",
+        "record shows an arm that was reviewed and withdrawn, not only ones that were used."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "armed",
+            "type": "bool"
+          },
+          {
+            "name": "campaignVersion",
+            "type": "u8"
           }
         ]
       }
