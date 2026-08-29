@@ -17674,13 +17674,6 @@ export type DiamondPools = {
             "type": "u64"
           },
           {
-            "name": "foldedAtWindowId",
-            "docs": [
-              "Where the fold physically happened (the freezing window, or the evacuation's window)."
-            ],
-            "type": "u64"
-          },
-          {
             "name": "uGrams",
             "type": "u64"
           },
@@ -17694,6 +17687,16 @@ export type DiamondPools = {
           },
           {
             "name": "phantomMaxLegAfter",
+            "type": "u64"
+          },
+          {
+            "name": "foldedAtWindowId",
+            "docs": [
+              "Where the fold physically happened (the freezing window, or the evacuation's window).",
+              "⚠ APPENDED, not inserted (re-audit #9): a mid-struct insert shifts every later field by",
+              "8 bytes for any pinned-old-IDL decoder — a silent misparse. Borsh event layout is decl",
+              "order; new fields go at the END, always."
+            ],
             "type": "u64"
           }
         ]
