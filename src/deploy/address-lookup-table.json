@@ -1,7 +1,7 @@
 {
   "table": "6DLDM74FRQPWQW7FtHK1uJ6gBW2scJEyvsPrPWwXCXEY",
   "authority": "C3WDMosNFP8iBS2Rwuq8ggPGFTDkA4s33tWi4PmMGHmv",
-  "count": 48,
+  "count": 47,
   "entries": [
     {
       "i": 0,
@@ -237,11 +237,6 @@
       "i": 46,
       "label": "dp:program_data",
       "address": "9mpN6ZfZ92jV33ghyYFeGZpZMz7sfc8F9VPAcQ7jDoaR"
-    },
-    {
-      "i": 47,
-      "label": "sysvar:instructions",
-      "address": "Sysvar1nstructions1111111111111111111111111"
     }
   ]
 }

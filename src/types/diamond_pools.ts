@@ -14565,6 +14565,19 @@ export type DiamondPools = {
       ]
     },
     {
+      "name": "monetizeRemainderFolded",
+      "discriminator": [
+        140,
+        138,
+        26,
+        240,
+        224,
+        167,
+        127,
+        187
+      ]
+    },
+    {
       "name": "monetizeResidualClaimed",
       "discriminator": [
         176,
@@ -15548,6 +15561,16 @@ export type DiamondPools = {
       "code": 6115,
       "name": "unclaimedSweepPoolHasNoHolders",
       "msg": "this pool has no holders — sweeping the unclaimed pot into it would delete the claim rather than discharge it; discharge to the beneficiary instead"
+    },
+    {
+      "code": 6116,
+      "name": "carryOutstandingKeeperOnly",
+      "msg": "a monetize carry is outstanding — this cycle's remainder belongs to the sellers the keeper withheld it from, so the re-claim is keeper-only until it is retired or folded, u64::MAX included"
+    },
+    {
+      "code": 6117,
+      "name": "evacCarryOutstanding",
+      "msg": "a monetize carry is outstanding and has not been folded — run one more crank_freeze (which folds it into the phantom) before evacuating, or the remainder is dropped from conservation entirely"
     }
   ],
   "types": [
@@ -17426,6 +17449,63 @@ export type DiamondPools = {
               "unchanged and load-bearing."
             ],
             "type": "u64"
+          },
+          {
+            "name": "monetizeCarryU",
+            "docs": [
+              "── F34 carry-(b) tail (28 Aug 2026, desk rev-1 §2.3). APPEND-ONLY. ──────────────",
+              "The part of a capped residual claim that was NOT delivered to sellers and is",
+              "therefore still OWED to them — carried so the SAME cycle's sellers re-claim it on",
+              "the next crank, instead of it accruing to PP through the phantom (desk: \"a cap is",
+              "an execution constraint and must never become a redistribution rule\").",
+              "",
+              "⛔ WHY THIS IS A SEPARATE FIELD SET AND NOT `monetize_intended_*`.",
+              "Three gates read the intended tail and refuse while it is non-zero: STAGE",
+              "(`monetize.rs:1378`), ABORT (`:1861`) and `crank_cap_rebalance`",
+              "(`staking_exit.rs:582`) — and cap_rebalance is the MANDATORY TREASURY_ADV → BATCH",
+              "step. Carrying inside `intended_*` therefore blocks cap_rebalance, so STAGE never",
+              "runs, so `monetize_in_flight` stays 0, so `freeze.rs:124-128` refuses EVERY",
+              "subsequent freeze — including the \"closing freeze\" the desk's own cycle-close rule",
+              "folds at. The remainder would block the very freeze meant to retire it.",
+              "",
+              "Held here instead, `intended_*` keeps its exact prior meaning, every gate passes",
+              "unchanged, and the deadlock cannot arise rather than being tolerated. Zero-filled",
+              "by `migrate_account_space`, so these are born 0 = \"no carry\" and behaviour is",
+              "byte-identical until the F34 cap is armed."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "monetizeCarryR",
+            "type": "u64"
+          },
+          {
+            "name": "monetizeCarryStore",
+            "type": "u64"
+          },
+          {
+            "name": "monetizeCarryAdv",
+            "docs": [
+              "GATE-7 A5: the refining the carried u-leg had ALREADY EARNED at mint —",
+              "`accrue_rore(carry_u, claim_factor_live, window.frozen_factor)`, computed where both",
+              "factors are in frame. The mint nets the phantom by `carry_r + carry_adv` (the sellers'",
+              "full remaining r-entitlement at the mint factor); the fold adds it back plus the",
+              "stamp-to-fold span. Without it, a capped-then-reclaimed cycle books the [frozen → mint]",
+              "span twice (permanent spurious phantom credit, drift toward the 500M tripwire) and a",
+              "capped-then-folded cycle drops it (pool-favor under-credit) — \"exact inverses by",
+              "construction\" was false across any factor advance."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "monetizeCarryFactor",
+            "docs": [
+              "GATE-7 A5: the factor the carry was minted at (`claim_factor_live`). The fold anchors the",
+              "carried u-leg's post-mint refining here: `accrue_rore(carry_u, fold_factor, this)`. Zero ⇒",
+              "no stamp (no carry, or pre-A5 state) ⇒ the fold adds no post-mint span, never a bogus",
+              "full-range accrual."
+            ],
+            "type": "u128"
           }
         ]
       }
@@ -17437,7 +17517,18 @@ export type DiamondPools = {
         "instead of forcing its route (the window-349 wedge class). surface: 1 = the residual",
         "claim was consumed pool-favor into the LITE phantom credit without a CPI; 2 = the",
         "custody was reclassified to the system reserve without a keeper swap (zero-value",
-        "FOLD clears the weights)."
+        "FOLD clears the weights); 3 = a PER-POSITION sell slice was under the floor, so the annex was",
+        "left on the position untouched.",
+        "",
+        "⚑ THE THREE SURFACES CLEAR DIFFERENTLY, and an operator reading this event needs to know which:",
+        "1 CLAIM — consumed pool-favor into the LITE phantom as a CREDIT; `crank_remark_phantom` folds",
+        "a pure credit into the PP book. Clears itself.",
+        "2 STAGE — reclassified into `claim_reserve_store`. ⛔ THAT FIELD ONLY EVER ACCUMULATES: every",
+        "write in the program is a `checked_add`, and it is zeroed ONLY by `initialize` (unreachable",
+        "— F42) and by the evacuation. So surface 2 is attributable but has NO intra-campaign clear",
+        "path; it releases at the campaign boundary and not before.",
+        "3 LEG — the annex stays on the Position, so the holder still receives it on exit",
+        "(`pay_mining_exit` delivers it, or records it to the unclaimed pot). Deferred, not stranded."
       ],
       "type": {
         "kind": "struct",
@@ -17549,6 +17640,61 @@ export type DiamondPools = {
           {
             "name": "registered",
             "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "monetizeRemainderFolded",
+      "docs": [
+        "F34 carry-(b): a capped `claim_residual` left part of the sellers' entitlement undelivered,",
+        "and the cycle closed without a re-claim — so the remainder is now genuinely unclaimed and",
+        "folds into the LITE phantom at this freeze.",
+        "",
+        "⚑ WHY AN OPERATOR CARES. Seeing this means the keeper's `executor_cap_grams` bound a claim and",
+        "then no second crank ran before the cascade moved on. Once is routine (a cap exists precisely",
+        "to defer value the keeper cannot afford to STAGE); EVERY cycle means the keeper is capping and",
+        "never coming back, and the sellers are being paid in phantom credit instead of stORE. The carry",
+        "is bounded to at most one window by construction — the re-claim is only reachable in its own",
+        "cycle's TREASURY_ADV — so this event is the ONLY record that the deferral expired.",
+        "",
+        "`store_grams` has no phantom leg of its own (the phantom is a u/r ledger); it is reported so",
+        "the folded tail can be reconciled against `monetize_intended_store` at the seal."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "windowId",
+            "docs": [
+              "GATE-7 A10: the CARRY'S OWN CYCLE (`mp.monetize_window_id`) — the window whose capped",
+              "claim never came back. An earlier draft stamped the freshly-frozen window here, which is",
+              "always ≥ W+1 and misattributes the one event documenting an expired deferral."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "foldedAtWindowId",
+            "docs": [
+              "Where the fold physically happened (the freezing window, or the evacuation's window)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "uGrams",
+            "type": "u64"
+          },
+          {
+            "name": "rGrams",
+            "type": "u64"
+          },
+          {
+            "name": "storeGrams",
+            "type": "u64"
+          },
+          {
+            "name": "phantomMaxLegAfter",
+            "type": "u64"
           }
         ]
       }
