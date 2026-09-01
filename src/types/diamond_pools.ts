@@ -2268,6 +2268,10 @@ export type DiamondPools = {
         {
           "name": "perTile",
           "type": "u64"
+        },
+        {
+          "name": "maxSlotsLeft",
+          "type": "u8"
         }
       ]
     },
@@ -15571,6 +15575,16 @@ export type DiamondPools = {
       "code": 6117,
       "name": "evacCarryOutstanding",
       "msg": "a monetize carry is outstanding and has not been folded — run one more crank_freeze (which folds it into the phantom) before evacuating, or the remainder is dropped from conservation entirely"
+    },
+    {
+      "code": 6118,
+      "name": "deployWindowNotOpen",
+      "msg": "deploy window not open: the ORE round has more slots left than this call's max_slots_left — an early copy of a slot-guarded spray, refused so it deploys nothing on a board the decision did not see"
+    },
+    {
+      "code": 6119,
+      "name": "tilesAlreadyDeployedThisRound",
+      "msg": "tiles already deployed this round: a later copy of a slot-guarded spray overlaps tiles an earlier copy landed — refused so no tile is ever bought twice in one round"
     }
   ],
   "types": [
@@ -17506,6 +17520,20 @@ export type DiamondPools = {
               "full-range accrual."
             ],
             "type": "u128"
+          },
+          {
+            "name": "tilesDeployedThisRound",
+            "docs": [
+              "L9 (2 Sep): bitmask of tiles already deployed in `current_round_id`, reset when the round",
+              "rolls. The idempotency latch behind the slot-guarded spray: the keeper sends several",
+              "signature-distinct copies of one round's bundle a slot apart and the on-chain slot guard",
+              "lets only a copy that executes inside the window deploy — but two copies CAN execute in",
+              "the same slot, and ORE happily stacks a second deploy on the same square. This mask makes",
+              "a tile deployable once per round whatever the copy count. ⛔ APPENDED (layout law);",
+              "`migrate_account_space` grows the live account to `8 + INIT_SPACE`; zero-fill is the",
+              "correct birth value (nothing deployed)."
+            ],
+            "type": "u32"
           }
         ]
       }
